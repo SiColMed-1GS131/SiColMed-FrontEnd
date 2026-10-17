@@ -1,0 +1,123 @@
+:root {
+  --merinolight: #fcf9f5;
+  --merino: #F5EEDD;        
+  --merinodark: #ded2ba;
+  --rock-bluelight: #afcee2;
+  --rock-blue: #84B3CE;   
+  --rock-bluedark: #588da9;
+  --venice-bluelight: #2c7da1;
+  --venice-blue: #16587B; 
+  --venice-bluedark: #0b3248;
+    --bg-app: var(--merinolight);
+    --text-color: var(--venice-bluedark);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: var(--bg-app);
+    color: var(--text-color);
+}
+
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Side var diseno*/
+.sidebar {
+    width: 80px;
+    background: linear-gradient(to bottom, var(--venice-bluelight), var(--venice-blue), var(--venice-bluedark));
+    display: flex;
+    flex-direction: column;
+    padding-top: 40px;
+    transition: width 0.3s ease;
+    overflow: hidden;
+    z-index: 100;
+}
+
+
+.sidebar:hover {
+    width: 280px; 
+}
+
+.sidebar__nav {
+    width: 100%;
+}
+
+.sidebar__nav ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.sidebar__nav li {
+    padding: 0 20px; 
+}
+
+.sidebar__nav a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--merinolight);
+    font-weight: bold;
+    white-space: nowrap; 
+}
+
+
+.sidebar__icon {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    background-color: var(--merinolight);
+    border-radius: 4px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px var(--venice-bluelight);
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+
+.sidebar__text {
+    margin-left: 15px;
+    font-size: 16px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+
+.sidebar:hover .sidebar__text {
+    opacity: 1;
+    visibility: visible;
+}
+
+
+.sidebar__nav a:hover .sidebar__icon {
+    transform: scale(1.1);
+    background-color: white;
+}
+
+.sidebar__nav a:hover .sidebar__text {
+    color: white; 
+}
+
+/* disno general */
+
+.main-content {
+    flex: 1;
+    padding: 40px;
+    background-color: var(--merinolight);
+}
+
+.main-content h1 {
+    color: var(--venice-blue);
+    font-size: 24px;
+    margin-bottom: 30px;
+}
