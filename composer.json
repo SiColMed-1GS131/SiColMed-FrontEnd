@@ -1,0 +1,16 @@
+{
+  "name": "sicolmed/frontend",
+  "description": "Frontend PHP MVC de SiColMed",
+  "type": "project",
+  "require": {
+    "php": "^8.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "App/"
+    }
+  },
+  "config": {
+    "sort-packages": true
+  }
+}

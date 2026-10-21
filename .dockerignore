@@ -1,3 +1,16 @@
-.git/
-node_modules/
+.git
+.gitignore
+.gitattributes
 .env
+.env.*
+!.env.example
+node_modules
+vendor
+.DS_Store
+Thumbs.db
+# No incluir archivos de usuarios en la imagen.
+Public/Assets/Uploads/*
+!Public/Assets/Uploads/.gitkeep
+!Public/Assets/Uploads/Perfil/
+Public/Assets/Uploads/Perfil/*
+!Public/Assets/Uploads/Perfil/.gitkeep
