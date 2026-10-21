@@ -222,7 +222,7 @@ Si un archivo cumple varias funciones, considera dividirlo para evitar dependenc
 
 | Evitar                                                             | Mejor práctica                                                        |
 | ------------------------------------------------------------------ | --------------------------------------------------------------------- |
-| Consultar la API directamente en múltiples componentes de `Views`. | Centralizar el acceso a datos en `Repositories`, cuando aplique.      |
+| Consultar la API directamente en múltiples componentes de `Views`. | Centralizar el acceso a d atos en `Repositories`, cuando aplique.     |
 | Repetir reglas de validación funcional en distintas pantallas.     | Consolidar reglas compartidas en `Services` o esquemas reutilizables. |
 | Guardar funciones grandes y específicas en `Helpers`.              | Asignarles una capa con responsabilidad clara.                        |
 | Añadir secretos en `Configs` o `Public/Assets`.                    | Mantenerlos en el servidor y exponer solo configuración segura.       |
