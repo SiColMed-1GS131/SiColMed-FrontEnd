@@ -1,17 +1,4 @@
 <?php
-<<<<<<< Updated upstream
-$api = getenv('API_URL') ?: 'http://api:8000';
-$respuesta = @file_get_contents("$api/health/db");
-?>
-<!DOCTYPE html>
-<html lang="es">
-<head><meta charset="UTF-8"><title>Certificaciones Médicas</title></head>
-<body>
-  <h1>Certificaciones Médicas - Panamá</h1>
-  <pre><?= htmlspecialchars($respuesta ?: 'No se pudo conectar con la API') ?></pre>
-</body>
-</html>
-=======
 
 declare(strict_types=1);
 
@@ -75,6 +62,7 @@ set_exception_handler(static function (Throwable $error): void {
 use App\Core\Router;
 use App\Controllers\Auth\AuthController;
 use App\Controllers\Auth\RegisterController;
+use App\Controllers\RegistroController;
 
 /* ==================================================
    INICIALIZACIÓN DEL ROUTER
@@ -95,12 +83,20 @@ $router->get('/register', [RegisterController::class, 'index']);
 $router->post('/register', [RegisterController::class, 'index']);
 
 /* ==================================================
+   REGISTRO MÉDICO (administrador)
+   ================================================== */
+$router->get('/registro-medico', [RegistroController::class, 'index']);
+$router->get('/registro-medico/nuevo', [RegistroController::class, 'nuevo']);
+$router->get('/registro-medico/editar', [RegistroController::class, 'editar']);
+$router->post('/registro-medico/guardar', [RegistroController::class, 'guardar']);
+
+/* ==================================================
    EJECUCIÓN DEL ROUTER
    ================================================== */
 // Compatibilidad temporal con enlaces antiguos (?page=login/register).
 $legacyPage = $_GET['page'] ?? null;
 if ($legacyPage !== null) {
-    if (!is_string($legacyPage) || !in_array($legacyPage, ['login', 'register'], true)) {
+    if (!is_string($legacyPage) || !in_array($legacyPage, ['login', 'register', 'registro-medico'], true)) {
         http_response_code(404);
         exit('Página no encontrada.');
     }
@@ -118,4 +114,3 @@ if ($legacyPage !== null) {
     }
 }
 $router->dispatch($_SERVER['REQUEST_METHOD'] ?? 'GET', $path);
->>>>>>> Stashed changes
