@@ -1,6 +1,6 @@
 <!-- Hola, para las pruebas de registro estuve usando esto directamente en la termina de VSC, en la raíz del proyecto:
 $env:USE_MOCK = "1"
-php -S localhost:8001 -t Public preview-index.php 
+php -S localhost:8001 -t Public
 http://localhost:8001/registro-medico
 el ultimo es el link, va directo al navegador 
 link adicional para el login
