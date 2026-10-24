@@ -31,22 +31,22 @@ SiColMed-FrontEnd/
 │   │   └── Portal/
 └── Public/
 │   ├── Assets/
-│   ├── CSS/
-│   │   └── Dedicated/
-│   ├── IMG/
-│   ├── JavaScript/
-│   │   ├── Dedicated/
-│   │   └── Functions/
-│   ├── MP3/
-│   ├── Uploads/
-└── └── └── Perfil/
-
+│   │   ├── CSS/
+│   │   │   └── Dedicated/
+│   │   ├── IMG/
+│   │   ├── JavaScript/
+│   │   │   ├── Dedicated/
+│   │   │   └── Functions/
+│   │   ├── MP3/
+│   │   ├── Uploads/
+│   ├── └── Perfil/
+├── ├── .htaccess
+└── └── index.php
 ```
 
-**Importante:** En el Directorio App es donde se colocara el el código de riesgo "Alto", "Medio" o "Importante" mientras que en el Directorio Public se colocara el código de riesgo "Bajo" o nulo
+**Importante:** En el Directorio App es donde se colocara el el código de riesgo "Alto", "Medio" o "Importante" mientras que en el Directorio Public se colocara el código de riesgo "Bajo" o nulo 
 
 ## 2. Mapa rápido: ¿dónde va cada cosa?
-
 ### App/
 
 | Carpeta                  | Responsabilidad recomendada                                                                                                                                            | Ejemplos de contenido                                                                                             |
@@ -74,9 +74,7 @@ SiColMed-FrontEnd/
 | `Views/Partials/`        | Centralizar componentes visuales reutilizables entre diferentes módulos y roles del sistema, evitando duplicar estructuras comunes en las vistas.                      | Componentes globales, mensajes de alerta, ventanas modales, encabezados y elementos compartidos.                  |
 | `Views/Portal/`          | Organizar las vistas correspondientes al portal general del sistema, incluyendo páginas públicas o interfaces que no pertenezcan exclusivamente a un rol específico.   | Página de bienvenida, información institucional, páginas informativas y contenido público.                        |
 |                          |                                                                                                                                                                        |                                                                                                                   |
-
 ### Public/
-
 | Carpeta                    | Responsabilidad recomendada                                                                                                                           | Ejemplos de contenido                                                          |
 | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | `Public/Assets/`           | Almacenar recursos estáticos públicos.                                                                                                                | Logos, íconos, imágenes y fuentes públicas autorizadas.                        |
@@ -97,7 +95,6 @@ SiColMed-FrontEnd/
 **Qué colocar:** parámetros que se necesitan en distintos módulos: rutas base, tiempos de espera, banderas de funcionalidad, nombres de claves de almacenamiento y configuración del cliente HTTP.
 
 **Cómo trabajar:**
-
 1. Consulta primero cómo se leen actualmente las variables de entorno.
 2. Declara una sola fuente de verdad para cada parámetro.
 3. Evita repetir direcciones de API o valores de configuración en las vistas.
@@ -220,14 +217,14 @@ Si un archivo cumple varias funciones, considera dividirlo para evitar dependenc
 
 ## 7. Errores comunes que conviene evitar
 
-| Evitar                                                             | Mejor práctica                                                        |
-| ------------------------------------------------------------------ | --------------------------------------------------------------------- |
-| Consultar la API directamente en múltiples componentes de `Views`. | Centralizar el acceso a d atos en `Repositories`, cuando aplique.     |
-| Repetir reglas de validación funcional en distintas pantallas.     | Consolidar reglas compartidas en `Services` o esquemas reutilizables. |
-| Guardar funciones grandes y específicas en `Helpers`.              | Asignarles una capa con responsabilidad clara.                        |
-| Añadir secretos en `Configs` o `Public/Assets`.                    | Mantenerlos en el servidor y exponer solo configuración segura.       |
-| Usar `Middleware` frontend como única barrera de seguridad.        | Verificar permisos y acceso también desde el backend.                 |
-| Crear archivos sin revisar patrones existentes.                    | Mantener consistencia con el proyecto y sus convenciones.             |
+| Evitar | Mejor práctica |
+|---|---|
+| Consultar la API directamente en múltiples componentes de `Views`. | Centralizar el acceso a datos en `Repositories`, cuando aplique. |
+| Repetir reglas de validación funcional en distintas pantallas. | Consolidar reglas compartidas en `Services` o esquemas reutilizables. |
+| Guardar funciones grandes y específicas en `Helpers`. | Asignarles una capa con responsabilidad clara. |
+| Añadir secretos en `Configs` o `Public/Assets`. | Mantenerlos en el servidor y exponer solo configuración segura. |
+| Usar `Middleware` frontend como única barrera de seguridad. | Verificar permisos y acceso también desde el backend. |
+| Crear archivos sin revisar patrones existentes. | Mantener consistencia con el proyecto y sus convenciones. |
 
 ## 8. Checklist antes de finalizar una funcionalidad
 
@@ -238,3 +235,7 @@ Si un archivo cumple varias funciones, considera dividirlo para evitar dependenc
 - [ ] Revisé manejo de datos sensibles y permisos.
 - [ ] Probé el flujo de principio a fin.
 - [ ] Dejé documentados los cambios y dependencias importantes.
+
+## 9. Próximo paso para convertirlo en documentación específica
+
+Para transformar esta guía orientativa en un tour **fiel al código real de SiColMed**, comparte el árbol de archivos completo (incluidas las extensiones), el `package.json` o archivo equivalente, y uno o dos archivos representativos por carpeta. Con eso será posible documentar qué hace cada módulo **de verdad**, los comandos exactos de ejecución, las dependencias y ejemplos en el lenguaje/framework del proyecto.
