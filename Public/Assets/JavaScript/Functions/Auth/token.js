@@ -1,19 +1,19 @@
 // Gestión de tokens y persistencia de la sesión.
 const TOKEN_KEY = 'sicolmed_access_token';
-const STORAGE_KEY = 'sicolmed_token_storage';
+// Clave antigua (marcador de dónde estaba el token); se limpia por compatibilidad.
+const LEGACY_STORAGE_KEY = 'sicolmed_token_storage';
 
-function getStorage() {
-  return sessionStorage.getItem(STORAGE_KEY) === 'local' ? localStorage : sessionStorage;
-}
-
+// "Recordar sesión" guarda en localStorage; si no, en sessionStorage.
+// Se buscan ambos para que la sesión recordada siga activa al cerrar y abrir
+// el navegador o al abrir otra pestaña (sessionStorage no se comparte entre pestañas).
 export function getToken() {
-  return getStorage().getItem(TOKEN_KEY);
+  return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
 }
 
 export function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
   sessionStorage.removeItem(TOKEN_KEY);
-  sessionStorage.removeItem(STORAGE_KEY);
+  sessionStorage.removeItem(LEGACY_STORAGE_KEY);
 }
 
 export function decodeToken(token) {
@@ -39,7 +39,6 @@ export function isTokenExpired(token) {
 export function saveToken(token, rememberSession = false) {
   clearToken();
   (rememberSession ? localStorage : sessionStorage).setItem(TOKEN_KEY, token);
-  sessionStorage.setItem(STORAGE_KEY, rememberSession ? 'local' : 'session');
 }
 
 export function isAuthenticated() {

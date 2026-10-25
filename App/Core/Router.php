@@ -25,6 +25,10 @@ final class Router
 
     public function dispatch(string $method, string $path): void
     {
+        // HEAD se atiende como GET (PHP descarta el cuerpo); evita 405 en comprobaciones de salud.
+        if ($method === 'HEAD') {
+            $method = 'GET';
+        }
         $path = $path !== '/' ? rtrim($path, '/') : '/';
         if (!isset($this->routes[$path])) {
             http_response_code(404);

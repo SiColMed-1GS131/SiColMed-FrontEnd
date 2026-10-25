@@ -8,34 +8,50 @@ export function initializeLoginForm() {
   const form = document.getElementById('login-form');
   if (!form) return;
 
+  const usernameInput = form.querySelector('#usuario');
+  const passwordInput = form.querySelector('#password');
+  const button = form.querySelector('button[type="submit"]');
+
   form.addEventListener('submit', async event => {
     event.preventDefault();
-    const button = form.querySelector('button[type="submit"]');
+    if (form.getAttribute('aria-busy') === 'true') return;
+
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+    const rememberSession = form.querySelector('input[name="recordar"]')?.checked ?? false;
+
+    // "required" no detecta un campo con solo espacios.
+    if (!username || !password) {
+      showStatus(form, 'Ingresa tu correo o usuario y tu contraseña.', 'error');
+      (username ? passwordInput : usernameInput).focus();
+      return;
+    }
+
+    form.setAttribute('aria-busy', 'true');
     if (button) button.disabled = true;
-    showStatus(form, 'Iniciando sesión...');
+    showStatus(form, 'Iniciando sesión...', 'info');
     try {
-      const username = form.querySelector('#usuario').value.trim();
-      const password = form.querySelector('#password').value;
-      const rememberSession = form.querySelector('input[name="recordar"]')?.checked ?? false;
       await login(username, password, rememberSession);
-      showStatus(form, mockMode ? 'Sesión iniciada (modo de prueba).' : 'Sesión iniciada correctamente.');
+      passwordInput.value = '';
+      showStatus(form, mockMode ? 'Sesión iniciada (modo de prueba).' : 'Sesión iniciada correctamente.', 'success');
       if (typeof window.SICOLMED_AFTER_LOGIN === 'function') window.SICOLMED_AFTER_LOGIN();
     } catch (error) {
-      showStatus(form, error.message, true);
+      showStatus(form, error.message, 'error');
+      passwordInput.focus();
     } finally {
+      form.removeAttribute('aria-busy');
       if (button) button.disabled = false;
     }
   });
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeLoginForm, { once: true });
-} else {
+function start() {
+  initializePasswordToggles();
   initializeLoginForm();
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => initializePasswordToggles(), { once: true });
+  document.addEventListener('DOMContentLoaded', start, { once: true });
 } else {
-  initializePasswordToggles();
+  start();
 }

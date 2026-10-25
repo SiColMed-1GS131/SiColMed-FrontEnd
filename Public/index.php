@@ -10,7 +10,9 @@ ini_set('session.use_strict_mode', '1');
 ini_set('session.use_only_cookies', '1');
 ini_set('session.cookie_httponly', '1');
 ini_set('session.cookie_samesite', 'Lax');
-$isHttps = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+// Detrás de un proxy inverso que termina TLS, PHP recibe HTTP; se respeta X-Forwarded-Proto.
+$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https';
 ini_set('session.cookie_secure', $isHttps ? '1' : '0');
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
@@ -74,6 +76,8 @@ $router = new Router();
 $router->get('/', [AuthController::class, 'login']);
 $router->get('/login', [AuthController::class, 'login']);
 // El inicio de sesión se procesa mediante JS y la API, no mediante POST PHP.
+// POST /login solo existe como respaldo cuando el formulario se envía sin JavaScript.
+$router->post('/login', [AuthController::class, 'loginFallback']);
 
 /* ==================================================
    REGISTRO DE MÉDICOS

@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Iniciar sesión · SiColMed</title>
+  <meta name="sicolmed-api-url" content="<?= htmlspecialchars($apiBaseUrl, ENT_QUOTES, 'UTF-8') ?>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -47,12 +48,16 @@
         <h1>Iniciar sesión</h1>
         <p class="sub">Ingresa tus credenciales para acceder a SiColMed.</p>
 
-        <form id="login-form" action="#" method="post">
+        <form id="login-form" action="/login" method="post">
+          <?php if ($scriptFailed): ?>
+            <p class="auth-status auth-status--error" role="alert">No se pudo procesar el formulario. Recarga la página y verifica que JavaScript esté activado.</p>
+          <?php endif; ?>
+          <noscript><p class="auth-status auth-status--error">Para iniciar sesión necesitas activar JavaScript en tu navegador.</p></noscript>
           <div class="field">
             <label class="lbl" for="usuario">Correo electrónico o usuario</label>
             <div class="control">
               <svg class="i" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-              <input id="usuario" name="usuario" type="text" placeholder="Ingresa tu correo o usuario" autocomplete="username" required>
+              <input id="usuario" name="usuario" type="text" placeholder="Ingresa tu correo o usuario" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required>
             </div>
           </div>
 
@@ -61,8 +66,9 @@
             <div class="control">
               <svg class="i" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
               <input id="password" name="password" type="password" placeholder="Ingresa tu contraseña" autocomplete="current-password" required>
-              <button class="toggle" type="button" aria-label="Mostrar u ocultar contraseña" data-toggle="password">
-                <svg class="i" viewBox="0 0 24 24"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+              <button class="toggle" type="button" aria-label="Mostrar contraseña" aria-pressed="false" data-toggle="password">
+                <svg class="i i--hidden" viewBox="0 0 24 24"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+                <svg class="i i--visible" viewBox="0 0 24 24"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
             </div>
           </div>
