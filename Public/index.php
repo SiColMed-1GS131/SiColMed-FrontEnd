@@ -1,18 +1,4 @@
 <?php
-<<<<<<< Updated upstream
-$api = getenv('API_URL') ?: 'http://api:8000';
-$respuesta = @file_get_contents("$api/health/db");
-?>
-<!DOCTYPE html>
-<html lang="es">
-<head><meta charset="UTF-8"><title>Certificaciones Médicas</title></head>
-<body>
-  <h1>Certificaciones Médicas - Panamá</h1>
-  <pre><?= htmlspecialchars($respuesta ?: 'No se pudo conectar con la API') ?></pre>
-</body>
-</html>
-=======
-
 declare(strict_types=1);
 
 /* ==================================================
@@ -75,6 +61,7 @@ set_exception_handler(static function (Throwable $error): void {
 use App\Core\Router;
 use App\Controllers\Auth\AuthController;
 use App\Controllers\Auth\RegisterController;
+use App\Controllers\ReportesController;
 
 /* ==================================================
    INICIALIZACIÓN DEL ROUTER
@@ -93,6 +80,11 @@ $router->get('/login', [AuthController::class, 'login']);
    ================================================== */
 $router->get('/register', [RegisterController::class, 'index']);
 $router->post('/register', [RegisterController::class, 'index']);
+
+/* ==================================================
+   REPORTES CONTABLES (Módulo 5 · P5 Balance General)
+   ================================================== */
+$router->get('/reportes/balance', [ReportesController::class, 'balance']);
 
 /* ==================================================
    EJECUCIÓN DEL ROUTER
@@ -118,4 +110,3 @@ if ($legacyPage !== null) {
     }
 }
 $router->dispatch($_SERVER['REQUEST_METHOD'] ?? 'GET', $path);
->>>>>>> Stashed changes
