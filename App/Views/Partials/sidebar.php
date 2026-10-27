@@ -8,7 +8,7 @@
                 </a>
             </li>
             <li>
-                <a href="/Registro">
+                <a href="/registro-medico">
                     <span class="sidebar__icon"></span>
                     <span class="sidebar__text">Registro médico</span>
                 </a>
