@@ -4,19 +4,17 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Repositories\BalanceGeneralRepository;
+use App\Services\ApiClient;
 
-/** Reporte Balance General (5.3.a). Solo para el Administrador de la Asociación. */
 final class ReportesController
 {
-    private BalanceGeneralRepository $balance;
+    private ApiClient $api;
 
     public function __construct()
     {
-        $this->balance = new BalanceGeneralRepository();
+        $this->api = new ApiClient();
     }
 
-    // GET /reportes/balance?inicio=AAAA-MM-DD&fin=AAAA-MM-DD
     public function balance(): void
     {
         $this->verificarAcceso();
@@ -36,13 +34,11 @@ final class ReportesController
             'tituloRango' => '',
         ];
 
-        // Primera visita: solo se muestra el filtro.
         if (!$consultado) {
             $this->render($datos);
             return;
         }
 
-        // Validación (la validación real también la hace el backend).
         $errores = $this->validarFechas($inicio, $fin);
         if ($errores !== []) {
             $datos['errores'] = $errores;
@@ -50,7 +46,7 @@ final class ReportesController
             return;
         }
 
-        $resultado = $this->balance->obtener($inicio, $fin);
+        $resultado = $this->consultarBalance($inicio, $fin);
         $datos['consultado'] = true;
         $datos['tituloRango'] = 'Balance General del ' . $this->fechaPantalla($inicio)
             . ' al ' . $this->fechaPantalla($fin);
@@ -67,7 +63,41 @@ final class ReportesController
         $this->render($datos);
     }
 
-    // Pendiente: validar rol admin_asociacion cuando exista App/Middleware/Auth.php (Lione).
+    
+    private function consultarBalance(string $inicio, string $fin): array
+    {
+        $resp = $this->api->getJson(
+            '/reportes/balance-general?fecha_inicio=' . urlencode($inicio) . '&fecha_fin=' . urlencode($fin)
+        );
+
+        if ($resp['body'] === null || $resp['status'] === 0 || $resp['status'] >= 500) {
+            return ['ok' => false, 'datos' => [], 'error' => 'El reporte no está disponible en este momento. Intenta más tarde.'];
+        }
+
+        $json = json_decode((string) $resp['body'], true);
+
+        if ($resp['status'] < 200 || $resp['status'] >= 300) {
+            $detalle = is_array($json) ? ($json['detail'] ?? null) : null;
+            if (is_string($detalle) && $detalle !== '') {
+                $mensaje = $detalle; // 400: mensaje que manda la BD
+            } elseif ($resp['status'] === 401) {
+                $mensaje = 'Tu sesión expiró. Inicia sesión de nuevo.';
+            } elseif ($resp['status'] === 403) {
+                $mensaje = 'No tienes permiso para ver este reporte.';
+            } else {
+                $mensaje = 'No se pudo generar el reporte. Verifica las fechas e inténtalo de nuevo.';
+            }
+            return ['ok' => false, 'datos' => [], 'error' => $mensaje];
+        }
+
+        if (!is_array($json) || !isset($json['filas']) || !is_array($json['filas'])) {
+            return ['ok' => false, 'datos' => [], 'error' => 'La API devolvió una respuesta inesperada.'];
+        }
+
+        return ['ok' => true, 'datos' => $json['filas'], 'error' => ''];
+    }
+
+    // Pendiente: validar rol admin_asociacion cuando exista App/Middleware/Auth.php.
     private function verificarAcceso(): void
     {
     }
@@ -108,13 +138,7 @@ final class ReportesController
         return \DateTimeImmutable::createFromFormat('!Y-m-d', $valor)->format('d/m/Y');
     }
 
-    /**
-     * Da formato a los montos para mostrar y calcula la fila de totales.
-     * Si la API algún día envía los totales, se usan esos y se borra esta suma.
-     * Se suma en centavos (enteros) para evitar errores de decimales.
-     *
-     * @return array{0: array<int,array<string,mixed>>, 1: array<string,mixed>}
-     */
+
     private function prepararFilas(array $filas): array
     {
         $sumaDebito = 0;
@@ -150,14 +174,12 @@ final class ReportesController
         return [$salida, $totales];
     }
 
-    // "1250.75" -> 125075
+   
     private function aCentavos(mixed $monto): int
     {
         return (int) round(((float) $monto) * 100);
     }
-
-    // 125075 -> "1,250.75" ; -5000 -> "-50.00"
-    // Pendiente: cambiar por App/Helpers/dinero.php cuando Miguel lo suba a develop.
+    // Pendiente: cambiar por App/Helpers/dinero.php.
     private function dinero(int $centavos): string
     {
         $signo = $centavos < 0 ? '-' : '';
@@ -177,7 +199,6 @@ final class ReportesController
         require __DIR__ . '/../Views/Partials/sidebar.php';
         echo '<main class="main-content">';
         require __DIR__ . '/../Views/Contabilidad/Reportes/balance_general.php';
-        // footer.php cierra </main> y el contenedor .app-layout.
         echo '<script src="/Assets/JavaScript/Dedicated/reportes.js"></script>';
         require __DIR__ . '/../Views/Partials/footer.php';
     }
