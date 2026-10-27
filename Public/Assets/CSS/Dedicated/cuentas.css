@@ -1,0 +1,340 @@
+.cuentas { width: 100%; }
+
+/* Títulos */
+.cuentas__cabecera { margin-bottom: 1.25rem; }
+
+.cuentas .cuentas__titulo {
+  margin: 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--venice-blue);
+}
+
+.cuentas__subtitulo {
+  margin: 0.75rem 0 0;
+  font-size: 1.1rem;
+  color: var(--venice-bluedark);
+}
+
+/* Dos columnas: formulario y lista (una sola en pantallas pequeñas) */
+.cuentas__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+@media (min-width: 1000px) {
+  .cuentas__grid { grid-template-columns: minmax(280px, 2fr) 3fr; }
+}
+
+/* Paneles azules */
+.cuentas .panel {
+  min-width: 0;
+  background: var(--rock-blue);
+  border-radius: 4px;
+  padding: 1.25rem;
+  color: var(--venice-bluedark);
+}
+
+/* Parte de arriba del panel (título y botón o nota) */
+.cuentas .panel__cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--rock-bluedark);
+}
+
+.cuentas .panel__etiqueta {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--venice-blue);
+}
+
+.cuentas .panel__titulo {
+  margin: 0.2rem 0 0;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--venice-bluedark);
+}
+
+/* Texto "* Campo obligatorio" */
+.cuentas .panel__nota {
+  margin: 0;
+  align-self: flex-end;
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--venice-bluedark);
+}
+
+/* Botones */
+.cuentas .btn {
+  display: inline-block;
+  padding: 0.5rem 1.25rem;
+  border: 2px solid var(--venice-blue);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--venice-blue);
+  font: inherit;
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+.cuentas .btn:hover { background: var(--rock-bluelight); }
+.cuentas .btn:focus-visible { outline: 3px solid var(--venice-bluedark); outline-offset: 2px; }
+
+/* Botón principal */
+.cuentas .btn--primary { background: var(--venice-blue); color: var(--merinolight); }
+.cuentas .btn--primary:hover { background: var(--venice-bluedark); border-color: var(--venice-bluedark); }
+
+/* Botones dentro de los paneles */
+.cuentas .panel .btn { color: var(--venice-bluedark); border-color: var(--venice-bluedark); }
+.cuentas .panel .btn:hover { background: var(--merinolight); }
+.cuentas .panel .btn--primary { background: var(--venice-blue); border-color: var(--venice-blue); color: var(--merinolight); }
+.cuentas .panel .btn--primary:hover { background: var(--venice-bluedark); border-color: var(--venice-bluedark); }
+
+/* Botón Eliminar: rojo al pasar el mouse */
+.cuentas .btn--peligro:hover { background: #f8d7da; border-color: #8a0016; color: #8a0016; }
+
+/* Botón desactivado o cargando */
+.cuentas .btn--deshabilitado,
+.cuentas .btn[aria-busy="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Botones más pequeños en la tabla */
+.tabla-cuentas .btn { padding: 0.25rem 0.8rem; font-size: 0.85rem; }
+
+/* Formulario */
+.cuentas .req { color: #8a0016; } /* asterisco rojo */
+
+.cuentas .field { display: flex; flex-direction: column; margin-bottom: 1rem; }
+.cuentas .field label {
+  margin-bottom: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: var(--venice-bluedark);
+}
+.cuentas .field input[type="text"],
+.cuentas .field select {
+  padding: 0.5rem;
+  font: inherit;
+  color: var(--venice-bluedark);
+  background: var(--merinolight);
+  border: 1px solid transparent;
+  border-radius: 2px;
+}
+.cuentas .field input:hover,
+.cuentas .field select:hover { border-color: var(--rock-bluedark); }
+.cuentas .field input:focus-visible,
+.cuentas .field select:focus-visible { outline: 3px solid var(--venice-bluedark); outline-offset: 2px; }
+
+/* Tipo bloqueado */
+.cuentas .field select:disabled {
+  background: var(--merinodark);
+  cursor: not-allowed;
+}
+
+/* Campo con error */
+.cuentas .field--error input,
+.cuentas .field--error select { border-color: #8a0016; }
+
+/* Texto de ayuda debajo del campo */
+.cuentas .field__ayuda { margin: 0.3rem 0 0; font-size: 0.75rem; font-style: italic; }
+
+/* Mensaje de error debajo del campo */
+.cuentas .field__error {
+  margin-top: 0.3rem;
+  padding: 0.1rem 0.3rem;
+  font-size: 0.8rem;
+  color: #8a0016;
+  background: var(--merinolight);
+}
+.cuentas .field__error:empty { display: none; } 
+
+/* Casilla "Activa" */
+.cuentas .field--casilla {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 0.5rem;
+}
+.cuentas .field--casilla input {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--venice-blue);
+}
+.cuentas .field--casilla label { margin: 0; }
+.cuentas .field--casilla .field__ayuda { grid-column: 1 / -1; }
+
+/* Fila de botones del formulario */
+.cuentas .formulario__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+/* Filtro: Todas / Solo activas / Solo inactivas */
+.filtro-estado {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.filtro-estado__opcion {
+  padding: 0.35rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: var(--venice-bluedark);
+  text-decoration: none;
+  border: 2px solid var(--venice-bluedark);
+  border-radius: 2px;
+  transition: background-color 0.2s, color 0.2s;
+}
+.filtro-estado__opcion:hover { background: var(--rock-bluelight); }
+.filtro-estado__opcion:focus-visible { outline: 3px solid var(--venice-bluedark); outline-offset: 2px; }
+
+/* Opción elegida */
+.filtro-estado__opcion--activa {
+  background: var(--venice-blue);
+  border-color: var(--venice-blue);
+  color: var(--merinolight);
+}
+.filtro-estado__opcion--activa:hover { background: var(--venice-blue); }
+
+/* Tabla */
+.cuentas .tabla-envoltura { overflow-x: auto; }
+.cuentas .tabla-envoltura:focus-visible { outline: 3px solid var(--venice-bluedark); outline-offset: 2px; }
+
+.tabla-cuentas {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  background: var(--merinolight);
+  font-size: 0.9rem;
+}
+.tabla-cuentas th,
+.tabla-cuentas td {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--merinodark);
+}
+.tabla-cuentas thead th {
+  background: var(--venice-blue);
+  color: var(--merinolight);
+  font-size: 0.8rem;
+}
+.tabla-cuentas tbody tr:hover { background: var(--merino); }
+.tabla-cuentas__nombre { font-weight: bold; }
+
+/* Cuentas inactivas */
+.tabla-cuentas__fila--inactiva > * { opacity: 0.55; }
+.tabla-cuentas__fila--inactiva:hover > *,
+.tabla-cuentas__fila--inactiva:focus-within > * { opacity: 1; }
+
+/* Botones Editar y Eliminar */
+.tabla-cuentas__acciones { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.form-eliminar { margin: 0; }
+
+/* Etiquetas Débito / Crédito */
+.cuentas .badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+.cuentas .badge--debito { background: var(--rock-bluelight); color: var(--venice-bluedark); }
+.cuentas .badge--credito { background: var(--merinodark); color: var(--venice-bluedark); }
+
+/* Etiquetas Activa / Inactiva */
+.cuentas .estado {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+.cuentas .estado--activa { background: #d4edda; color: #14532d; }
+.cuentas .estado--inactiva { background: #f8d7da; color: #7f1d1d; }
+
+/* Paginación */
+.paginacion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+.paginacion__texto {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+.paginacion__nav { display: flex; align-items: center; gap: 0.4rem; }
+
+/* Número de la página actual */
+.paginacion__actual {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  font-weight: bold;
+  background: var(--venice-blue);
+  color: var(--merinolight);
+  border-radius: 2px;
+}
+
+/* Mensajes: verde (éxito), amarillo (aviso), rojo (error) */
+.cuentas .alerta {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid;
+  font-weight: bold;
+}
+.cuentas .alerta--success { background: #d4edda; border-color: #14532d; color: #14532d; }
+.cuentas .alerta--warning { background: #fff3cd; border-color: #8a6100; color: #5c4100; }
+.cuentas .alerta--error   { background: var(--merinolight); border-color: #8a0016; color: #8a0016; }
+.cuentas .alerta__enlace  { margin-left: 0.25rem; color: inherit; }
+
+/* Cuando no hay cuentas */
+.cuentas .vacio {
+  padding: 1.5rem;
+  text-align: center;
+  background: var(--merino);
+  border: 1px dashed var(--venice-blue);
+}
+.cuentas .vacio__titulo { margin: 0 0 0.4rem; font-weight: bold; }
+.cuentas .vacio p { margin: 0 0 0.4rem; }
+.cuentas .vacio .alerta__enlace { color: var(--venice-blue); font-weight: bold; }
+
+.cuentas .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Celular */
+@media (max-width: 600px) {
+  .main-content:has(.cuentas) { padding: 20px 16px; }
+  .cuentas .panel { padding: 1rem; }
+}

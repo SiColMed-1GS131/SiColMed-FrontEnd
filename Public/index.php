@@ -63,6 +63,7 @@ use App\Core\Router;
 use App\Controllers\Auth\AuthController;
 use App\Controllers\Auth\RegisterController;
 use App\Controllers\RegistroController;
+use App\Controllers\CuentasController;
 
 /* ==================================================
    INICIALIZACIÓN DEL ROUTER
@@ -89,6 +90,15 @@ $router->get('/registro-medico', [RegistroController::class, 'index']);
 $router->get('/registro-medico/nuevo', [RegistroController::class, 'nuevo']);
 $router->get('/registro-medico/editar', [RegistroController::class, 'editar']);
 $router->post('/registro-medico/guardar', [RegistroController::class, 'guardar']);
+
+/* ==================================================
+   GESTIÓN DE CUENTAS (tesorero)
+   ================================================== */
+$router->get('/cuentas', [CuentasController::class, 'index']);
+$router->get('/cuentas/nueva', [CuentasController::class, 'nueva']);
+$router->get('/cuentas/editar', [CuentasController::class, 'editar']);
+$router->post('/cuentas/guardar', [CuentasController::class, 'guardar']);
+$router->post('/cuentas/eliminar', [CuentasController::class, 'eliminar']);
 
 /* ==================================================
    EJECUCIÓN DEL ROUTER
