@@ -20,7 +20,7 @@ require_once __DIR__ . '/../../Partials/header.php';
                     <h1>Registro Médico</h1>
                     <p>Administración y listado de médicos en el sistema.</p>
                 </div>
-                <a href="/SiColMed-FrontEnd/registro-medico/nuevo" class="btn btn--primario">Nuevo médico</a>
+                <a href="/SiColMed-FrontEnd/Public/index.php?c=registro&a=nuevo" class="btn btn--primario">Nuevo médico</a>
             </header>
 
             <?php if (!empty($mensaje)): ?>

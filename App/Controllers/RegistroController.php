@@ -9,6 +9,8 @@ use App\Repositories\RegistroMedicoRepository;
 /** Registro médico, lista, formulario (nuevo o editar) y guardado. */
 final class RegistroController
 {
+    private const ENTRADA = '/SiColMed-FrontEnd/Public/index.php';
+
     private RegistroMedicoRepository $medicos;
 
     public function __construct()
@@ -48,7 +50,7 @@ final class RegistroController
 
         if ($resultado === null || !$resultado['ok']) {
             $this->guardarMensaje(($resultado['error'] ?? '') ?: 'Médico no encontrado.');
-            $this->redirigir('/registro-medico');
+            $this->redirigir(self::ENTRADA . '?c=registro&a=index');
         }
 
         $this->render('form', ['medico' => $resultado['datos'], 'errores' => [], 'errorGeneral' => '']);
@@ -70,7 +72,7 @@ final class RegistroController
 
         if ($resultado['ok']) {
             $this->guardarMensaje('Médico guardado correctamente.');
-            $this->redirigir('/registro-medico');
+            $this->redirigir(self::ENTRADA . '?c=registro&a=index');
         }
 
         // Si hay errores, se vuelve a mostrar el formulario con los datos y errores
@@ -91,15 +93,13 @@ final class RegistroController
     {
         extract($datos, EXTR_SKIP);
         $currentPage = 'registro';
+        $extraCss = 'registro.css';   // el header carga base.css y este CSS
 
         require __DIR__ . '/../Views/Partials/header.php';
-        echo '<link rel="stylesheet" href="/Assets/CSS/base.css">';
-        echo '<link rel="stylesheet" href="/Assets/CSS/Dedicated/registro.css">';
         echo '<div class="app-layout">';
         require __DIR__ . '/../Views/Partials/sidebar.php';
         echo '<main class="main-content">';
        require __DIR__ . '/../Views/Admin/Registro/' . $vista . '.php';
-        echo '</main></div>';
         require __DIR__ . '/../Views/Partials/footer.php';
     }
 

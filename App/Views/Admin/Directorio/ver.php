@@ -1,4 +1,14 @@
 <?php
+$currentPage = 'directorio';
+$extraCss = 'directorio.css';
+require_once __DIR__ . '/../../Partials/header.php';
+?>
+
+<link rel="stylesheet" href="Public/Assets/CSS/base.css">
+<link rel="stylesheet" href="Public/Assets/CSS/Dedicated/directorio.css">
+<div class="app-layout">
+
+<?php
 // Si por alguna razón no llega el médico, mostramos un error
 if (!isset($medico) || empty($medico)) {
     $mensaje = $errorGeneral ?? 'No se pudo cargar la información del médico.';

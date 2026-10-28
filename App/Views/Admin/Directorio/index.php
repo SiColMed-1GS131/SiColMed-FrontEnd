@@ -1,3 +1,14 @@
+<?php
+$currentPage = 'directorio';
+$extraCss = 'directorio.css';
+require_once __DIR__ . '/../../Partials/header.php';
+?>
+
+<div class="app-layout">
+    <?php require_once __DIR__ . '/../../Partials/sidebar.php'; ?>
+
+    <main class="main-content">
+
 <div class="directorio-contenedor">
     <h1 class="directorio-titulo">Directorio médico</h1>
 

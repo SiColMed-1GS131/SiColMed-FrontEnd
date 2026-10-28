@@ -1,0 +1,107 @@
+:root{
+  --navy:#0f2d4a; --blue:#0a7ab8; --blue-dark:#08659a; --cyan:#0597bd;
+  --muted:#6b7f92; --line:#e3ecf2; --field:#f8fbfd; --field-line:#d3e2ec; --tint:#eaf5fb;
+  --font:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:var(--font);color:var(--navy);background:#fff;-webkit-font-smoothing:antialiased}
+a{color:var(--blue);text-decoration:none;font-weight:500}
+a:hover{text-decoration:underline}
+.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* Layout */
+.auth{display:grid;grid-template-columns:minmax(0,43.6fr) minmax(0,56.4fr);min-height:100vh}
+
+/* Panel izquierdo */
+.panel{display:flex;flex-direction:column;padding:40px;color:#fff;
+  background:linear-gradient(90deg,#063a6e 0%,#0a4f88 40%,#0597bd 100%)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand__logo{display:grid;place-items:center;width:36px;height:36px;border-radius:10px;font-size:20px;
+  background:rgba(255,255,255,.12);color:#fff}
+.brand__name{font-size:22px;font-weight:700;line-height:1.1;letter-spacing:-.01em}
+.brand__sub{font-size:10px;opacity:.85;margin-top:2px}
+.panel__main{flex:1;display:flex;flex-direction:column;justify-content:center;gap:28px;padding:28px 0}
+.glass{position:relative;display:grid;place-items:center;text-align:center;border-radius:20px;padding:24px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22)}
+.panel--login .glass{flex:1;min-height:260px}
+.panel--register .glass{height:205px}
+.badge{position:absolute;top:16px;left:16px;padding:4px 10px;border-radius:999px;font-size:9.5px;font-weight:500;
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28)}
+.glass__icon{display:grid;place-items:center;width:54px;height:54px;margin:0 auto 14px;border-radius:14px;font-size:24px;
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3)}
+.glass strong{display:block;font-size:15px;font-weight:600}
+.glass small{display:block;margin-top:6px;font-size:11px;line-height:1.5;opacity:.85}
+.panel h2{margin:0;font-size:32px;line-height:1.15;font-weight:700;letter-spacing:-.01em}
+.panel__lead{margin:14px 0 0;font-size:14px;line-height:1.6;opacity:.9}
+.features{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px;margin:0;padding:0;list-style:none;font-size:11.5px}
+.features li{display:flex;align-items:center;gap:8px}
+.features .i{font-size:15px}
+.panel__foot{padding-top:18px;border-top:1px solid rgba(255,255,255,.22);font-size:11px}
+.secure{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:12px}
+.secure .i{font-size:15px}
+.panel__foot p{margin:0;font-size:10px;line-height:1.5;opacity:.85}
+
+/* Panel derecho */
+.side{display:flex;flex-direction:column;min-height:100vh;padding:28px 40px 24px}
+.side__top{display:flex;justify-content:center}
+.side .brand__logo{width:30px;height:30px;font-size:17px;background:var(--tint);color:var(--blue)}
+.side .brand__name{font-size:18px;color:var(--navy)}
+.side .brand__sub{color:var(--muted)}
+.side__main{flex:1;display:grid;place-items:center;padding:32px 0}
+.form-wrap{width:100%;max-width:350px}
+.form-wrap--wide{max-width:386px}
+h1{margin:0;font-size:26px;font-weight:700;letter-spacing:-.01em}
+.sub{margin:10px 0 24px;font-size:13px;color:var(--muted)}
+.notice{display:flex;gap:8px;margin:-4px 0 18px;padding:12px;border-radius:8px;font-size:10.5px;line-height:1.5;
+  background:var(--tint);border:1px solid #cfe6f3;color:#1d4560}
+.notice .i{font-size:14px;color:var(--blue);margin-top:1px}
+
+/* Formulario */
+.field{margin-bottom:16px}
+label.lbl{display:block;margin-bottom:8px;font-size:12px;font-weight:600}
+.control{display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border-radius:8px;
+  background:var(--field);border:1px solid var(--field-line);color:var(--blue);transition:border-color .15s,box-shadow .15s}
+.control:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(10,122,184,.15)}
+.control .i{font-size:16px}
+.control input{flex:1;min-width:0;height:100%;border:0;outline:0;background:transparent;font:inherit;font-size:12px;color:var(--navy)}
+.control input::placeholder{color:#8a9bab}
+.toggle{display:grid;place-items:center;padding:0;border:0;background:none;color:var(--muted);cursor:pointer}
+.hint{margin:8px 0 0;font-size:10px;color:var(--muted)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:2px 0 18px;font-size:11px}
+.check{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:11px;cursor:pointer}
+.check input{width:14px;height:14px;margin:0;accent-color:var(--blue)}
+.row a{font-size:11px;font-weight:600}
+.terms{margin:2px 0 18px}
+.terms a{font-weight:700}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:40px;border:0;border-radius:8px;
+  background:var(--blue);color:#fff;font:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
+.btn:hover{background:var(--blue-dark)}
+.btn:focus-visible,.toggle:focus-visible,a:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.btn .i{font-size:15px}
+.alt{margin:18px 0 0;text-align:center;font-size:12px;color:var(--muted)}
+.divider{height:1px;margin:24px 0 18px;background:var(--line)}
+.pill{display:flex;align-items:center;gap:6px;width:max-content;margin:16px auto 0;padding:7px 12px;border-radius:8px;
+  font-size:10.5px;background:var(--tint);color:#1d4560}
+.pill .i{font-size:14px;color:var(--blue)}
+.legal{text-align:center;font-size:10px;color:var(--muted)}
+.legal p{margin:0 0 8px}
+.legal a{color:var(--muted);font-weight:400}
+.legal span{margin:0 12px}
+
+@media (max-width:900px){
+  .auth{grid-template-columns:1fr}
+  .panel{display:none}
+  .side{padding:24px 20px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.glass--img{padding:0;overflow:hidden}
+.glass--img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top}
+
+.panel--login .glass--img{
+  flex:none;
+  aspect-ratio:1 / 1;
+  max-height:46vh;
+  width:100%;
+}

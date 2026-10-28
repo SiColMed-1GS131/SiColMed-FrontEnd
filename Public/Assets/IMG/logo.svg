@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 64" role="img" aria-label="SiColMed">
+  <rect x="2" y="8" width="48" height="48" rx="10" fill="#1d4ed8"/>
+  <path d="M26 16h8v12h12v8H34v12h-8V36H14v-8h12z" fill="#ffffff"/>
+  <text x="62" y="43" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" fill="#1d4ed8">SiCol<tspan fill="#0f172a">Med</tspan></text>
+</svg>

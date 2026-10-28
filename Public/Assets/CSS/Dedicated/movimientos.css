@@ -1,0 +1,430 @@
+/*
+ * movimientos.css · Módulo 5 · P2 Pablo
+ * Solo estilos propios de las pantallas de Movimientos.
+ * Depende de las clases generales de base.css: .btn, .alert, .badge, .field, .tabla...
+ */
+
+/* ==========================================================================
+   1. CABECERA Y NAVEGACIÓN INTERNA
+   ========================================================================== */
+.movs__cabecera {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.movs__subtitulo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    margin: 1.5rem 0 0.75rem;
+}
+
+.movs__rango {
+    font-weight: 400;
+    color: var(--texto-suave);
+    font-size: 1rem;
+}
+
+/* Pestañas (Subnav) */
+.subnav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    border-bottom: 1px solid var(--borde);
+    margin-bottom: 1.25rem;
+}
+
+.subnav__enlace {
+    padding: 0.55rem 0.9rem;
+    text-decoration: none;
+    color: var(--texto-suave);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px; /* Para superponerse al borde contenedor */
+    font-weight: 600;
+    transition: color 0.2s ease, border-color 0.2s ease; /* Mejora: Cambio suave */
+}
+
+.subnav__enlace:hover {
+    color: var(--azul);
+}
+
+.subnav__enlace--activo {
+    color: var(--azul);
+    border-bottom-color: var(--azul);
+}
+
+/* ==========================================================================
+   2. FILTROS (Fecha del día / Rango por cuenta)
+   ========================================================================== */
+.filtro {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.25rem 1rem;
+    background: var(--blanco);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+    padding: 1rem 1rem 0.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02); /* Mejora: Sombra muy sutil */
+}
+
+.filtro .field {
+    margin-bottom: 0.75rem;
+    min-width: 11rem;
+}
+
+.filtro .btn {
+    margin-top: 1.7rem;
+    margin-bottom: 0.75rem;
+}
+
+.filtro--dia .field__error {
+    max-width: 22rem;
+}
+
+/* ==========================================================================
+   3. TABLA DE MOVIMIENTOS
+   ========================================================================== */
+.tabla-mov__grupo {
+    border-top: 2px solid var(--borde);
+}
+
+.tabla-mov__grupo:first-of-type {
+    border-top: 0;
+}
+
+.tabla-mov__desc {
+    font-weight: 600;
+    width: 40%;
+    min-width: 14rem;
+    background: #fbfcfe;
+    border-right: 1px solid var(--borde);
+}
+
+.tabla-mov__grupo tr:last-child td {
+    border-bottom: 0;
+}
+
+.tabla__fecha {
+    white-space: nowrap;
+}
+
+/* Fila de totales */
+.tabla-mov__total th, 
+.tabla-mov__total td {
+    background: var(--azul-claro);
+    border-top: 2px solid var(--azul);
+    font-weight: 700;
+}
+
+.tabla-mov__total + .tabla-mov__total th, 
+.tabla-mov__total + .tabla-mov__total td {
+    border-top: 1px solid var(--borde);
+}
+
+.tabla-mov__total th {
+    text-align: right;
+}
+
+/* ==========================================================================
+   4. ESTADOS (Vacíos y Errores)
+   ========================================================================== */
+.vacio {
+    background: var(--blanco);
+    border: 1px dashed #9aa6b5;
+    border-radius: var(--radio);
+    padding: 2.5rem 1.25rem; /* Mejora: Un poco más de aire vertical */
+    text-align: center;
+    color: var(--texto-suave);
+    background-color: rgba(251, 252, 254, 0.5); /* Mejora: Fondo sutil */
+}
+
+.vacio__titulo {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--texto);
+    margin: 0 0 0.25rem;
+}
+
+.vacio p {
+    margin: 0 0 0.75rem;
+}
+
+/* ==========================================================================
+   5. FORMULARIO DE REGISTRO
+   ========================================================================== */
+.formulario {
+    background: var(--blanco);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+    padding: 1.5rem; /* Mejora: Más espacio interno */
+    max-width: 640px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03); /* Mejora: Elevación sutil */
+}
+/* --- NUEVAS CLASES PARA EL DISEÑO A 2 COLUMNAS --- */
+.formulario__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 2rem;
+    align-items: start;
+}
+
+.field--completo {
+    grid-column: 1 / -1; /* Obliga a la descripción a ocupar todo el ancho */
+}
+
+.formulario__nota {
+    margin: 0 0 1rem;
+    color: var(--texto-suave);
+    font-size: 0.9rem;
+}
+
+.field__oblig {
+    font-weight: 400;
+    color: var(--texto-suave);
+    font-size: 0.85rem;
+}
+
+.field--grupo {
+    border: 0;
+    padding: 0;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.field--grupo legend {
+    padding: 0;
+    margin-bottom: 0.35rem;
+}
+
+/* Opciones de Radio (Débito/Crédito) */
+.opciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.opcion {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border: 1px solid #8793a3;
+    border-radius: var(--radio);
+    background: #fff;
+    font-weight: 600;
+    transition: all 0.2s ease; /* Mejora: Hover y selección suaves */
+}
+
+.opcion:hover {
+    background: var(--azul-claro);
+    border-color: var(--azul);
+}
+
+.opcion:has(input:checked) {
+    border-color: var(--azul);
+    background: var(--azul-claro);
+    box-shadow: 0 0 0 1px var(--azul); /* Mejora: Borde más definido al seleccionar */
+}
+
+.opcion input {
+    width: 1.1rem;
+    height: 1.1rem;
+    accent-color: var(--azul);
+}
+
+.field--error .opcion {
+    border-color: var(--rojo);
+}
+
+/* Entradas de texto y fechas */
+.formulario .field input[type="text"], 
+.formulario .field input[type="number"], 
+.formulario .field input[type="date"], 
+.formulario .field select {
+    width: 100%;
+}
+
+.formulario .field input[type="date"], 
+.formulario .field input[type="number"] {
+    max-width: 16rem;
+}
+
+/* Botones del formulario */
+.formulario__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--borde);
+}
+
+/* ==========================================================================
+   6. RESPONSIVE (Móvil)
+   ========================================================================== */
+@media (max-width: 600px) {
+    .movs__cabecera .btn {
+        width: 100%;
+        text-align: center;
+        
+    }
+    
+    
+    .filtro {
+        flex-direction: column;
+    }
+    
+    .filtro .field, 
+    .filtro .btn {
+        width: 100%;
+    }
+    
+    .filtro .btn {
+        margin-top: 0;
+    }
+    
+    .formulario {
+        padding: 1rem;
+    }
+    
+    .formulario__acciones .btn {
+        flex: 1 1 100%;
+        text-align: center;
+    }
+    
+    .subnav__enlace {
+        padding: 0.5rem 0.6rem;
+        font-size: 0.9rem;
+    }
+    
+    .tabla-mov__desc {
+        width: auto;
+        min-width: 9rem;
+    }
+    
+    .tabla-mov, 
+    .tabla {
+        min-width: 480px;
+    }
+    
+    .tabla th, 
+    .tabla td {
+        padding: 0.55rem 0.6rem;
+    }
+}
+
+/* Preferencia de usuario: Reducir animaciones */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+ 
+.btn--primary {
+    background-color: var(--venice-blue);
+    color: white;
+}
+ 
+.btn--primary:hover {
+    background-color: var(--venice-bluedark);
+}
+ 
+.btn--primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+ 
+.btn--secondary {
+    background-color: transparent;
+    color: var(--venice-blue);
+    border-color: var(--venice-blue);
+}
+ 
+.btn--secondary:hover {
+    background-color: var(--venice-blue);
+    color: white;
+}
+ 
+/* Mensajes */
+.alert {
+    padding: 12px 16px;
+    border-radius: 6px;
+    border-left: 5px solid;
+    margin-bottom: 20px;
+}
+ 
+.alert--success { background: #e6f4ea; border-color: #28a745; color: #1b5e20; }
+.alert--warning { background: #fff4e0; border-color: #d98a00; color: #6b4400; }
+.alert--error   { background: #fdecea; border-color: #b02a37; color: #7a1c25; }
+ 
+/* Etiquetas Débito / Crédito */
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    color: white;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+ 
+.badge--debito  { background-color: var(--venice-blue); }
+.badge--credito { background-color: #8a5a00; }
+ 
+/* Tablas */
+.tabla-envoltura {
+    overflow-x: auto;
+    background: white;
+    border: 1px solid var(--rock-bluelight);
+    border-radius: 8px;
+}
+ 
+.tabla-envoltura table {
+    width: 100%;
+    border-collapse: collapse;
+}
+ 
+.tabla-envoltura th,
+.tabla-envoltura td {
+    padding: 11px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--merinodark);
+}
+ 
+.tabla-envoltura thead th {
+    background: var(--venice-blue);
+    color: white;
+    white-space: nowrap;
+}
+ 
+.tabla__num {
+    text-align: right !important;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+ 
+.field__ayuda {
+    margin-top: 4px;
+    font-size: 0.85rem;
+    color: var(--venice-blue);
+}
