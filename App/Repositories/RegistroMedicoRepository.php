@@ -28,17 +28,13 @@ final class RegistroMedicoRepository
     }
 
     // Lista de médicos
-    // Puede cambiar: confirmar con backend cómo combinar filtros en GET /medicos
-    public function listar(array $filtros = []): array
+    // Pendiente: GET /medicos exige exactamente un filtro; confirmar con backend cómo listar todos
+    public function listar(): array
     {
         if ($this->usaMock()) {
             return $this->resultado(true, self::MOCK);
         }
-
-        $filtros = \array_filter($filtros, static fn ($valor): bool => \is_string($valor) && $valor !== '');
-        $query = \http_build_query($filtros);
-        $ruta = '/medicos' . ($query !== '' ? '?' . $query : '');
-        return $this->interpretar($this->api->getJson($ruta));
+        return $this->interpretar($this->api->getJson('/medicos'));
     }
 
     // Un médico por id
@@ -86,17 +82,17 @@ final class RegistroMedicoRepository
         $cuerpo = json_decode((string) ($respuesta['body'] ?? ''), true);
 
         if ($status >= 200 && $status < 300) {
-            return $this->resultado(true, \is_array($cuerpo) ? $cuerpo : []);
+            return $this->resultado(true, is_array($cuerpo) ? $cuerpo : []);
         }
         if ($status === 0) {
             return $this->resultado(false, [], 'No se pudo contactar con la API.');
         }
 
         // 422: errores por campo, formato [{"loc": [..., "campo"], "msg": "..."}]
-        if ($status === 422 && \is_array($cuerpo['detail'] ?? null)) {
+        if ($status === 422 && is_array($cuerpo['detail'] ?? null)) {
             $errores = [];
             foreach ($cuerpo['detail'] as $item) {
-                $campo = \is_array($item['loc'] ?? null) ? (string) \end($item['loc']) : '';
+                $campo = is_array($item['loc'] ?? null) ? (string) end($item['loc']) : '';
                 if ($campo !== '') {
                     $errores[$campo] = (string) ($item['msg'] ?? 'Dato no válido.');
                 }
@@ -108,7 +104,7 @@ final class RegistroMedicoRepository
 
         // Los errores de PostgreSQL llegan aquí
         $detalle = $cuerpo['detail'] ?? null;
-        return $this->resultado(false, [], \is_string($detalle) ? $detalle : 'No se pudo completar la operación.');
+        return $this->resultado(false, [], is_string($detalle) ? $detalle : 'No se pudo completar la operación.');
     }
 
     private function resultado(bool $ok, mixed $datos = [], string $error = '', array $errores = []): array

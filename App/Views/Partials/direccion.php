@@ -5,6 +5,7 @@ $errores    = $errores    ?? [];
 $dirPrefijo = $dirPrefijo ?? 'direccion';
 $dirTitulo  = $dirTitulo  ?? 'Dirección';
 
+// Puede cambiar en base al catálogo de la API
 $provincias = $catalogos['provincias'] ?? [
     'Bocas del Toro', 'Chiriquí', 'Coclé', 'Colón', 'Darién', 'Herrera',
     'Los Santos', 'Panamá', 'Panamá Oeste', 'Veraguas',
@@ -24,7 +25,7 @@ $provinciaActual = (string) ($medico[$dirPrefijo . '_provincia'] ?? '');
 
   <div class="registro__grid registro__grid--3">
 
-
+    <!-- Provincia (puede cambiar en base al Api) -->
     <div class="field">
       <label for="<?= $pref ?>_provincia">Provincia</label>
       <select id="<?= $pref ?>_provincia" name="<?= $pref ?>_provincia">
@@ -38,32 +39,35 @@ $provinciaActual = (string) ($medico[$dirPrefijo . '_provincia'] ?? '');
       <span class="field__error"><?= $error('provincia') ?></span>
     </div>
 
-
+    <!-- Distrito (puede cambiar en base a la provincia) -->
     <div class="field">
       <label for="<?= $pref ?>_distrito">Distrito</label>
       <input type="text" id="<?= $pref ?>_distrito" name="<?= $pref ?>_distrito" value="<?= $valor('distrito') ?>">
       <span class="field__error"><?= $error('distrito') ?></span>
     </div>
 
+    <!-- Corregimiento (puede cambiar en base al distrito) -->
     <div class="field">
       <label for="<?= $pref ?>_corregimiento">Corregimiento</label>
       <input type="text" id="<?= $pref ?>_corregimiento" name="<?= $pref ?>_corregimiento" value="<?= $valor('corregimiento') ?>">
       <span class="field__error"><?= $error('corregimiento') ?></span>
     </div>
 
+    <!-- Calle -->
     <div class="field">
       <label for="<?= $pref ?>_calle">Calle</label>
       <input type="text" id="<?= $pref ?>_calle" name="<?= $pref ?>_calle" value="<?= $valor('calle') ?>">
       <span class="field__error"><?= $error('calle') ?></span>
     </div>
 
+    <!-- Edificio -->
     <div class="field">
       <label for="<?= $pref ?>_edificio">Edificio</label>
       <input type="text" id="<?= $pref ?>_edificio" name="<?= $pref ?>_edificio" value="<?= $valor('edificio') ?>">
       <span class="field__error"><?= $error('edificio') ?></span>
     </div>
 
-
+    <!-- Número -->
     <div class="field">
       <label for="<?= $pref ?>_numero">Número</label>
       <input type="text" id="<?= $pref ?>_numero" name="<?= $pref ?>_numero" value="<?= $valor('numero') ?>">

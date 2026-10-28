@@ -98,8 +98,11 @@ final class RegistroController
         echo '<div class="app-layout">';
         require __DIR__ . '/../Views/Partials/sidebar.php';
         echo '<main class="main-content">';
-       require __DIR__ . '/../Views/Admin/Registro/' . $vista . '.php';
+        require __DIR__ . '/../Views/Registro/' . $vista . '.php';
         echo '</main></div>';
+        if ($vista === 'form') {
+            echo '<script src="/Assets/JavaScript/Dedicated/registro.js"></script>';
+        }
         require __DIR__ . '/../Views/Partials/footer.php';
     }
 
