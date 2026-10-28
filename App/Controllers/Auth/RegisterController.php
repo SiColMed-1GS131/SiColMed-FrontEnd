@@ -50,10 +50,8 @@ final class RegisterController
 
         // La API debe verificar realmente la idoneidad, impedir duplicados y aplicar políticas de contraseña.
         $result = (new ApiClient())->postJson('/auth/register', [
-            'username' => $email,
-            'nombre' => $name,
-            'idoneidad' => $license,
-            'email' => $email,
+            'numero_idoneidad' => $license,
+            'correo' => $email,
             'password' => $password,
         ]);
         $status = $result['status'];

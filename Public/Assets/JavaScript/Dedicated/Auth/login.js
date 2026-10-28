@@ -1,4 +1,3 @@
-import { initializePasswordToggles } from '../../Functions/Auth/passwordToggle.js';
 // Comportamiento de la vista de inicio de sesión.
 import { login } from '../../Functions/Auth/auth.js';
 import { mockMode } from '../../Functions/Auth/mockAuth.js';
@@ -6,10 +5,13 @@ import { showStatus } from '../../Functions/Auth/formStatus.js';
 
 export function initializeLoginForm() {
   const form = document.getElementById('login-form');
-  if (!form) return;
+  if (!form || form.dataset.loginBound === 'true') return;
+  form.dataset.loginBound = 'true';
 
   form.addEventListener('submit', async event => {
+    if (form.dataset.loginSubmitting === 'true') return;
     event.preventDefault();
+    form.dataset.loginSubmitting = 'true';
     const button = form.querySelector('button[type="submit"]');
     if (button) button.disabled = true;
     showStatus(form, 'Iniciando sesión...');
@@ -23,6 +25,7 @@ export function initializeLoginForm() {
     } catch (error) {
       showStatus(form, error.message, true);
     } finally {
+      form.dataset.loginSubmitting = '';
       if (button) button.disabled = false;
     }
   });
@@ -32,10 +35,4 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initializeLoginForm, { once: true });
 } else {
   initializeLoginForm();
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => initializePasswordToggles(), { once: true });
-} else {
-  initializePasswordToggles();
 }

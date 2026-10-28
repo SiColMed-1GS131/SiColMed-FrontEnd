@@ -138,6 +138,18 @@ if (!defined('SICOLMED_FRONT_CONTROLLER')) {
   type="module"
   src="/Assets/JavaScript/Dedicated/Auth/register.js">
 </script>
+<script>
+  document.addEventListener('click', function (event) {
+    const button = event.target.closest('[data-toggle="password"]');
+    if (!button) return;
+    const input = document.getElementById(button.dataset.toggle);
+    if (!input) return;
+    const visible = input.type === 'password';
+    input.type = visible ? 'text' : 'password';
+    button.setAttribute('aria-pressed', String(visible));
+    button.setAttribute('aria-label', visible ? 'Ocultar contraseña' : 'Mostrar contraseña');
+  });
+</script>
 
 </body>
 </html>

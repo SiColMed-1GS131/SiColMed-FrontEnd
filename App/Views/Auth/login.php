@@ -89,5 +89,65 @@
 
 </div>
 <script type="module" src="/Assets/JavaScript/Dedicated/Auth/login.js"></script>
+<script>
+  // Respaldo para navegadores o servidores que no carguen el módulo ES.
+  document.addEventListener('submit', async function (event) {
+    const form = event.target;
+    if (form.id !== 'login-form' || form.dataset.loginBound === 'true') return;
+    event.preventDefault();
+    form.dataset.loginBound = 'true';
+    form.dataset.loginSubmitting = 'true';
+    const button = form.querySelector('button[type="submit"]');
+    const usuario = form.querySelector('#usuario').value.trim();
+    const password = form.querySelector('#password').value;
+    const recordar = form.querySelector('input[name="recordar"]')?.checked ?? false;
+    if (button) button.disabled = true;
+    let status = form.querySelector('[data-auth-status]');
+    if (!status) {
+      status = document.createElement('p');
+      status.setAttribute('data-auth-status', '');
+      status.setAttribute('role', 'status');
+      form.prepend(status);
+    }
+    status.textContent = 'Iniciando sesión...';
+    try {
+      const response = await fetch('http://localhost:8000/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ username: usuario, password })
+      });
+      const body = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(body?.detail || 'No fue posible iniciar sesión.');
+      }
+      if (!body?.access_token) {
+        throw new Error('La respuesta no contiene un token JWT.');
+      }
+      const storage = recordar ? localStorage : sessionStorage;
+      localStorage.removeItem('sicolmed_access_token');
+      sessionStorage.removeItem('sicolmed_access_token');
+      storage.setItem('sicolmed_access_token', body.access_token);
+      sessionStorage.setItem('sicolmed_token_storage', recordar ? 'local' : 'session');
+      status.textContent = 'Sesión iniciada correctamente.';
+    } catch (error) {
+      status.textContent = error instanceof Error ? error.message : 'No fue posible iniciar sesión.';
+      form.dataset.loginBound = '';
+    } finally {
+      form.dataset.loginSubmitting = '';
+      if (button) button.disabled = false;
+    }
+  });
+
+  document.addEventListener('click', function (event) {
+    const button = event.target.closest('[data-toggle="password"]');
+    if (!button) return;
+    const input = document.getElementById(button.dataset.toggle);
+    if (!input) return;
+    const visible = input.type === 'password';
+    input.type = visible ? 'text' : 'password';
+    button.setAttribute('aria-pressed', String(visible));
+    button.setAttribute('aria-label', visible ? 'Ocultar contraseña' : 'Mostrar contraseña');
+  });
+</script>
 </body>
 </html>
