@@ -61,26 +61,58 @@ body {
   padding: 0 20px;
 }
 
+/* Enlaces del menú lateral con transición fluida */
 .sidebar__nav a {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  color: var(--merinolight);
-  font-weight: bold;
-  white-space: nowrap;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--merinolight);
+    font-weight: bold;
+    padding: 10px 15px;
+    border-radius: 8px;
+    position: relative;
+    white-space: nowrap;
+    transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .sidebar__icon {
-  display: inline-block;
-  width: 40px;
-  height: 40px;
-  background-color: var(--merinolight);
-  border-radius: 4px;
-  flex-shrink: 0;
-  box-shadow: 0 2px 4px var(--venice-bluelight);
-  transition:
-    transform 0.2s,
-    background-color 0.2s;
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    margin: 4px;
+    background-color: var(--merinolight); /* Color inicial del icono */
+    flex-shrink: 0;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: 20px 20px; /* Tamaño controlado del icono */
+    mask-size: 20px 20px;
+}
+
+/* Iconos (carpeta: Public/Assets/IMG/ICONS/) */
+.sidebar__icon--directorio {
+    -webkit-mask-image: url("../IMG/ICONS/lupa.png");
+    mask-image: url("../IMG/ICONS/lupa.png");
+}
+.sidebar__icon--registro {
+    -webkit-mask-image: url("../IMG/ICONS/editar.png");
+    mask-image: url("../IMG/ICONS/editar.png");
+}
+.sidebar__icon--perfil {
+    -webkit-mask-image: url("../IMG/ICONS/usuario.png");
+    mask-image: url("../IMG/ICONS/usuario.png");
+}
+.sidebar__icon--gestion {
+    -webkit-mask-image: url("../IMG/ICONS/estadisticas.png");
+    mask-image: url("../IMG/ICONS/estadisticas.png");
+}
+
+.sidebar__nav a:hover .sidebar__icon {
+    transform: scale(1.1);
+    background-color: var(--venice-bluedark); 
 }
 
 .sidebar__text {
@@ -98,13 +130,37 @@ body {
   visibility: visible;
 }
 
+
+/* ==========================================================================
+   EFECTO HOVER COMPLETO (Sección, texto e icono sincronizados)
+   ========================================================================== */
+.sidebar__nav a:hover {
+    background-color: var(--merinodark);
+    color: var(--venice-bluedark);
+    box-shadow: 0 4px 12px rgba(11, 50, 72, 0.4); /* Sombra oscura de profundidad */
+}
+
 .sidebar__nav a:hover .sidebar__icon {
-  transform: scale(1.1);
-  background-color: white;
+    transform: scale(1.1);
+    background-color: var(--venice-bluedark); /* El icono adopta el tono oscuro al hacer hover */
 }
 
 .sidebar__nav a:hover .sidebar__text {
-  color: white;
+    color: var(--venice-bluedark); /* El texto cambia al tono oscuro para un contraste limpio */
+}
+
+/* Página actual (Estado activo) */
+.sidebar__nav a.is-active {
+    background-color: var(--merinodark);
+    box-shadow: 0 4px 12px rgba(11, 50, 72, 0.3);
+}
+
+.sidebar__nav a.is-active .sidebar__icon {
+    background-color: var(--venice-bluedark);
+}
+
+.sidebar__nav a.is-active .sidebar__text {
+    color: var(--venice-bluedark);
 }
 
 /* disno general */
@@ -115,7 +171,114 @@ body {
 }
 
 .main-content h1 {
-  color: var(--venice-blue);
-  font-size: 24px;
-  margin-bottom: 30px;
+    color: var(--venice-blue);
+    font-size: 24px;
+    margin-bottom: 30px;
+}
+
+/* ==========================================================================
+   FORMULARIOS (Reusable para todo el equipo)
+   ========================================================================== */
+.formulario {
+    background-color: var(--merinolight);
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.formulario__seccion {
+    border: none;
+    border-top: 2px solid var(--rock-bluelight);
+    margin-bottom: 30px;
+    padding-top: 20px;
+}
+
+.formulario__seccion legend {
+    color: var(--venice-blue);
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 0 10px;
+}
+
+/* Sistema de Grid para alinear los inputs (2 columnas por defecto) */
+.formulario__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 15px;
+}
+
+/* Campos de texto y etiquetas */
+.campo {
+    display: flex;
+    flex-direction: column;
+}
+
+.campo--full {
+    grid-column: 1 / -1; /* Ocupa todo el ancho disponible */
+}
+
+.campo label {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: var(--venice-bluedark);
+    margin-bottom: 5px;
+}
+
+.campo input, 
+.campo textarea {
+    padding: 10px;
+    border: 1px solid var(--rock-bluelight);
+    border-radius: 4px;
+    font-size: 1rem;
+    color: var(--venice-bluedark);
+    transition: border-color 0.3s;
+}
+
+.campo input:focus, 
+.campo textarea:focus {
+    outline: none;
+    border-color: var(--venice-blue);
+    box-shadow: 0 0 5px rgba(22, 88, 123, 0.2);
+}
+
+/* Estilo para campos de Solo Lectura (Requisito P1) */
+.input-readonly {
+    background-color: #e9ecef;
+    color: #6c757d !important;
+    border: 1px dashed var(--rock-blue) !important;
+    cursor: not-allowed;
+}
+
+/* Etiquetas (Badges) */
+.badge--vigente {
+    display: inline-block;
+    padding: 5px 12px;
+    background-color: #28a745;
+    color: white;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Botones */
+.btn--primario {
+    background-color: var(--venice-blue);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.btn--primario:hover {
+    background-color: var(--venice-bluedark);
+}
+
+.formulario__acciones {
+    margin-top: 30px;
+    text-align: right;
 }
