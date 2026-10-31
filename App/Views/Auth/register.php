@@ -5,6 +5,10 @@ if (!defined('SICOLMED_FRONT_CONTROLLER')) {
     http_response_code(403);
     exit('Acceso denegado.');
 }
+
+// Ruta base: funciona igual en WAMP (/SiColMed-FrontEnd/Public) y en Docker (raíz)
+$base    = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '')), '/');
+$entrada = $base . '/index.php';
 ?>
 
 <!DOCTYPE html>
@@ -16,7 +20,7 @@ if (!defined('SICOLMED_FRONT_CONTROLLER')) {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/Assets/CSS/Dedicated/Auth/auth.css">
+  <link rel="stylesheet" href="<?= $base ?>/Assets/CSS/Dedicated/Auth/auth.css">
 </head>
 <body>
 <div class="auth">
@@ -29,7 +33,7 @@ if (!defined('SICOLMED_FRONT_CONTROLLER')) {
 
     <div class="panel__main">
       <div class="glass glass--img">
-        <img src="/Assets/IMG/register.jpg" alt="Comunidad médica conectada">
+        <img src="<?= $base ?>/Assets/IMG/register.jpg" alt="Comunidad médica conectada">
       </div>
       <div>
         <h2>Impulsa tu práctica<br>médica</h2>
@@ -73,7 +77,7 @@ if (!defined('SICOLMED_FRONT_CONTROLLER')) {
           </p>
         <?php endif; ?>
 
-        <form id="register-form" action="/register" method="post">
+        <form id="register-form" action="<?= $entrada ?>?c=register&a=index" method="post">
           <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
           <div class="field">
             <label class="lbl" for="nombre">Nombre completo (según idoneidad)</label>
@@ -118,7 +122,7 @@ if (!defined('SICOLMED_FRONT_CONTROLLER')) {
 
         <p class="alt">
           ¿Ya tienes cuenta?
-          <a href="/login">Iniciar sesión</a>
+          <a href="<?= $entrada ?>?c=login&a=login">Iniciar sesión</a>
         </p>
 
       </div>
@@ -136,7 +140,7 @@ if (!defined('SICOLMED_FRONT_CONTROLLER')) {
 
 <script
   type="module"
-  src="/Assets/JavaScript/Dedicated/Auth/register.js">
+  src="<?= $base ?>/Assets/JavaScript/Dedicated/Auth/register.js">
 </script>
 
 </body>

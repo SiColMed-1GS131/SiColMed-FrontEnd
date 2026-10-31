@@ -48,7 +48,7 @@ final class RegistroController
 
         if ($resultado === null || !$resultado['ok']) {
             $this->guardarMensaje(($resultado['error'] ?? '') ?: 'Médico no encontrado.');
-            $this->redirigir('/registro-medico');
+            $this->redirigir($this->entrada() . '?c=registro&a=index');
         }
 
         $this->render('form', ['medico' => $resultado['datos'], 'errores' => [], 'errorGeneral' => '']);
@@ -70,7 +70,7 @@ final class RegistroController
 
         if ($resultado['ok']) {
             $this->guardarMensaje('Médico guardado correctamente.');
-            $this->redirigir('/registro-medico');
+            $this->redirigir($this->entrada() . '?c=registro&a=index');
         }
 
         // Si hay errores, se vuelve a mostrar el formulario con los datos y errores
@@ -91,19 +91,21 @@ final class RegistroController
     {
         extract($datos, EXTR_SKIP);
         $currentPage = 'registro';
+        $extraCss = 'registro.css';   // el header carga base.css y este CSS
+        $entrada = $this->entrada();  // URL base de index.php para los enlaces y el formulario
 
         require __DIR__ . '/../Views/Partials/header.php';
-        echo '<link rel="stylesheet" href="/Assets/CSS/base.css">';
-        echo '<link rel="stylesheet" href="/Assets/CSS/Dedicated/registro.css">';
         echo '<div class="app-layout">';
         require __DIR__ . '/../Views/Partials/sidebar.php';
         echo '<main class="main-content">';
-        require __DIR__ . '/../Views/Registro/' . $vista . '.php';
-        echo '</main></div>';
-        if ($vista === 'form') {
-            echo '<script src="/Assets/JavaScript/Dedicated/registro.js"></script>';
-        }
+        require __DIR__ . '/../Views/Admin/Registro/' . $vista . '.php';
         require __DIR__ . '/../Views/Partials/footer.php';
+    }
+
+    // Ruta a index.php que funciona igual en WAMP (/SiColMed-FrontEnd/Public) y en Docker (raíz)
+    private function entrada(): string
+    {
+        return rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '')), '/') . '/index.php';
     }
 
     // El id debe ser un número entero

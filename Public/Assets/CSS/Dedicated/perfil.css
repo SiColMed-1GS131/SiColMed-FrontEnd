@@ -1,3 +1,6 @@
+/* ==========================================================================
+   PERFIL · estilos de la pantalla Mi Perfil Médico (vista general y edición)
+   ========================================================================== */
 
 .perfil-medico {
     max-width: 5000px;
@@ -103,4 +106,140 @@
 
 .btn--primario:hover {
     background-color: var(--venice-bluedark);
+}
+
+/* ==========================================================================
+   PERFIL · pestañas, tablas, etiquetas de estado y página de error
+   (estilos de la parte de Miguel, antes en este mismo archivo)
+   ========================================================================== */
+.perfil-tab {
+    margin-block: 1.5rem;
+}
+
+.perfil-tab__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-block-end: 1rem;
+}
+
+.perfil-tab__title {
+    margin: 0;
+    font-size: 1.35rem;
+}
+
+.perfil-tab__subtitle {
+    margin-block: 1.5rem 0.75rem;
+    font-size: 1.1rem;
+}
+
+.perfil-tab__bloque + .perfil-tab__bloque {
+    margin-block-start: 1.5rem;
+}
+
+.perfil-tab__scroll {
+    overflow-x: auto;
+}
+
+.perfil-tab__vacio {
+    margin: 0;
+}
+
+/* ---------- P4 · Tablas ---------- */
+.perfil-tabla {
+    width: 100%;
+    min-width: 40rem;
+    border-collapse: collapse;
+}
+
+.perfil-tabla th,
+.perfil-tabla td {
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: top;
+}
+
+.perfil-tabla th {
+    background: #f1f5f9;
+    font-weight: 600;
+}
+
+.perfil-tabla__caption {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.perfil-tabla__monto {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.perfil-tabla__vacio {
+    color: #64748b;
+}
+
+/* ---------- P4 · Etiquetas de estado ---------- */
+.estado {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.estado--ok {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.estado--pendiente {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+/* ---------- P4 · Páginas de error ---------- */
+.error-page {
+    max-width: 32rem;
+    margin: 4rem auto;
+    padding: 0 1rem;
+    text-align: center;
+}
+
+.error-page__codigo {
+    margin: 0;
+    font-size: 4rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #1d4ed8;
+}
+
+.error-page__titulo {
+    margin-block: 0.5rem;
+    font-size: 1.5rem;
+}
+
+.error-page__texto {
+    margin-block: 0 1.5rem;
+    color: #475569;
+}
+
+.error-page--api {
+    padding: 1.5rem 1rem;
+    border: 1px solid #fecaca;
+    border-radius: 0.5rem;
+    background: #fef2f2;
+}
+
+@media (max-width: 600px) {
+    .perfil-tab__header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }

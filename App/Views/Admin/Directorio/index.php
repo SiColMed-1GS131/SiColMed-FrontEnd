@@ -1,3 +1,15 @@
+<?php
+
+$entrada = $entrada ?? 'index.php';
+$esc     = static fn($t): string => htmlspecialchars((string) $t, ENT_QUOTES, 'UTF-8');
+$avatar  = rtrim(dirname($entrada), '/') . '/Assets/IMG/ICONS/usuario.png';   // foto por defecto
+?>
+<?php
+// Enlace a otra página conservando los filtros activos
+$enlacePagina = static fn (int $pagina): string => $entrada . '?' . http_build_query(
+    ['c' => 'directorio', 'a' => 'index'] + array_filter($filtros ?? [], static fn ($v) => $v !== '') + ['page' => $pagina]
+);
+?>
 <div class="directorio-contenedor">
     <h1 class="directorio-titulo">Directorio médico</h1>
 
@@ -71,7 +83,7 @@
                 <div class="directorio-filtros__acciones">
                     <button type="submit" class="btn btn--primario">Aplicar filtros</button>
                     <!-- Eliminamos parámetros para resetear -->
-                    <a href="?a=index" class="btn btn--secundario">Limpiar filtros</a>
+                    <a href="<?= $esc($entrada . '?c=directorio&a=index') ?>" class="btn btn--secundario">Limpiar filtros</a>
                 </div>
             </div>
         </form>
@@ -93,23 +105,23 @@
                     <?php foreach ($medicos as $medico): ?>
                         <tr>
                             <td class="medico-hover-container">
-                                <span class="medico-nombre"><?= htmlspecialchars($medico['apellido'] . ', ' . $medico['nombre']) ?></span>
+                                <span class="medico-nombre"><?= $esc(($medico['apellido'] ?? '') . ', ' . ($medico['nombre'] ?? '')) ?></span>
                                 
                                 <div class="tarjeta-flotante">
                                     <div class="tarjeta-flotante__header">
-                                        <img src="<?= !empty($medico['foto']) ? htmlspecialchars($medico['foto']) : '/Public/Assets/IMG/default-avatar.png' ?>" alt="Foto" class="tarjeta-flotante__foto">
+                                        <img src="<?= !empty($medico['foto']) ? $esc($medico['foto']) : $esc($avatar) ?>" alt="Foto" class="tarjeta-flotante__foto">
                                         <div class="tarjeta-flotante__info-principal">
-                                            <span class="tarjeta-flotante__nombre"><?= htmlspecialchars($medico['nombre'] . ' ' . $medico['apellido']) ?></span>
-                                            <span class="tarjeta-flotante__especialidad"><?= htmlspecialchars($medico['especialidad']) ?></span>
+                                            <span class="tarjeta-flotante__nombre"><?= $esc(trim(($medico['nombre'] ?? '') . ' ' . ($medico['apellido'] ?? ''))) ?></span>
+                                            <span class="tarjeta-flotante__especialidad"><?= $esc($medico['especialidad'] ?? '') ?></span>
                                         </div>
                                     </div>
                                     <div class="tarjeta-flotante__body">
-                                        <span class="tarjeta-flotante__correo"><?= htmlspecialchars($medico['email_laboral'] ?? 'Correo no disponible') ?></span>
+                                        <span class="tarjeta-flotante__correo"><?= $esc($medico['email_laboral'] ?? 'Correo no disponible') ?></span>
                                     </div>
                                 </div>
                             </td>
-                            <td><?= htmlspecialchars($medico['especialidad']) ?></td>
-                            <td><?= htmlspecialchars($medico['provincia']) ?></td>
+                            <td><?= $esc($medico['especialidad'] ?? '') ?></td>
+                            <td><?= $esc($medico['provincia'] ?? '') ?></td>
                             <td>
                                 <?php if (isset($medico['vigente']) && $medico['vigente']): ?>
                                     <span class="etiqueta etiqueta--vigente">Vigente</span>
@@ -118,7 +130,7 @@
                                 <?php endif; ?>
                             </td>
                             <!-- El enlace carga la vista 'ver' en el mismo archivo -->
-                            <td><a href="?a=ver&id=<?= urlencode($medico['id'] ?? '') ?>" class="enlace-perfil">Ver Perfil</a></td>
+                            <td><a href="<?= $esc($entrada . '?' . http_build_query(['c' => 'directorio', 'a' => 'ver', 'id' => $medico['id'] ?? 0])) ?>" class="enlace-perfil">Ver Perfil</a></td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
@@ -134,14 +146,14 @@
         
         <!-- Números de página -->
         <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
-            <a href="?a=index&page=<?= $i ?>" class="paginacion__link <?= $i === $paginaActual ? 'paginacion__link--activo' : '' ?>">
+            <a href="<?= $esc($enlacePagina($i)) ?>" class="paginacion__link <?= $i === $paginaActual ? 'paginacion__link--activo' : '' ?>">
                 <?= $i ?>
             </a>
         <?php endfor; ?>
 
         <!-- Flecha de Siguiente (>) -->
         <?php if ($paginaActual < $totalPaginas): ?>
-            <a href="?a=index&page=<?= $paginaActual + 1 ?>" class="paginacion__link paginacion__link--flecha">
+            <a href="<?= $esc($enlacePagina($paginaActual + 1)) ?>" class="paginacion__link paginacion__link--flecha">
                 &gt;
             </a>
         <?php endif; ?>

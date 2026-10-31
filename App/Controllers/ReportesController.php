@@ -6,8 +6,12 @@ namespace App\Controllers;
 
 use App\Services\ApiClient;
 
+require_once __DIR__ . '/../Helpers/ui.php';   // e() y dinero()
+
 final class ReportesController
 {
+    private const VISTAS = __DIR__ . '/../Views/Admin/Contabilidad/Reportes/';
+
     private ApiClient $api;
 
     public function __construct()
@@ -17,31 +21,30 @@ final class ReportesController
 
     public function balance(): void
     {
-        $this->verificarAcceso();
-
         $inicio = trim((string) ($_GET['inicio'] ?? ''));
         $fin = trim((string) ($_GET['fin'] ?? ''));
         $consultado = isset($_GET['inicio']) || isset($_GET['fin']);
 
         $datos = [
-            'inicio' => $inicio,
-            'fin' => $fin,
+            'fechaInicio' => $inicio,
+            'fechaFin' => $fin,
             'consultado' => false,
-            'errores' => [],
+            'errorFiltro' => '',
             'errorGeneral' => '',
             'filas' => [],
             'totales' => null,
             'tituloRango' => '',
         ];
 
+        // Primera visita: solo se muestra el filtro.
         if (!$consultado) {
             $this->render($datos);
             return;
         }
 
-        $errores = $this->validarFechas($inicio, $fin);
-        if ($errores !== []) {
-            $datos['errores'] = $errores;
+        // Validación (la validación real también la hace el backend).
+        $datos['errorFiltro'] = $this->validarFechas($inicio, $fin);
+        if ($datos['errorFiltro'] !== '') {
             $this->render($datos);
             return;
         }
@@ -57,17 +60,14 @@ final class ReportesController
             return;
         }
 
-        [$filas, $totales] = $this->prepararFilas($resultado['datos']);
-        $datos['filas'] = $filas;
-        $datos['totales'] = $totales;
+        [$datos['filas'], $datos['totales']] = $this->prepararFilas($resultado['datos']);
         $this->render($datos);
     }
 
-    
     private function consultarBalance(string $inicio, string $fin): array
     {
         $resp = $this->api->getJson(
-            '/reportes/balance-general?fecha_inicio=' . urlencode($inicio) . '&fecha_fin=' . urlencode($fin)
+            '/reportes/balance-general?' . http_build_query(['fecha_inicio' => $inicio, 'fecha_fin' => $fin])
         );
 
         if ($resp['body'] === null || $resp['status'] === 0 || $resp['status'] >= 500) {
@@ -97,33 +97,19 @@ final class ReportesController
         return ['ok' => true, 'datos' => $json['filas'], 'error' => ''];
     }
 
-    // Pendiente: validar rol admin_asociacion cuando exista App/Middleware/Auth.php.
-    private function verificarAcceso(): void
+    /** Devuelve el mensaje de error, o '' si las fechas están bien. */
+    private function validarFechas(string $inicio, string $fin): string
     {
-    }
-
-    /** @return array<string,string> errores por campo */
-    private function validarFechas(string $inicio, string $fin): array
-    {
-        $errores = [];
-
-        if ($inicio === '') {
-            $errores['inicio'] = 'La fecha de inicio es obligatoria.';
-        } elseif (!$this->fechaValida($inicio)) {
-            $errores['inicio'] = 'La fecha de inicio no es válida.';
+        if ($inicio === '' || $fin === '') {
+            return 'La fecha de inicio y la fecha fin son obligatorias.';
         }
-
-        if ($fin === '') {
-            $errores['fin'] = 'La fecha fin es obligatoria.';
-        } elseif (!$this->fechaValida($fin)) {
-            $errores['fin'] = 'La fecha fin no es válida.';
+        if (!$this->fechaValida($inicio) || !$this->fechaValida($fin)) {
+            return 'Alguna de las fechas no es válida.';
         }
-
-        if ($errores === [] && $inicio > $fin) {
-            $errores['fin'] = 'La fecha de inicio no puede ser mayor que la fecha fin.';
+        if ($inicio > $fin) {
+            return 'La fecha de inicio no puede ser mayor que la fecha fin.';
         }
-
-        return $errores;
+        return '';
     }
 
     private function fechaValida(string $valor): bool
@@ -138,7 +124,10 @@ final class ReportesController
         return \DateTimeImmutable::createFromFormat('!Y-m-d', $valor)->format('d/m/Y');
     }
 
-
+    /**
+     * Da formato a los montos y calcula la fila de totales.
+     * Se suma en centavos (enteros) para evitar errores de decimales.
+     */
     private function prepararFilas(array $filas): array
     {
         $sumaDebito = 0;
@@ -147,9 +136,9 @@ final class ReportesController
         $salida = [];
 
         foreach ($filas as $fila) {
-            $debito = $this->aCentavos($fila['total_debito'] ?? '0');
-            $credito = $this->aCentavos($fila['total_credito'] ?? '0');
-            $saldo = $this->aCentavos($fila['saldo'] ?? '0');
+            $debito = $this->aCentavos($fila['total_debito'] ?? 0);
+            $credito = $this->aCentavos($fila['total_credito'] ?? 0);
+            $saldo = $this->aCentavos($fila['saldo'] ?? 0);
 
             $sumaDebito += $debito;
             $sumaCredito += $credito;
@@ -157,49 +146,44 @@ final class ReportesController
 
             $salida[] = [
                 'cuenta' => (string) ($fila['nombre_cuenta'] ?? ''),
-                'debito' => $this->dinero($debito),
-                'credito' => $this->dinero($credito),
-                'saldo' => $this->dinero($saldo),
+                'debito' => dinero($debito / 100),
+                'credito' => dinero($credito / 100),
+                'saldo' => dinero($saldo / 100),
                 'negativo' => $saldo < 0,
             ];
         }
 
         $totales = [
-            'debito' => $this->dinero($sumaDebito),
-            'credito' => $this->dinero($sumaCredito),
-            'saldo' => $this->dinero($sumaSaldo),
+            'debito' => dinero($sumaDebito / 100),
+            'credito' => dinero($sumaCredito / 100),
+            'saldo' => dinero($sumaSaldo / 100),
             'negativo' => $sumaSaldo < 0,
         ];
 
         return [$salida, $totales];
     }
 
-   
+    // 1250.75 -> 125075
     private function aCentavos(mixed $monto): int
     {
         return (int) round(((float) $monto) * 100);
-    }
-    // Pendiente: cambiar por App/Helpers/dinero.php.
-    private function dinero(int $centavos): string
-    {
-        $signo = $centavos < 0 ? '-' : '';
-        $abs = abs($centavos);
-        return $signo . number_format(intdiv($abs, 100), 0, '.', ',') . '.' . str_pad((string) ($abs % 100), 2, '0', STR_PAD_LEFT);
     }
 
     private function render(array $datos): void
     {
         extract($datos, EXTR_SKIP);
         $currentPage = 'reportes';
+        $extraCss = 'reportes.css';
+
+        // Ruta base de Public/ calculada, para que funcione en WAMP (/SiColMed-FrontEnd/Public) y en Docker (raíz).
+        $base = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '')), '/');
 
         require __DIR__ . '/../Views/Partials/header.php';
-        echo '<link rel="stylesheet" href="/Assets/CSS/base.css">';
-        echo '<link rel="stylesheet" href="/Assets/CSS/Dedicated/reportes.css">';
         echo '<div class="app-layout">';
         require __DIR__ . '/../Views/Partials/sidebar.php';
         echo '<main class="main-content">';
-        require __DIR__ . '/../Views/Contabilidad/Reportes/balance_general.php';
-        echo '<script src="/Assets/JavaScript/Dedicated/reportes.js"></script>';
-        require __DIR__ . '/../Views/Partials/footer.php';
+        require self::VISTAS . 'balance_general.php';
+        echo '<script src="' . e($base) . '/Assets/JavaScript/Dedicated/reportes.js" defer></script>';
+        require __DIR__ . '/../Views/Partials/footer.php';   // el footer cierra </main> y </div>
     }
 }

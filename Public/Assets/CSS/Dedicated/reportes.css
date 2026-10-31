@@ -1,4 +1,3 @@
-/* Reporte Balance General (P5). Usa las variables de base.css. */
 .reportes { width: 100%; }
 
 .reportes__cabecera {
@@ -16,49 +15,9 @@
   color: var(--venice-blue);
 }
 
-/* ---------- Filtro ---------- */
+
 .reportes__filtro { margin-bottom: 1.5rem; }
-
-.reportes__fieldset {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 1rem 1.5rem;
-  border: 2px solid var(--rock-blue);
-  border-radius: 4px;
-  background: var(--merino);
-  padding: 1rem 1.25rem 1.25rem;
-}
-
-.reportes__legend {
-  padding: 0 0.5rem;
-  font-weight: bold;
-  color: var(--venice-bluedark);
-}
-
-.reportes__campo { display: flex; flex-direction: column; gap: 0.35rem; min-width: 12rem; }
-.reportes__campo label { font-weight: bold; color: var(--venice-bluedark); }
-.reportes__req { color: #b3261e; }
-
-.reportes__campo input[type="date"] {
-  padding: 0.5rem 0.6rem;
-  border: 2px solid var(--venice-blue);
-  border-radius: 4px;
-  font: inherit;
-  color: var(--venice-bluedark);
-  background: #fff;
-}
-
-.reportes__campo input[aria-invalid="true"] { border-color: #b3261e; }
-
-.reportes__error {
-  min-height: 1.1em;
-  margin: 0;
-  font-size: 0.875rem;
-  color: #b3261e;
-}
-
-.reportes__acciones { align-self: flex-end; padding-bottom: 1.45rem; }
+.reportes__filtro [role="alert"] { margin-bottom: 0.75rem; color: #b3261e; font-weight: bold; }
 
 /* ---------- Botones ---------- */
 .reportes__btn {
@@ -75,9 +34,9 @@
 .reportes__btn:hover,
 .reportes__btn:focus-visible { background: var(--rock-bluelight); }
 
-.reportes__btn.btn--primary { background: var(--venice-blue); color: var(--merinolight); }
-.reportes__btn.btn--primary:hover,
-.reportes__btn.btn--primary:focus-visible { background: var(--venice-bluedark); }
+.reportes__btn.btn--primario { background: var(--venice-blue); color: var(--merinolight); }
+.reportes__btn.btn--primario:hover,
+.reportes__btn.btn--primario:focus-visible { background: var(--venice-bluedark); }
 
 /* ---------- Mensajes ---------- */
 .reportes__alerta {
@@ -117,7 +76,7 @@
   background: #fff;
 }
 
-/* El título ya está encima; el caption queda solo para lectores de pantalla */
+
 .reportes__caption,
 .reportes__sr {
   position: absolute;

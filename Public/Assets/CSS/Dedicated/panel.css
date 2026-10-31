@@ -1,0 +1,80 @@
+/* ==========================================================================
+   PANEL · inicio del administrador y del médico
+   Usa las variables de base.css. El marco (sidebar, .main-content) ya viene de base.css.
+   ========================================================================== */
+
+.panel { max-width: 100%; }
+
+/* ---------- Cabecera ---------- */
+.panel__cabecera { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 32px; }
+.panel__titulo { margin: 0; color: var(--venice-blue); font-size: 28px; font-weight: 800; }
+.panel__subtitulo { margin-top: 6px; color: #3b566a; }
+.panel__boton {
+    display: inline-flex; align-items: center; gap: 8px; flex: none;
+    padding: 12px 22px; border-radius: 8px;
+    background: var(--venice-blue); color: #fff; font-weight: 700; text-decoration: none;
+    transition: background-color 0.25s;
+}
+.panel__boton:hover { background: var(--venice-bluedark); }
+.panel__mas { font-size: 1.3rem; line-height: 1; }
+
+/* ---------- Tarjeta base ---------- */
+.panel__tarjeta { background: #fff; border: 1px solid var(--rock-bluelight); border-radius: 16px; }
+
+/* ---------- Resumen ---------- */
+.panel__stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.panel__stats--dos { grid-template-columns: repeat(2, 1fr); }
+.panel__stat { padding: 24px; }
+.panel__stat-etiqueta { margin: 0; font-size: 13px; font-weight: 700; color: #3b566a; }
+.panel__stat-valor { margin-top: 6px; font-size: 38px; font-weight: 800; color: var(--venice-blue); font-variant-numeric: tabular-nums; }
+.panel__nota { margin: 14px 0 0; font-size: 0.82rem; color: var(--rock-bluedark); }
+
+/* ---------- Títulos de sección ---------- */
+.panel__seccion { display: flex; align-items: center; gap: 12px; margin: 36px 0 16px; font-size: 18px; font-weight: 800; color: var(--venice-blue); }
+.panel__etiqueta-ejemplo { padding: 3px 10px; border-radius: 20px; background: var(--merinodark); color: var(--venice-bluedark); font-size: 0.72rem; font-weight: 700; }
+
+/* ---------- Accesos rápidos ---------- */
+.panel__accesos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.panel__acceso { display: flex; align-items: center; gap: 16px; padding: 24px; color: inherit; text-decoration: none; transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s; }
+a.panel__acceso:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(11, 50, 72, 0.12); border-color: var(--venice-bluelight); }
+.panel__acceso strong { display: block; color: var(--venice-bluedark); }
+.panel__acceso small { display: block; margin-top: 2px; font-size: 13px; color: #3b566a; }
+.panel__acceso--off { opacity: 0.6; cursor: not-allowed; }
+
+.panel__icono {
+    flex: none; width: 48px; height: 48px; border-radius: 12px; background-color: var(--merino);
+    position: relative;
+}
+.panel__icono::after {
+    content: ""; position: absolute; inset: 0; margin: auto; width: 22px; height: 22px;
+    background-color: var(--venice-blue);
+    -webkit-mask: no-repeat center / contain; mask: no-repeat center / contain;
+}
+.panel__icono--editar::after       { -webkit-mask-image: url("../../IMG/ICONS/editar.png");       mask-image: url("../../IMG/ICONS/editar.png"); }
+.panel__icono--mensaje::after      { -webkit-mask-image: url("../../IMG/ICONS/mensaje.png");      mask-image: url("../../IMG/ICONS/mensaje.png"); }
+.panel__icono--lupa::after         { -webkit-mask-image: url("../../IMG/ICONS/lupa.png");         mask-image: url("../../IMG/ICONS/lupa.png"); }
+.panel__icono--libro::after        { -webkit-mask-image: url("../../IMG/ICONS/libro.png");        mask-image: url("../../IMG/ICONS/libro.png"); }
+.panel__icono--calendario::after   { -webkit-mask-image: url("../../IMG/ICONS/calendario.png");   mask-image: url("../../IMG/ICONS/calendario.png"); }
+.panel__icono--estadisticas::after { -webkit-mask-image: url("../../IMG/ICONS/estadisticas.png"); mask-image: url("../../IMG/ICONS/estadisticas.png"); }
+.panel__icono--usuario::after      { -webkit-mask-image: url("../../IMG/ICONS/usuario.png");      mask-image: url("../../IMG/ICONS/usuario.png"); }
+
+/* ---------- Tabla ---------- */
+.panel__tabla-envoltura { overflow-x: auto; }
+.panel__tabla { width: 100%; border-collapse: collapse; font-size: 14px; }
+.panel__tabla thead th { padding: 14px 24px; background: var(--venice-blue); color: #fff; text-align: left; white-space: nowrap; }
+.panel__tabla tbody th, .panel__tabla tbody td { padding: 14px 24px; text-align: left; border-bottom: 1px solid var(--merinodark); }
+.panel__tabla tbody th { font-weight: 600; }
+.panel__tabla tbody tr:last-child th, .panel__tabla tbody tr:last-child td { border-bottom: 0; }
+.panel__vacio { text-align: center !important; color: var(--rock-bluedark); padding: 28px 24px !important; }
+.panel__estado { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+.panel__estado--pendiente { background: #fff4e0; color: #6b4400; }
+.panel__estado--ok { background: #e6f4ea; color: #1b5e20; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1000px) {
+    .panel__stats, .panel__accesos { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+    .panel__cabecera { flex-direction: column; }
+    .panel__stats, .panel__stats--dos, .panel__accesos { grid-template-columns: 1fr; }
+}
