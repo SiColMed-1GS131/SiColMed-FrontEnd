@@ -452,3 +452,5 @@
 .paginacion__link--flecha:hover {
     color: var(--venice-bluedark);
 }
+/* Contraste: el nombre se ve blanco sobre las filas azules (antes quedaba oscuro sobre azul) */
+.tabla-directorio tbody tr:nth-child(odd) .medico-nombre { color: #fff; }

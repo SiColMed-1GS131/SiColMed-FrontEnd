@@ -1,11 +1,4 @@
-/* ==========================================================
-   perfil.css · SiColMed
-   Secciones de P4 (Miguel): pestañas Educación continua y
-   Estado de cuenta, y páginas de error.
-   Las secciones de P1 (Perfil principal) van en otro bloque.
-   ========================================================== */
 
-/* ---------- P4 · Pestañas del Perfil ---------- */
 .perfil-tab {
     margin-block: 1.5rem;
 }

@@ -1,9 +1,17 @@
 <?php
+/**
+ * Perfil público de un médico (Directorio).
+ * Solo contenido: DirectorioController::render() arma el layout.
+ * Variables: $medico, $errorGeneral, $entrada (URL de index.php)
+ */
+$entrada = $entrada ?? 'index.php';
+$volver  = htmlspecialchars($entrada . '?c=directorio&a=index', ENT_QUOTES, 'UTF-8');
+$avatar  = htmlspecialchars(rtrim(dirname($entrada), '/') . '/Assets/IMG/ICONS/usuario.png', ENT_QUOTES, 'UTF-8');
 // Si por alguna razón no llega el médico, mostramos un error
 if (!isset($medico) || empty($medico)) {
     $mensaje = $errorGeneral ?? 'No se pudo cargar la información del médico.';
     echo "<div class='alerta alerta--error'>" . htmlspecialchars($mensaje, ENT_QUOTES, 'UTF-8') . '</div>';
-    echo "<a href='?c=directorio&a=index' class='btn btn--primario'>Volver al directorio</a>";
+    echo "<a href='" . $volver . "' class='btn btn--primario'>Volver al directorio</a>";
     return;
 }
 ?>
@@ -12,16 +20,16 @@ if (!isset($medico) || empty($medico)) {
     
     <!-- Botón para regresar -->
     <div class="perfil-publico__acciones">
-        <a href="?c=directorio&a=index" class="btn btn--secundario">&larr; Volver al Directorio</a>
+        <a href="<?= $volver ?>" class="btn btn--secundario">&larr; Volver al Directorio</a>
     </div>
 
     <!-- Encabezado del Perfil -->
     <header class="perfil-header">
         <div class="perfil-header__foto-contenedor">
-            <img src="<?= !empty($medico['foto']) ? htmlspecialchars($medico['foto']) : '/Public/Assets/IMG/default-avatar.png' ?>" alt="Foto del Dr/Dra" class="perfil-header__foto">
+            <img src="<?= !empty($medico['foto']) ? htmlspecialchars($medico['foto']) : $avatar ?>" alt="Foto del Dr/Dra" class="perfil-header__foto">
         </div>
         <div class="perfil-header__info">
-            <h1 class="perfil-header__nombre">Dr(a). <?= htmlspecialchars($medico['nombre'] . ' ' . $medico['apellido']) ?></h1>
+            <h1 class="perfil-header__nombre">Dr(a). <?= htmlspecialchars(trim(($medico['nombre'] ?? '') . ' ' . ($medico['apellido'] ?? ''))) ?></h1>
             <p class="perfil-header__especialidad"><?= htmlspecialchars($medico['especialidad'] ?? 'Especialidad no especificada') ?></p>
             
             <div class="perfil-header__badges">

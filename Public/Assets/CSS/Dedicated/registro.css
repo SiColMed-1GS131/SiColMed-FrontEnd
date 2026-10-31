@@ -263,3 +263,34 @@
 .registro__badge--no { background: #f8d7da; color: #7f1d1d; }
 
 .registro .registro__editar { padding: 0.25rem 0.9rem; font-size: 0.9rem; }
+/* ---------- Lista de médicos (Registro médico) ---------- */
+.registro-lista { width: 100%; }
+.registro-lista__cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.registro-lista__cabecera h1 { margin-bottom: 4px; }
+.registro-lista__cabecera p { color: var(--venice-blue); }
+.registro-lista .btn--primario { display: inline-block; text-decoration: none; }
+.registro-lista__panel {
+  background: #fff;
+  border: 2px solid var(--rock-bluelight);
+  border-radius: 12px;
+  padding: 25px;
+}
+.registro-lista__total { font-weight: bold; margin-bottom: 15px; }
+.registro-lista__vacio { color: #666; }
+.registro-lista__scroll { overflow-x: auto; }
+.registro-tabla { width: 100%; border-collapse: collapse; min-width: 36rem; }
+.registro-tabla th,
+.registro-tabla td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+.registro-tabla thead th { color: var(--venice-blue); background: #f1f5f9; }
+.registro-tabla tbody tr:hover { background: var(--merino); }
+.registro-tabla__acciones { text-align: right; }
+.registro-tabla__acciones a { color: var(--venice-blue); font-weight: bold; }
+.alerta--exito { background: #d4edda; color: #155724; padding: 10px 14px; border-radius: 6px; margin-bottom: 20px; }
+.visualmente-oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

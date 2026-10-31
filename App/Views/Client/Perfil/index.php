@@ -1,8 +1,10 @@
 <?php
 $currentPage = 'perfil';
-$extraCss = 'perfil.css';
 require_once __DIR__ . '/../../Partials/header.php';
 ?>
+
+<link rel="stylesheet" href="/SiColMed-FrontEnd/Public/Assets/CSS/Dedicated/perfil.css">
+
 
 <div class="app-layout">
     <?php require_once __DIR__ . '/../../Partials/sidebar.php'; ?>

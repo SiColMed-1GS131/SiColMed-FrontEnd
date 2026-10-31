@@ -1,46 +1,43 @@
-/* Reporte Balance General (P5): validación del filtro e impresión. */
 (function () {
   'use strict';
 
-  var form = document.getElementById('form-balance');
+  var contenedor = document.querySelector('.reportes__filtro');
+  var form = contenedor ? contenedor.querySelector('form') : null;
   var inicio = document.getElementById('inicio');
   var fin = document.getElementById('fin');
   var btnImprimir = document.getElementById('btn-imprimir');
 
-  function mostrarError(campo, mensaje) {
-    var caja = document.getElementById('error-' + campo.id);
-    if (caja) { caja.textContent = mensaje; }
-    if (mensaje) {
-      campo.setAttribute('aria-invalid', 'true');
-    } else {
-      campo.removeAttribute('aria-invalid');
+  // Muestra el mensaje de error encima del formulario.
+  function mostrarError(mensaje) {
+    var caja = form.querySelector('[data-error-filtro]');
+    if (!mensaje) {
+      if (caja) { caja.remove(); }
+      return;
     }
+    if (!caja) {
+      caja = document.createElement('p');
+      caja.setAttribute('role', 'alert');
+      caja.setAttribute('data-error-filtro', '');
+      form.insertBefore(caja, form.firstChild);
+    }
+    caja.textContent = mensaje;
   }
 
   if (form && inicio && fin) {
     form.addEventListener('submit', function (evento) {
-      var hayError = false;
+      var mensaje = '';
 
-      mostrarError(inicio, '');
-      mostrarError(fin, '');
-
-      if (!inicio.value) {
-        mostrarError(inicio, 'La fecha de inicio es obligatoria.');
-        hayError = true;
-      }
-      if (!fin.value) {
-        mostrarError(fin, 'La fecha fin es obligatoria.');
-        hayError = true;
-      }
-      // Las fechas AAAA-MM-DD se pueden comparar como texto.
-      if (!hayError && inicio.value > fin.value) {
-        mostrarError(fin, 'La fecha de inicio no puede ser mayor que la fecha fin.');
-        hayError = true;
+      if (!inicio.value || !fin.value) {
+        mensaje = 'La fecha de inicio y la fecha fin son obligatorias.';
+      } else if (inicio.value > fin.value) {
+        // Las fechas AAAA-MM-DD se pueden comparar como texto.
+        mensaje = 'La fecha de inicio no puede ser mayor que la fecha fin.';
       }
 
-      if (hayError) {
+      mostrarError(mensaje);
+      if (mensaje) {
         evento.preventDefault();
-        (!inicio.value || inicio.getAttribute('aria-invalid') ? inicio : fin).focus();
+        (!inicio.value ? inicio : fin).focus();
       }
     });
   }

@@ -1,0 +1,359 @@
+/* =========================================================================
+   MÓDULO: GESTIÓN DE CUENTAS
+   Mismo lenguaje visual que Directorio e Inicio: tarjetas redondeadas con
+   borde celeste y sombra suave, botones de 6px, tablas blancas redondeadas.
+   ========================================================================= */
+
+.cuentas {
+  --cu-radio: 16px;
+  --cu-radio-sm: 6px;
+  --cu-sombra: 0 4px 15px rgba(132, 179, 206, 0.15);
+  --cu-peligro: #8a0016;
+  width: 100%;
+}
+
+/* ---------- Títulos ---------- */
+.cuentas__cabecera { margin-bottom: 1.75rem; }
+
+.cuentas .cuentas__titulo {
+  margin: 0;
+  font-size: 28px;
+  color: var(--venice-bluedark);
+}
+
+.cuentas__subtitulo {
+  margin: 0.35rem 0 0;
+  font-size: 1.05rem;
+  font-weight: normal;
+  color: var(--venice-blue);
+}
+
+/* ---------- Dos columnas: formulario y lista ---------- */
+.cuentas__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+@media (min-width: 1000px) {
+  .cuentas__grid { grid-template-columns: minmax(280px, 2fr) 3fr; }
+}
+
+/* ---------- Tarjetas (paneles) ---------- */
+.cuentas .panel {
+  min-width: 0;
+  background: #fff;
+  border: 2px solid var(--rock-bluelight);
+  border-radius: var(--cu-radio);
+  padding: 1.5rem;
+  box-shadow: var(--cu-sombra);
+  color: var(--venice-bluedark);
+}
+
+/* El formulario queda fijo al bajar por la lista */
+@media (min-width: 1000px) {
+  .cuentas .panel--form { position: sticky; top: 1.5rem; }
+}
+
+.cuentas .panel__cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 2px solid var(--merino);
+}
+
+.cuentas .panel__etiqueta {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rock-bluedark);
+}
+
+.cuentas .panel__titulo {
+  margin: 0.2rem 0 0;
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: var(--venice-blue);
+}
+
+.cuentas .panel__nota {
+  margin: 0;
+  align-self: flex-end;
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--venice-bluedark);
+}
+
+/* ---------- Botones ---------- */
+.cuentas .btn {
+  display: inline-block;
+  padding: 10px 16px;
+  border: 1px solid var(--venice-blue);
+  border-radius: var(--cu-radio-sm);
+  background: #fff;
+  color: var(--venice-blue);
+  font: inherit;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+.cuentas .btn:hover { background: var(--merino); }
+.cuentas .btn:focus-visible { outline: 3px solid var(--rock-blue); outline-offset: 2px; }
+
+.cuentas .btn--primary {
+  background: var(--venice-blue);
+  border-color: var(--venice-blue);
+  color: #fff;
+}
+.cuentas .btn--primary:hover {
+  background: var(--venice-bluedark);
+  border-color: var(--venice-bluedark);
+}
+
+/* Eliminar: rojo al pasar el mouse */
+.cuentas .btn--peligro { color: var(--cu-peligro); border-color: var(--cu-peligro); }
+.cuentas .btn--peligro:hover { background: #f8d7da; }
+
+.cuentas .btn--deshabilitado,
+.cuentas .btn[aria-busy="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Botones pequeños en la tabla */
+.tabla-cuentas .btn { padding: 6px 12px; font-size: 0.85rem; }
+
+/* ---------- Formulario ---------- */
+.cuentas .formulario { background: transparent; padding: 0; border-radius: 0; }
+
+.cuentas .req { color: var(--cu-peligro); }
+
+.cuentas .field { display: flex; flex-direction: column; margin-bottom: 1.1rem; }
+.cuentas .field label {
+  margin-bottom: 0.4rem;
+  font-size: 0.875rem;
+  font-weight: bold;
+  color: var(--venice-blue);
+}
+.cuentas .field input[type="text"],
+.cuentas .field select {
+  padding: 10px 12px;
+  font: inherit;
+  color: var(--venice-bluedark);
+  background: #fff;
+  border: 1px solid var(--rock-blue);
+  border-radius: var(--cu-radio-sm);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.cuentas .field input::placeholder { color: #8aa3b3; }
+.cuentas .field input:hover,
+.cuentas .field select:hover { border-color: var(--rock-bluedark); }
+.cuentas .field input:focus,
+.cuentas .field select:focus {
+  border-color: var(--venice-blue);
+  box-shadow: 0 0 0 2px var(--rock-bluelight);
+}
+
+.cuentas .field select:disabled {
+  background: var(--merinolight);
+  color: #6c7f8c;
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+.cuentas .field--error input,
+.cuentas .field--error select { border-color: var(--cu-peligro); }
+
+.cuentas .field__ayuda { margin: 0.35rem 0 0; font-size: 0.78rem; font-style: italic; color: #4a6a7d; }
+
+.cuentas .field__error {
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: var(--cu-peligro);
+}
+.cuentas .field__error:empty { display: none; }
+
+/* Casilla "Activa" */
+.cuentas .field--casilla {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 0.5rem;
+}
+.cuentas .field--casilla input { width: 1.1rem; height: 1.1rem; accent-color: var(--venice-blue); }
+.cuentas .field--casilla label { margin: 0; }
+.cuentas .field--casilla .field__ayuda { grid-column: 1 / -1; }
+
+.cuentas .formulario__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  text-align: left;
+}
+
+/* ---------- Filtro Todas / Activas / Inactivas ---------- */
+.filtro-estado { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem; }
+
+.filtro-estado__opcion {
+  padding: 6px 16px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: var(--venice-blue);
+  text-decoration: none;
+  background: #fff;
+  border: 1px solid var(--rock-blue);
+  border-radius: 999px;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+.filtro-estado__opcion:hover { background: var(--merino); }
+.filtro-estado__opcion:focus-visible { outline: 3px solid var(--rock-blue); outline-offset: 2px; }
+
+.filtro-estado__opcion--activa,
+.filtro-estado__opcion--activa:hover {
+  background: var(--venice-blue);
+  border-color: var(--venice-blue);
+  color: #fff;
+}
+
+/* ---------- Tabla ---------- */
+.cuentas .tabla-envoltura {
+  overflow-x: auto;
+  background: #fff;
+  border: 1px solid var(--rock-bluelight);
+  border-radius: 12px;
+}
+.cuentas .tabla-envoltura:focus-visible { outline: 3px solid var(--rock-blue); outline-offset: 2px; }
+
+.tabla-cuentas {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.tabla-cuentas th,
+.tabla-cuentas td {
+  padding: 14px 16px;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--merino);
+}
+.tabla-cuentas thead th {
+  background: var(--venice-blue);
+  color: #fff;
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  border-bottom: 0;
+}
+.tabla-cuentas tbody tr:last-child th,
+.tabla-cuentas tbody tr:last-child td { border-bottom: 0; }
+.tabla-cuentas tbody tr:hover { background: var(--merinolight); }
+.tabla-cuentas__nombre { font-weight: bold; color: var(--venice-bluedark); }
+
+/* Cuentas inactivas */
+.tabla-cuentas__fila--inactiva > * { opacity: 0.55; }
+.tabla-cuentas__fila--inactiva:hover > *,
+.tabla-cuentas__fila--inactiva:focus-within > * { opacity: 1; }
+
+.tabla-cuentas__acciones { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.form-eliminar { margin: 0; }
+
+/* ---------- Etiquetas ---------- */
+.cuentas .badge,
+.cuentas .estado {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: bold;
+}
+.cuentas .badge--debito  { background: var(--rock-bluelight); color: var(--venice-bluedark); }
+.cuentas .badge--credito { background: var(--merino); color: var(--venice-bluedark); }
+.cuentas .estado--activa   { background: #d4edda; color: #14532d; }
+.cuentas .estado--inactiva { background: #f8d7da; color: #7f1d1d; }
+
+/* ---------- Paginación ---------- */
+.paginacion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+.paginacion__texto {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--rock-bluedark);
+}
+.paginacion__nav { display: flex; align-items: center; gap: 0.4rem; }
+.paginacion__actual {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  font-weight: bold;
+  background: var(--venice-blue);
+  color: #fff;
+  border-radius: var(--cu-radio-sm);
+}
+
+/* ---------- Mensajes ---------- */
+.cuentas .alerta {
+  margin-bottom: 1.25rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid;
+  border-left-width: 5px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+.cuentas .alerta--success { background: #eaf6ec; border-color: #14532d; color: #14532d; }
+.cuentas .alerta--warning { background: #fff8e1; border-color: #8a6100; color: #5c4100; }
+.cuentas .alerta--error   { background: #fdecee; border-color: var(--cu-peligro); color: var(--cu-peligro); }
+.cuentas .alerta__enlace  { margin-left: 0.25rem; color: inherit; }
+
+/* Cuando no hay cuentas */
+.cuentas .vacio {
+  padding: 2rem 1.5rem;
+  text-align: center;
+  background: var(--merinolight);
+  border: 2px dashed var(--rock-blue);
+  border-radius: 12px;
+}
+.cuentas .vacio__titulo { margin: 0 0 0.4rem; font-weight: bold; }
+.cuentas .vacio p { margin: 0 0 0.4rem; }
+.cuentas .vacio .alerta__enlace { color: var(--venice-blue); font-weight: bold; }
+
+.cuentas .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Celular ---------- */
+@media (max-width: 600px) {
+  .main-content:has(.cuentas) { padding: 20px 16px; }
+  .cuentas .panel { padding: 1.1rem; }
+  .cuentas .cuentas__titulo { font-size: 22px; }
+}

@@ -48,7 +48,7 @@ $subespecialidades = !empty($educacion['subespecialidades']) ? $educacion['subes
 ?>
 <section class="registro">
   <!-- Puede cambiar en base como se envie desde el backend -->
-  <form class="registro__form" method="post" action="/registro-medico/guardar" enctype="multipart/form-data">
+  <form class="registro__form" method="post" action="<?= htmlspecialchars(($entrada ?? 'index.php') . '?c=registro&a=guardar', ENT_QUOTES, 'UTF-8') ?>" enctype="multipart/form-data">
      <?php if (!empty($medico['id'])): ?>
        <input type="hidden" name="id" value="<?= $dato('id') ?>">
      <?php endif; ?>
@@ -200,7 +200,7 @@ $subespecialidades = !empty($educacion['subespecialidades']) ? $educacion['subes
         <?php
           $dirPrefijo = 'residencia';
           $dirTitulo  = 'Dirección residencial';
-          require __DIR__ . '/../Partials/direccion.php';
+          require __DIR__ . '/../../Partials/direccion.php';
         ?>
       </div>
       <!-- Fin: pestaña 1 -->
@@ -232,7 +232,7 @@ $subespecialidades = !empty($educacion['subespecialidades']) ? $educacion['subes
           <?php
             $dirPrefijo = 'trabajo';
             $dirTitulo  = 'Dirección del trabajo';
-            require __DIR__ . '/../Partials/direccion.php';
+            require __DIR__ . '/../../Partials/direccion.php';
           ?>
 
         </div>
@@ -354,8 +354,4 @@ $subespecialidades = !empty($educacion['subespecialidades']) ? $educacion['subes
   </form>
 </section>
 
-<script src="/SiColMed-FrontEnd/Public/Assets/JavaScript/Dedicated/registro.js"></script>
-
-<?php 
-require_once __DIR__ . '/../../../Partials/footer.php'; 
-?>
+<script src="<?= htmlspecialchars(rtrim(dirname($entrada ?? 'index.php'), '/') . '/Assets/JavaScript/Dedicated/registro.js', ENT_QUOTES, 'UTF-8') ?>"></script>
