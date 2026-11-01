@@ -64,7 +64,7 @@ foreach (require __DIR__ . '/../../Configs/menu.php' as $op) {
 
     <div class="sidebar__brand">
         <img class="sidebar__logo"
-             src="/SiColMed-FrontEnd/Public/Assets/IMG/LOGO-CM.png"
+             src="/Assets/IMG/LOGO-CM.png"
              alt="SiColMed" draggable="false">
         <span class="sidebar__brand-name">SiColMed</span>
     </div>
@@ -101,6 +101,14 @@ foreach (require __DIR__ . '/../../Configs/menu.php' as $op) {
                 <?php endif; ?>
             </li>
             <?php endforeach; ?>
+
+            <!-- Cerrar sesión: sesion.js borra el token (clearToken) y vuelve al login -->
+            <li class="sidebar__item sidebar__item--salir">
+                <a class="sidebar__link" href="/index.php?c=login&amp;a=login" data-logout>
+                    <span class="sidebar__icon sidebar__icon--salir" aria-hidden="true"></span>
+                    <span class="sidebar__text">Cerrar sesión</span>
+                </a>
+            </li>
         </ul>
     </nav>
 </aside>

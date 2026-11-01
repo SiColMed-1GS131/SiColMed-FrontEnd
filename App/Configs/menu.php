@@ -15,7 +15,7 @@
  *   children Submenú (un solo nivel). El grupo se muestra si algún hijo es visible.
  */
 
-$entrada = '/SiColMed-FrontEnd/Public/index.php';
+$entrada = '/index.php';   // Docker: el webroot es Public/
 
 return [
     [
@@ -39,9 +39,8 @@ return [
     [
         'label' => 'Perfil médico',
         'icon'  => 'perfil',
-        'url'   => '/SiColMed-FrontEnd/App/Views/Client/Perfil/index.php',
+        'url'   => "$entrada?c=perfil&a=index",
         'match' => ['perfil'],
-        'uri'   => ['/Perfil/'],
     ],
     [
         'label'    => 'Gestión financiera',

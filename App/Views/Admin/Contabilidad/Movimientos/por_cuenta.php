@@ -31,8 +31,10 @@ $filtro_antes = ob_get_clean();
 
     <?php require __DIR__ . '/_subnav.php'; ?>
 
-    <!-- ADAPTACIÓN: Eliminadas las variables de ruta vieja filtro_c y filtro_a -->
-    <form class="filtro filtro--fechas" method="get" action="/movimientos/cuenta" novalidate>
+    <!-- En un formulario GET la query del action se pierde: c y a van como campos ocultos -->
+    <form class="filtro filtro--fechas" method="get" action="/index.php" novalidate>
+        <input type="hidden" name="c" value="movimientos">
+        <input type="hidden" name="a" value="porCuenta">
         <?= $filtro_antes ?>
         <div class="field">
             <label for="inicio">Fecha inicio <span class="req" aria-hidden="true">*</span></label>

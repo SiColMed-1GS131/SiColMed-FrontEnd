@@ -83,7 +83,7 @@ $meses = ['', 'ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oc
                 <h2 class="tarjeta__titulo">Encuentra un médico</h2>
                 <form class="buscar" action="<?= $e($urls['inicio']) ?>" method="get">
                     <input type="hidden" name="c" value="directorio">
-                    <input type="hidden" name="a" value="index">
+                    <input type="hidden" name="a" value="publico">
 
                     <div class="campo-home">
                         <label for="q">Apellido</label>

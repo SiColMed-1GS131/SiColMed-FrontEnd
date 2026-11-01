@@ -135,3 +135,43 @@
   .reportes__tabla tfoot td { background: #fff; }
   .reportes__negativo { color: #000; }
 }
+
+/* ---------- Filtro de fechas con recuadro (diseño original del Balance General) ---------- */
+.reportes__filtro .filtro-fechas { padding: 0; background: transparent; }
+
+.reportes__filtro .filtro-fechas__marco {
+  min-width: 0;
+  border: 2px solid var(--rock-blue);
+  border-radius: 4px;
+  background: var(--merino);
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+.reportes__filtro .filtro-fechas__leyenda {
+  padding: 0 0.5rem;
+  font-weight: bold;
+  color: var(--venice-bluedark);
+}
+
+.reportes__filtro .formulario__grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem 1.5rem;
+  margin-top: 0;
+}
+
+.reportes__filtro .campo { min-width: 12rem; gap: 0.35rem; }
+.reportes__filtro .campo label { margin-bottom: 0; }
+.filtro-fechas__req { color: #b3261e; }
+
+.reportes__filtro .campo input[type="date"] {
+  padding: 0.5rem 0.6rem;
+  border: 2px solid var(--venice-blue);
+  border-radius: 4px;
+  font: inherit;
+  color: var(--venice-bluedark);
+  background: #fff;
+}
+
+.filtro-fechas__boton { padding-bottom: 0.1rem; }

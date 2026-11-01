@@ -3,7 +3,7 @@ $currentPage = 'perfil';
 require_once __DIR__ . '/../../Partials/header.php';
 ?>
 
-<link rel="stylesheet" href="/SiColMed-FrontEnd/Public/Assets/CSS/Dedicated/perfil.css">
+<link rel="stylesheet" href="/Assets/CSS/Dedicated/perfil.css">
 
 
 <div class="app-layout">
@@ -17,7 +17,7 @@ require_once __DIR__ . '/../../Partials/header.php';
                     <p>Vista general de tus datos registrados.</p>
                 </div>
                 <!-- Botón que lleva a la pantalla de edición -->
-                <a href="editar.php" class="btn btn--primario">Editar Perfil</a>
+                <a href="/index.php?c=perfil&a=editar" class="btn btn--primario">Editar Perfil</a>
             </header>
 
             <!-- Datos en modo lectura (Sin inputs) -->

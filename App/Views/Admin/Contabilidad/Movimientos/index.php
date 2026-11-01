@@ -6,8 +6,8 @@
  */
 $activa = 'dia';
 
-// ADAPTACIÓN 1: Ruta limpia para el botón de crear
-$urlCrear = '/movimientos/crear?' . http_build_query(['fecha' => $fecha]);
+// Rutas del sistema: ?c=controlador&a=accion
+$urlCrear = '/index.php?c=movimientos&a=crear&' . http_build_query(['fecha' => $fecha]);
 ?>
 <section class="movs">
     <header class="movs__cabecera">
@@ -21,8 +21,10 @@ $urlCrear = '/movimientos/crear?' . http_build_query(['fecha' => $fecha]);
         <div class="alert alert--<?= e($flash['tipo']) ?>" role="status"><?= e($flash['texto']) ?></div>
     <?php endif; ?>
 
-    <!-- ADAPTACIÓN 2: Action limpio y eliminación de inputs ocultos (c y a) -->
-    <form class="filtro filtro--dia" method="get" action="/movimientos" novalidate>
+    <!-- En un formulario GET la query del action se pierde: c y a van como campos ocultos -->
+    <form class="filtro filtro--dia" method="get" action="/index.php" novalidate>
+        <input type="hidden" name="c" value="movimientos">
+        <input type="hidden" name="a" value="index">
         <div class="field">
             <label for="fecha">Fecha <span class="req" aria-hidden="true">*</span></label>
             <input type="date" id="fecha" name="fecha" value="<?= e($fecha) ?>" required aria-describedby="fecha-error">
@@ -36,7 +38,7 @@ $urlCrear = '/movimientos/crear?' . http_build_query(['fecha' => $fecha]);
             <strong>No se pudieron cargar los movimientos.</strong>
             <?= e($errorApi) ?> Intenta de nuevo en unos minutos.
             <!-- ADAPTACIÓN 3: Ruta limpia para reintentar -->
-            <a href="<?= e('/movimientos?' . http_build_query(['fecha' => $fecha])) ?>">Reintentar</a>
+            <a href="<?= e('/index.php?c=movimientos&a=index&' . http_build_query(['fecha' => $fecha])) ?>">Reintentar</a>
         </div>
 
     <?php elseif ($errorFecha): ?>

@@ -32,7 +32,7 @@ $hayError = fn(string $campo): bool => !empty($errores[$campo]);
     <div class="alerta alerta--error" role="alert">Revisa los campos marcados: la cuenta no se guardó.</div>
   <?php endif; ?>
 
-  <form class="formulario" id="formulario-cuenta" method="post" action="/cuentas/guardar" novalidate
+  <form class="formulario" id="formulario-cuenta" method="post" action="/index.php?c=cuentas&a=guardar" novalidate
         <?= !empty($enfocarFormulario) ? 'data-enfocar="1"' : '' ?>>
     <!-- Datos ocultos -->
     <input type="hidden" name="csrf" value="<?= $h($csrf ?? '') ?>">
@@ -84,7 +84,7 @@ $hayError = fn(string $campo): bool => !empty($errores[$campo]);
       <button type="submit" class="btn btn--primary" data-texto-cargando="Guardando…">
         <?= $esEdicion ? 'Guardar cambios' : 'Crear cuenta' ?>
       </button>
-      <a class="btn" href="/cuentas<?= $h($queryLista ?? '') ?>">Cancelar</a>
+      <a class="btn" href="/index.php?c=cuentas&a=index<?= $h($queryLista ?? '') ?>">Cancelar</a>
     </div>
   </form>
 </section>

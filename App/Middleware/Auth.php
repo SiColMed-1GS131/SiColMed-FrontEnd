@@ -12,7 +12,7 @@ class Auth
     // Roles que existen en el sistema.
     const PUBLICO          = 'publico';           // visitante sin sesión
     const MEDICO           = 'medico';            // Módulo 2: perfil propio
-    const ADMIN            = 'admin';             // Módulo 2: Administrador del CMP
+    const ADMIN            = 'admin_cmp';         // Módulo 2: Administrador del CMP (mismo nombre que el rol del backend)
     const TESORERO         = 'tesorero';          // Módulo 5: cuentas y movimientos
     const ADMIN_ASOCIACION = 'admin_asociacion';  // Módulo 5: balance general
 
@@ -33,9 +33,9 @@ class Auth
         // 'registro' => [self::ADMIN],
         // 'perfil'   => [self::MEDICO],
         // Módulo 5
-        'cuentas'     => [self::TESORERO],
-        'movimientos' => [self::TESORERO],
-        'reportes'    => [self::ADMIN_ASOCIACION],
+        'cuentas'     => [self::TESORERO, self::ADMIN],
+        'movimientos' => [self::TESORERO, self::ADMIN],
+        'reportes'    => [self::ADMIN_ASOCIACION, self::ADMIN],
     ];
 
     /** Inicia la sesión una sola vez. */
@@ -82,6 +82,45 @@ class Auth
             require_once $local;
         }
         return getenv('USE_MOCK') === '1' || (defined('USE_MOCK') && USE_MOCK);
+    }
+
+    /** ¿Es un rol que el sistema conoce? (el login lo usa para rechazar roles raros) */
+    public static function rolValido(string $rol): bool
+    {
+        return in_array($rol, self::ROLES, true) && $rol !== self::PUBLICO;
+    }
+
+    /**
+     * Guarda en la sesión de PHP el rol y el JWT que la API ya validó (/auth/me).
+     * Se llama desde SesionController después del login.
+     */
+    public static function establecerSesion(string $rol, string $token, string $nombre = ''): void
+    {
+        self::iniciarSesion();
+        session_regenerate_id(true);   // evita fijación de sesión
+        $_SESSION['rol']     = $rol;
+        $_SESSION['token']   = $token;
+        $_SESSION['usuario'] = $nombre;
+    }
+
+    /** JWT de la sesión actual (lo usa ApiClient para llamar a la API). */
+    public static function token(): ?string
+    {
+        self::iniciarSesion();
+        $t = $_SESSION['token'] ?? null;
+        return is_string($t) && $t !== '' ? $t : null;
+    }
+
+    /** Cierra la sesión de PHP por completo (cookie incluida). */
+    public static function cerrarSesion(): void
+    {
+        self::iniciarSesion();
+        $_SESSION = [];
+        if (ini_get('session.use_cookies')) {
+            $p = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000, $p['path'], $p['domain'], (bool) $p['secure'], (bool) $p['httponly']);
+        }
+        session_destroy();
     }
 
     /** ¿El usuario actual tiene alguno de estos roles? Útil en las vistas (menú). */

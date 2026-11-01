@@ -20,7 +20,7 @@ require_once __DIR__ . '/../Helpers/ui.php';
  */
 final class MovimientosController
 {
-    private const ENTRADA = '/SiColMed-FrontEnd/Public/index.php';
+    private const ENTRADA = '/index.php';
     private const VISTAS = __DIR__ . '/../Views/Admin/Contabilidad/Movimientos/';
     private const TIPOS = ['DEBITO', 'CREDITO'];
 
@@ -250,7 +250,7 @@ final class MovimientosController
         require __DIR__ . '/../Views/Partials/sidebar.php';
         echo '<main class="main-content">';
         require self::VISTAS . $vista . '.php';
-        echo '<script src="/SiColMed-FrontEnd/Public/Assets/JavaScript/Dedicated/movimientos.js" defer></script>';
+        echo '<script src="/Assets/JavaScript/Dedicated/movimientos.js" defer></script>';
         require __DIR__ . '/../Views/Partials/footer.php';   // el footer cierra </main> y </div>
     }
 

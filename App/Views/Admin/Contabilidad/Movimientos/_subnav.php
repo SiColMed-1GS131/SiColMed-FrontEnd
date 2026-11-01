@@ -1,9 +1,9 @@
 <?php
 /** Pestañas de la sección Movimientos. Recibe $activa = 'dia' | 'crear' | 'cuenta'. */
 $items = [
-    'dia'    => ['Movimientos del día',  '/movimientos'],
-    'crear'  => ['Registrar movimiento', '/movimientos/crear'],
-    'cuenta' => ['Historial por cuenta', '/movimientos/cuenta'],
+    'dia'    => ['Movimientos del día',  '/index.php?c=movimientos&a=index'],
+    'crear'  => ['Registrar movimiento', '/index.php?c=movimientos&a=crear'],
+    'cuenta' => ['Historial por cuenta', '/index.php?c=movimientos&a=porCuenta'],
 ];
 ?>
 <nav class="subnav" aria-label="Movimientos">

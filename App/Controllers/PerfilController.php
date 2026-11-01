@@ -26,7 +26,7 @@ class PerfilController {
      * Ruta esperada: POST a /Perfil/actualizar
      */
     public function actualizar() {
-        header("Location: /Perfil");
+        header("Location: /index.php?c=perfil&a=index");
         exit();
     }
 }

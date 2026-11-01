@@ -29,3 +29,20 @@ if (!function_exists('badgeTipo')) {
              . ($esDebito ? 'Débito' : 'Crédito') . '</span>';
     }
 }
+
+// Clase View: las vistas la usan como View::partial('badge_tipo', [...]).
+// Carga App/Views/Partials/<nombre>.php con las variables recibidas.
+if (!class_exists('View')) {
+    class View
+    {
+        public static function partial(string $nombre, array $datos = []): void
+        {
+            $archivo = __DIR__ . '/../Views/Partials/' . basename($nombre) . '.php';
+            if (!is_file($archivo)) {
+                return;
+            }
+            extract($datos, EXTR_SKIP);
+            require $archivo;
+        }
+    }
+}

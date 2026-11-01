@@ -114,6 +114,10 @@
 .sidebar__icon--cuentas     { -webkit-mask-image: url("../IMG/ICONS/libro.png");        mask-image: url("../IMG/ICONS/libro.png"); }
 .sidebar__icon--movimientos { -webkit-mask-image: url("../IMG/ICONS/calendario.png");   mask-image: url("../IMG/ICONS/calendario.png"); }
 .sidebar__icon--reportes    { -webkit-mask-image: url("../IMG/ICONS/estadisticas.png"); mask-image: url("../IMG/ICONS/estadisticas.png"); }
+.sidebar__icon--salir       { -webkit-mask-image: url("../IMG/ICONS/candado_cerrado.png"); mask-image: url("../IMG/ICONS/candado_cerrado.png"); }
+
+/* Cerrar sesión: separado del resto del menú */
+.sidebar__item--salir { margin-top: 24px; }
 
 
 .sidebar__text {
@@ -193,7 +197,7 @@
 .sidebar__sub .sidebar__link:hover,
 .sidebar__sub .sidebar__link:focus-visible,
 .sidebar__sub .sidebar__link.is-active {
-    color: var(--sidebar-item-text);         /* gana a la regla anterior: texto legible sobre fondo claro */
+    color: var(--sidebar-item-text);        
 }
 
 /* Abierto: cuando se está dentro del grupo, o al pasar el cursor por él */
