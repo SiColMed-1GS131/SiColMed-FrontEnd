@@ -19,8 +19,8 @@ use App\Repositories\RegistroMedicoRepository;
  */
 final class PanelController
 {
-    private const ENTRADA = '/SiColMed-FrontEnd/Public/index.php';
-    private const PERFIL  = '/SiColMed-FrontEnd/App/Views/Client/Perfil/';
+    private const ENTRADA = '/index.php';
+    private const PERFIL  = '/index.php?c=perfil&a=';
 
     public function index(): void
     {
@@ -77,8 +77,8 @@ final class PanelController
                 ['etiqueta' => 'Mis solicitudes de cambio',  'valor' => '—'],   // pendiente de la API
             ],
             'urls' => [
-                'perfil'     => self::PERFIL . 'index.php',
-                'editar'     => self::PERFIL . 'editar.php',
+                'perfil'     => self::PERFIL . 'index',
+                'editar'     => self::PERFIL . 'editar',
                 'directorio' => self::ENTRADA . '?c=directorio&a=index',
             ],
         ]);

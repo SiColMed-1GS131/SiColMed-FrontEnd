@@ -151,3 +151,50 @@ body {
     margin-top: 30px;
     text-align: right;
 }
+
+/* ==========================================================================
+   PIE DE PÁGINA DEL SISTEMA (Partials/footer.php)
+   Va debajo del layout, alineado con el contenido (deja libre el ancho del sidebar).
+   Las pantallas de Login/Registro tienen su propio .legal en Auth/auth.css.
+   ========================================================================== */
+.legal {
+    margin-left: var(--sidebar-width-collapsed);
+    padding: 18px 40px;
+    background-color: var(--merinolight);
+    border-top: 1px solid var(--merinodark);
+    color: var(--rock-bluedark);
+    font-size: 13px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px 24px;
+}
+
+.legal a {
+    color: var(--venice-blue);
+    text-decoration: none;
+}
+
+.legal a:hover,
+.legal a:focus-visible {
+    color: var(--venice-bluedark);
+    text-decoration: underline;
+}
+
+.legal__enlaces span {
+    margin: 0 10px;
+    color: var(--merinodark);
+}
+
+@media (max-width: 640px) {
+    .legal {
+        padding: 16px 20px;
+        justify-content: center;
+        text-align: center;
+    }
+}
+
+@media print {
+    .legal { margin-left: 0; }
+}

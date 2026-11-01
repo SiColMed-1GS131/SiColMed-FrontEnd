@@ -454,3 +454,30 @@
 }
 /* Contraste: el nombre se ve blanco sobre las filas azules (antes quedaba oscuro sobre azul) */
 .tabla-directorio tbody tr:nth-child(odd) .medico-nombre { color: #fff; }
+
+/* =========================================
+   VERSIÓN PÚBLICA (página aparte, sin sidebar)
+   La barra superior y el pie vienen de home.css
+   ========================================= */
+.directorio-publico {
+    max-width: var(--home-ancho, 1180px);
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+    min-height: 60vh;
+}
+
+/* Los filtros se pegan debajo de la barra superior (que también es fija) */
+.directorio-publico .directorio-filtros {
+    top: 84px;
+}
+
+/* Enlace de la página actual en la barra superior */
+.nav__link--activo {
+    background: var(--merino);
+}
+
+@media (max-width: 960px) {
+    .directorio-publico { padding: 32px 16px 56px; }
+    /* En pantallas pequeñas los filtros ocupan mucho: que no se queden fijos */
+    .directorio-publico .directorio-filtros { position: static; }
+}

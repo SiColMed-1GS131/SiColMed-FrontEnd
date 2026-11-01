@@ -3,11 +3,14 @@
 $entrada = $entrada ?? 'index.php';
 $esc     = static fn($t): string => htmlspecialchars((string) $t, ENT_QUOTES, 'UTF-8');
 $avatar  = rtrim(dirname($entrada), '/') . '/Assets/IMG/ICONS/usuario.png';   // foto por defecto
+// Acciones del controlador: interno (index/ver) o página pública (publico/publicoVer)
+$accionIndex = $accionIndex ?? 'index';
+$accionVer   = $accionVer ?? 'ver';
 ?>
 <?php
 // Enlace a otra página conservando los filtros activos
 $enlacePagina = static fn (int $pagina): string => $entrada . '?' . http_build_query(
-    ['c' => 'directorio', 'a' => 'index'] + array_filter($filtros ?? [], static fn ($v) => $v !== '') + ['page' => $pagina]
+    ['c' => 'directorio', 'a' => $accionIndex] + array_filter($filtros ?? [], static fn ($v) => $v !== '') + ['page' => $pagina]
 );
 ?>
 <div class="directorio-contenedor">
@@ -23,7 +26,7 @@ $enlacePagina = static fn (int $pagina): string => $entrada . '?' . http_build_q
         <form class="directorio-filtros__form" action="" method="GET">
             <!-- Parámetros para el enrutador -->
             <input type="hidden" name="c" value="directorio">
-            <input type="hidden" name="a" value="index">
+            <input type="hidden" name="a" value="<?= $esc($accionIndex) ?>">
 
             <div class="directorio-filtros__grid">
                 <!-- Especialidad -->
@@ -83,7 +86,7 @@ $enlacePagina = static fn (int $pagina): string => $entrada . '?' . http_build_q
                 <div class="directorio-filtros__acciones">
                     <button type="submit" class="btn btn--primario">Aplicar filtros</button>
                     <!-- Eliminamos parámetros para resetear -->
-                    <a href="<?= $esc($entrada . '?c=directorio&a=index') ?>" class="btn btn--secundario">Limpiar filtros</a>
+                    <a href="<?= $esc($entrada . '?c=directorio&a=' . $accionIndex) ?>" class="btn btn--secundario">Limpiar filtros</a>
                 </div>
             </div>
         </form>
@@ -130,7 +133,7 @@ $enlacePagina = static fn (int $pagina): string => $entrada . '?' . http_build_q
                                 <?php endif; ?>
                             </td>
                             <!-- El enlace carga la vista 'ver' en el mismo archivo -->
-                            <td><a href="<?= $esc($entrada . '?' . http_build_query(['c' => 'directorio', 'a' => 'ver', 'id' => $medico['id'] ?? 0])) ?>" class="enlace-perfil">Ver Perfil</a></td>
+                            <td><a href="<?= $esc($entrada . '?' . http_build_query(['c' => 'directorio', 'a' => $accionVer, 'id' => $medico['id'] ?? 0])) ?>" class="enlace-perfil">Ver Perfil</a></td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>

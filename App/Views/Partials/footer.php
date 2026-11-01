@@ -1,8 +1,8 @@
 </main>
     </div>
     <footer class="legal">
-      <p>© 2026 SiColMed · Todos los derechos reservados</p>
-      <a href="#">Política de Privacidad</a><span>•</span><a href="#">Términos de Servicio</a>
+      <p>© <?= date('Y') ?> SiColMed · Todos los derechos reservados</p>
+      <p class="legal__enlaces"><a href="#">Política de Privacidad</a><span aria-hidden="true">•</span><a href="#">Términos de Servicio</a></p>
     </footer>
 </body>
 </html>

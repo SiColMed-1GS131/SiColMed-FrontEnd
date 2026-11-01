@@ -59,7 +59,7 @@ $subespecialidades = !empty($educacion['subespecialidades']) ? $educacion['subes
       <div class="registro__acciones">
         <!-- El nombre se puede cambiar despues -->
         <button type="submit" class="btn btn--primary">Guardar / Registrar</button>
-        <a href="/registro-medico" class="btn">Cancelar</a>
+        <a href="/index.php?c=registro&a=index" class="btn">Cancelar</a>
       </div>
     </div>
     <!-- Fin: título y botones -->

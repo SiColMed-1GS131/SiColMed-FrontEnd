@@ -23,7 +23,6 @@ $e = static fn($v): string => htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8')
             </article>
         <?php endforeach; ?>
     </section>
-    <p class="panel__nota">Los indicadores con «—» se mostrarán cuando la API esté conectada.</p>
 
     <h2 class="panel__seccion">Accesos rápidos</h2>
     <section class="panel__accesos">

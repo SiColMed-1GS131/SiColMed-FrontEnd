@@ -5,7 +5,7 @@
  * Variables: $medico, $errorGeneral, $entrada (URL de index.php)
  */
 $entrada = $entrada ?? 'index.php';
-$volver  = htmlspecialchars($entrada . '?c=directorio&a=index', ENT_QUOTES, 'UTF-8');
+$volver  = htmlspecialchars($entrada . '?c=directorio&a=' . ($accionIndex ?? 'index'), ENT_QUOTES, 'UTF-8');
 $avatar  = htmlspecialchars(rtrim(dirname($entrada), '/') . '/Assets/IMG/ICONS/usuario.png', ENT_QUOTES, 'UTF-8');
 // Si por alguna razón no llega el médico, mostramos un error
 if (!isset($medico) || empty($medico)) {

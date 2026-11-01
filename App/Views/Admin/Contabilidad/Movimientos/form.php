@@ -6,8 +6,8 @@
 $activa = 'crear';
 $hayError = fn(string $campo): bool => !empty($errores[$campo]);
 
-// ADAPTACIÓN 1: Ruta limpia para los botones de volver/cancelar
-$urlCancelar = '/movimientos?' . http_build_query(['fecha' => $old['fecha']]);
+// Rutas del sistema: ?c=controlador&a=accion
+$urlCancelar = '/index.php?c=movimientos&a=index&' . http_build_query(['fecha' => $old['fecha']]);
 $puedeEnviar = empty($errorApi) || !empty($cuentas);
 ?>
 <section class="movs">
@@ -38,9 +38,8 @@ $puedeEnviar = empty($errorApi) || !empty($cuentas);
         <div class="alert alert--error" role="alert">Revisa los campos marcados: el movimiento no se registró.</div>
     <?php endif; ?>
 
-    <!-- ADAPTACIÓN 2: Ruta limpia para el action del formulario -->
     <form class="formulario" id="form-movimiento" method="post"
-          action="/movimientos/crear" novalidate>
+          action="/index.php?c=movimientos&a=crear" novalidate>
 
         <p class="formulario__nota">Los campos con <span class="req" aria-hidden="true">*</span> son obligatorios.</p>
 

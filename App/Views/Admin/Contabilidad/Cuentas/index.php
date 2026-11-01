@@ -26,7 +26,7 @@ $filtros = ['todas' => 'Todas', 'activas' => 'Solo activas', 'inactivas' => 'Sol
 // Arma el enlace de la lista con filtro y página
 $urlLista = static function (array $params): string {
     $params = array_filter($params, static fn($v) => $v !== null && $v !== '' && $v !== 'todas' && $v !== 1);
-    return '/cuentas' . ($params === [] ? '' : '?' . http_build_query($params));
+    return '/index.php?c=cuentas&a=index' . ($params === [] ? '' : '&' . http_build_query($params));
 };
 ?>
 <section class="cuentas">
@@ -54,7 +54,7 @@ $urlLista = static function (array $params): string {
           <p class="panel__etiqueta">Listado general</p>
           <h3 class="panel__titulo" id="lista-titulo">Cuentas existentes</h3>
         </div>
-        <a class="btn btn--primary" href="/cuentas/nueva<?= $h($queryLista) ?>#form-cuenta">Nueva cuenta</a>
+        <a class="btn btn--primary" href="/index.php?c=cuentas&a=nueva<?= $h($queryLista) ?>#form-cuenta">Nueva cuenta</a>
       </div>
 
       <!-- Filtro -->
@@ -82,7 +82,7 @@ $urlLista = static function (array $params): string {
             <p>Usa el formulario para registrar una cuenta de Débito o de Crédito.</p>
           <?php else: ?>
             <p class="vacio__titulo">No hay cuentas <?= $estado === 'activas' ? 'activas' : 'inactivas' ?>.</p>
-            <a class="alerta__enlace" href="/cuentas">Ver todas las cuentas</a>
+            <a class="alerta__enlace" href="/index.php?c=cuentas&a=index">Ver todas las cuentas</a>
           <?php endif; ?>
         </div>
 
@@ -115,11 +115,11 @@ $urlLista = static function (array $params): string {
                     <div class="tabla-cuentas__acciones">
                       <!-- Editar -->
                       <a class="btn"
-                         href="/cuentas/editar?<?= $h(http_build_query(array_filter(['id' => $c['id_cuenta'], 'estado' => $estado !== 'todas' ? $estado : null, 'pagina' => $pagina > 1 ? $pagina : null]))) ?>#form-cuenta"
+                         href="/index.php?c=cuentas&a=editar&<?= $h(http_build_query(array_filter(['id' => $c['id_cuenta'], 'estado' => $estado !== 'todas' ? $estado : null, 'pagina' => $pagina > 1 ? $pagina : null]))) ?>#form-cuenta"
                          aria-label="Editar <?= $h($c['nombre']) ?>">Editar</a>
 
                       <!-- Eliminar (por POST, pide confirmación) -->
-                      <form class="form-eliminar" method="post" action="/cuentas/eliminar"
+                      <form class="form-eliminar" method="post" action="/index.php?c=cuentas&a=eliminar"
                             data-nombre="<?= $h($c['nombre']) ?>"
                             data-movimientos="<?= $c['tiene_movimientos'] ? '1' : '0' ?>">
                         <input type="hidden" name="csrf" value="<?= $h($csrf) ?>">

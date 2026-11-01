@@ -4,7 +4,6 @@
  * Variables que prepara ReportesController:
  *   $fechaInicio, $fechaFin (AAAA-MM-DD), $errorFiltro, $errorGeneral,
  *   $consultado (bool), $filas, $totales, $tituloRango
-
  */
 ?>
 <section class="reportes">
@@ -18,6 +17,7 @@
     <?php
     $filtroOculto = ['c' => 'reportes', 'a' => 'balance'];
     $filtroBoton  = 'Generar reporte';
+    $filtroTitulo = 'Rango de fechas';   // recuadro con título, como el diseño original
     require __DIR__ . '/../../../Partials/filtroFechas.php';
     ?>
   </div>

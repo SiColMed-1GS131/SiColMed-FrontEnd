@@ -25,7 +25,8 @@ final class HomeController
             'inicio'     => $entrada,
             'login'      => $entrada . '?c=login&a=login',
             'registro'   => $entrada . '?c=register&a=index',
-            'directorio' => $entrada . '?c=directorio&a=index',
+            // Página pública aparte (sin sidebar). Dentro del sistema se usa a=index.
+            'directorio' => $entrada . '?c=directorio&a=publico',
         ];
 
         // Opciones del buscador rápido (mismos valores que usa el filtro del Directorio)

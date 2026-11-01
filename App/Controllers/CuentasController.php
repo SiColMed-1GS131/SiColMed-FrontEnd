@@ -9,6 +9,7 @@ use App\Repositories\CuentasRepository;
 // Controlador de la pantalla de Cuentas (solo para el tesorero)
 final class CuentasController
 {
+    private const LISTA = '/index.php?c=cuentas&a=index';   // las rutas del sistema son ?c=controlador&a=accion
     private const VISTAS = __DIR__ . '/../Views/Admin/Contabilidad/Cuentas/';
     private const POR_PAGINA = 10;                          // cuentas por página
     private const TIPOS = ['DEBITO', 'CREDITO'];            // tipos permitidos
@@ -43,7 +44,7 @@ final class CuentasController
         // Si no existe, vuelve a la lista con un mensaje
         if ($resultado === null || !$resultado['ok']) {
             $this->guardarFlash('error', ($resultado['error'] ?? '') ?: 'La cuenta no existe.');
-            $this->redirigir('/cuentas');
+            $this->redirigir(self::LISTA);
         }
 
         $this->pantalla([
@@ -71,7 +72,7 @@ final class CuentasController
             $buscada = $this->cuentas->obtener($id);
             if (!$buscada['ok']) {
                 $this->guardarFlash('error', $buscada['error'] ?: 'La cuenta no existe.');
-                $this->redirigir('/cuentas');
+                $this->redirigir(self::LISTA);
             }
             $actual = $buscada['datos'];
             // Si tiene movimientos, el tipo no cambia
@@ -102,7 +103,7 @@ final class CuentasController
 
             if ($resultado['ok']) {
                 $this->guardarFlash('success', $actual === null ? 'La cuenta fue creada exitosamente.' : 'Los cambios fueron guardados exitosamente.');
-                $this->redirigir('/cuentas' . $this->queryLista());
+                $this->redirigir(self::LISTA . $this->queryLista());
             }
             $errores = $resultado['errores'];
             $errorGeneral = $resultado['error'];
@@ -134,7 +135,7 @@ final class CuentasController
             $this->guardarFlash('success', 'La cuenta fue eliminada exitosamente.');
         }
 
-        $this->redirigir('/cuentas' . $this->queryLista());
+        $this->redirigir(self::LISTA . $this->queryLista());
     }
 
     private function pantalla(array $datosFormulario): void
@@ -176,12 +177,12 @@ final class CuentasController
     {
         $auth = 'App\\Middleware\\Auth';
         if (class_exists($auth) && method_exists($auth, 'requiere')) {
-            $auth::requiere(['tesorero']);
+            $auth::requiere(['tesorero', 'admin_cmp']);
             return;
         }
 
         $rol = $_SESSION['rol'] ?? null;
-        $permitido = $rol === 'tesorero' || ($rol === null && getenv('USE_MOCK') === '1');
+        $permitido = in_array($rol, ['tesorero', 'admin_cmp'], true) || ($rol === null && getenv('USE_MOCK') === '1');
         if (!$permitido) {
             http_response_code(403);
             header('Content-Type: text/plain; charset=UTF-8');
@@ -200,7 +201,7 @@ final class CuentasController
         require __DIR__ . '/../Views/Partials/sidebar.php';
         echo '<main class="main-content">';
         require self::VISTAS . $vista . '.php';
-        echo '<script src="/SiColMed-FrontEnd/Public/Assets/JavaScript/Dedicated/cuentas.js" defer></script>';
+        echo '<script src="/Assets/JavaScript/Dedicated/cuentas.js" defer></script>';
         require __DIR__ . '/../Views/Partials/footer.php';
     }
 
@@ -224,7 +225,8 @@ final class CuentasController
         if (is_string($pagina) && ctype_digit($pagina) && (int) $pagina > 1) {
             $params['pagina'] = $pagina;
         }
-        return $params === [] ? '' : '?' . http_build_query($params);
+        // Empieza con & porque se agrega a una dirección que ya trae ?c=cuentas&a=...
+        return $params === [] ? '' : '&' . http_build_query($params);
     }
 
     // El id debe ser un número entero mayor que 0
@@ -248,7 +250,7 @@ final class CuentasController
         $enviado = $_POST['csrf'] ?? '';
         if (!is_string($enviado) || !hash_equals($this->tokenCsrf(), $enviado)) {
             $this->guardarFlash('error', 'La sesión expiró. Vuelve a intentarlo.');
-            $this->redirigir('/cuentas');
+            $this->redirigir(self::LISTA);
         }
     }
 
