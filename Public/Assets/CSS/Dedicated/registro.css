@@ -1,0 +1,296 @@
+.registro { width: 100%; }
+.registro__form { width: 100%; }
+
+.registro__cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.registro .registro__titulo {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--venice-blue);
+}
+.registro__acciones { display: flex; gap: 0.75rem; }
+
+/* Paneles azules */
+.registro__panel {
+  background: var(--rock-blue);
+  border-radius: 4px;
+  padding: 1.25rem;
+  margin: 0 0 2rem;
+  color: var(--venice-bluedark);
+}
+.registro__panel-titulo {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--venice-bluedark);
+}
+
+/* Pestañas */
+.registro__tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem; }
+.registro__tab {
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--venice-bluedark);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--venice-bluedark);
+  font: inherit;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+.registro__tab:hover { background: var(--rock-bluelight); }
+.registro__tab.is-active {
+  background: var(--venice-blue);
+  border-color: var(--venice-blue);
+  color: var(--merinolight);
+}
+.registro__tab:focus-visible { outline: 3px solid var(--venice-bluedark); outline-offset: 2px; }
+
+/* Distribución de campos */
+.registro__grid { display: grid; grid-template-columns: 1fr; gap: 0 1rem; }
+@media (min-width: 700px) {
+  .registro__grid { grid-template-columns: 1fr 1fr; }
+}
+.registro__grid--3 { grid-template-columns: 1fr; }
+@media (min-width: 700px) {
+  .registro__grid--3 { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 1000px) {
+  .registro__grid--3 { grid-template-columns: repeat(3, 1fr); }
+}
+.registro__grid--compacto { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+
+/* Subgrupos con subtítulo */
+.registro__subgrupo {
+  grid-column: 1 / -1;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--rock-bluedark);
+}
+.registro__subgrupo--simple { margin: 0 0 1.5rem; }
+.registro__subtitulo {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: var(--venice-bluedark);
+}
+
+/* Pestaña Personal */
+.registro__personal { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+@media (min-width: 900px) {
+  .registro__personal { grid-template-columns: 180px 1fr; }
+}
+.registro__personal-campos .registro__subgrupo:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* Foto */
+.registro__foto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.registro__foto-marco {
+  width: 160px;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--merinolight);
+  border: 2px dashed var(--venice-blue);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.registro__foto-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.registro__foto-img[hidden],
+.registro__foto-vacio[hidden] { display: none; }
+.registro__foto-vacio { color: var(--venice-blue); font-style: italic; }
+.registro__foto-btn { position: relative; padding: 0.4rem 1rem; font-size: 0.9rem; }
+.registro__foto-btn input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.registro__foto-btn:focus-within { outline: 3px solid var(--venice-bluedark); outline-offset: 2px; }
+.registro__foto-ayuda { font-size: 0.75rem; text-align: center; }
+
+/* Filas de estudios */
+.registro__fila {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0 1rem;
+  align-items: end;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid var(--rock-bluedark);
+}
+@media (min-width: 900px) {
+  .registro__fila { grid-template-columns: repeat(4, 1fr) auto; }
+  .registro__subgrupo--simple > .registro__fila:only-of-type { grid-template-columns: repeat(4, 1fr); }
+}
+.registro__quitar { margin-bottom: 0.5rem; }
+
+/* Campos */
+.registro .field { display: flex; flex-direction: column; margin-bottom: 0.5rem; }
+.registro .field label {
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-bottom: 0.2rem;
+  color: var(--venice-bluedark);
+}
+.registro .field input,
+.registro .field select {
+  background: var(--merinolight);
+  border: 1px solid transparent;
+  border-radius: 2px;
+  padding: 0.5rem;
+  color: var(--venice-bluedark);
+  font: inherit;
+}
+.registro .field input:hover,
+.registro .field select:hover { border-color: var(--rock-bluedark); }
+.registro .field input:focus-visible,
+.registro .field select:focus-visible,
+.registro__adjuntar:focus-within { outline: 3px solid var(--venice-bluedark); outline-offset: 2px; }
+
+/* Aviso de error */
+.registro__alerta {
+  background: var(--merinolight);
+  border-left: 4px solid #8a0016;
+  color: #8a0016;
+  font-weight: bold;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+/* Aviso de error */
+
+/* Solo lectura */
+.registro .field input.readonly { background: var(--merinodark); cursor: default; }
+
+.registro .field__error {
+  color: #8a0016;
+  background: var(--merinolight);
+  font-size: 0.8rem;
+  padding: 0.1rem 0.3rem;
+}
+.registro .field__error:empty { display: none; }
+
+/* Certificación */
+.registro__panel--cert { display: grid; grid-template-columns: 1fr; gap: 1rem; align-items: center; }
+.registro__cert-campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; }
+.registro__cert-campos .field { margin-bottom: 0; }
+
+.registro__adjuntar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 90px;
+  background: var(--merinolight);
+  border: 2px dashed var(--venice-blue);
+  border-radius: 4px;
+  color: var(--venice-blue);
+  font-style: italic;
+  font-size: 1.1rem;
+  text-align: center;
+  padding: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.registro__adjuntar:hover { background: var(--merino); }
+.registro__adjuntar input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+
+@media (min-width: 900px) {
+  .registro__panel--cert { grid-template-columns: 3fr 1.2fr; }
+}
+
+/* Botones */
+.registro .btn {
+  display: inline-block;
+  padding: 0.5rem 1.5rem;
+  border: 2px solid var(--venice-blue);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--venice-blue);
+  font: inherit;
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+.registro .btn:hover { background: var(--rock-bluelight); }
+.registro .btn:focus-visible { outline: 3px solid var(--venice-bluedark); outline-offset: 2px; }
+
+.registro .btn--primary { background: var(--venice-blue); color: var(--merinolight); }
+.registro .btn--primary:hover { background: var(--venice-bluedark); border-color: var(--venice-bluedark); }
+
+/* Botones de los paneles azules */
+.registro__panel .btn { color: var(--venice-bluedark); border-color: var(--venice-bluedark); }
+.registro__panel .btn:hover { background: var(--merinolight); }
+
+/* Lista de médicos */
+.registro__contador { margin-bottom: 0.75rem; font-size: 0.9rem; }
+.registro__vacio {
+  background: var(--merino);
+  border: 1px dashed var(--venice-blue);
+  padding: 1.5rem;
+  text-align: center;
+}
+.registro__mensaje {
+  background: var(--rock-bluelight);
+  border-left: 4px solid var(--venice-blue);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.registro__tabla-scroll { overflow-x: auto; }
+.registro__tabla { width: 100%; border-collapse: collapse; background: var(--merinolight); }
+.registro__caption { text-align: left; padding-bottom: 0.5rem; font-weight: bold; }
+.registro__tabla th,
+.registro__tabla td { padding: 0.65rem 0.75rem; text-align: left; border-bottom: 1px solid var(--merinodark); }
+.registro__tabla thead th { background: var(--venice-blue); color: var(--merinolight); }
+.registro__tabla tbody tr:hover { background: var(--merino); }
+
+.registro__badge { display: inline-block; padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.8rem; font-weight: bold; }
+.registro__badge--ok { background: #d4edda; color: #14532d; }
+.registro__badge--no { background: #f8d7da; color: #7f1d1d; }
+
+.registro .registro__editar { padding: 0.25rem 0.9rem; font-size: 0.9rem; }
+/* ---------- Lista de médicos (Registro médico) ---------- */
+.registro-lista { width: 100%; }
+.registro-lista__cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.registro-lista__cabecera h1 { margin-bottom: 4px; }
+.registro-lista__cabecera p { color: var(--venice-blue); }
+.registro-lista .btn--primario { display: inline-block; text-decoration: none; }
+.registro-lista__panel {
+  background: #fff;
+  border: 2px solid var(--rock-bluelight);
+  border-radius: 12px;
+  padding: 25px;
+}
+.registro-lista__total { font-weight: bold; margin-bottom: 15px; }
+.registro-lista__vacio { color: #666; }
+.registro-lista__scroll { overflow-x: auto; }
+.registro-tabla { width: 100%; border-collapse: collapse; min-width: 36rem; }
+.registro-tabla th,
+.registro-tabla td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+.registro-tabla thead th { color: var(--venice-blue); background: #f1f5f9; }
+.registro-tabla tbody tr:hover { background: var(--merino); }
+.registro-tabla__acciones { text-align: right; }
+.registro-tabla__acciones a { color: var(--venice-blue); font-weight: bold; }
+.alerta--exito { background: #d4edda; color: #155724; padding: 10px 14px; border-radius: 6px; margin-bottom: 20px; }
+.visualmente-oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

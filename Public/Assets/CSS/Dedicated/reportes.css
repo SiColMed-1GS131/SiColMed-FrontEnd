@@ -1,0 +1,177 @@
+.reportes { width: 100%; }
+
+.reportes__cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.reportes .reportes__titulo {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--venice-blue);
+}
+
+
+.reportes__filtro { margin-bottom: 1.5rem; }
+.reportes__filtro [role="alert"] { margin-bottom: 0.75rem; color: #b3261e; font-weight: bold; }
+
+/* ---------- Botones ---------- */
+.reportes__btn {
+  padding: 0.55rem 1.1rem;
+  border: 2px solid var(--venice-blue);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--venice-blue);
+  font: inherit;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.reportes__btn:hover,
+.reportes__btn:focus-visible { background: var(--rock-bluelight); }
+
+.reportes__btn.btn--primario { background: var(--venice-blue); color: var(--merinolight); }
+.reportes__btn.btn--primario:hover,
+.reportes__btn.btn--primario:focus-visible { background: var(--venice-bluedark); }
+
+/* ---------- Mensajes ---------- */
+.reportes__alerta {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  font-weight: bold;
+}
+.reportes__alerta--error { background: #fdecea; color: #8a1c15; border: 2px solid #b3261e; }
+
+.reportes__vacio {
+  padding: 1.25rem;
+  border: 2px dashed var(--rock-blue);
+  border-radius: 4px;
+  background: var(--merino);
+}
+
+/* ---------- Reporte ---------- */
+.reportes__encabezado-reporte {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.reportes .reportes__subtitulo { margin: 0; font-size: 1.15rem; color: var(--venice-bluedark); }
+
+/* Desplazamiento horizontal en móvil */
+.reportes__tabla-scroll { width: 100%; overflow-x: auto; }
+
+.reportes__tabla {
+  width: 100%;
+  min-width: 36rem;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+
+.reportes__caption,
+.reportes__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.reportes__tabla th,
+.reportes__tabla td {
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid var(--merinodark);
+  text-align: left;
+}
+
+.reportes__tabla thead th {
+  background: var(--venice-blue);
+  color: var(--merinolight);
+  border-bottom: 0;
+}
+
+.reportes__tabla tbody th { font-weight: normal; }
+.reportes__tabla tbody tr:nth-child(even) { background: var(--merinolight); }
+
+.reportes__tabla .reportes__num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.reportes__tabla tfoot th,
+.reportes__tabla tfoot td {
+  background: var(--merino);
+  border-top: 2px solid var(--venice-blue);
+  font-weight: bold;
+}
+
+/* Saldo negativo: signo menos (viene en el texto) + color + negrita + cursiva */
+.reportes__negativo { color: #b3261e; font-weight: bold; font-style: italic; }
+
+/* ---------- Impresión ---------- */
+@media print {
+  .sidebar,
+  .legal,
+  .reportes__filtro,
+  .reportes__cabecera,
+  .reportes__btn,
+  #btn-imprimir { display: none !important; }
+
+  body { background: #fff; color: #000; }
+  .app-layout { display: block; }
+  .main-content { padding: 0; background: #fff; }
+
+  .reportes__tabla { min-width: 0; }
+  .reportes__tabla thead th { background: #fff; color: #000; border-bottom: 2px solid #000; }
+  .reportes__tabla tbody tr:nth-child(even) { background: #fff; }
+  .reportes__tabla tfoot th,
+  .reportes__tabla tfoot td { background: #fff; }
+  .reportes__negativo { color: #000; }
+}
+
+/* ---------- Filtro de fechas con recuadro (diseño original del Balance General) ---------- */
+.reportes__filtro .filtro-fechas { padding: 0; background: transparent; }
+
+.reportes__filtro .filtro-fechas__marco {
+  min-width: 0;
+  border: 2px solid var(--rock-blue);
+  border-radius: 4px;
+  background: var(--merino);
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+.reportes__filtro .filtro-fechas__leyenda {
+  padding: 0 0.5rem;
+  font-weight: bold;
+  color: var(--venice-bluedark);
+}
+
+.reportes__filtro .formulario__grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem 1.5rem;
+  margin-top: 0;
+}
+
+.reportes__filtro .campo { min-width: 12rem; gap: 0.35rem; }
+.reportes__filtro .campo label { margin-bottom: 0; }
+.filtro-fechas__req { color: #b3261e; }
+
+.reportes__filtro .campo input[type="date"] {
+  padding: 0.5rem 0.6rem;
+  border: 2px solid var(--venice-blue);
+  border-radius: 4px;
+  font: inherit;
+  color: var(--venice-bluedark);
+  background: #fff;
+}
+
+.filtro-fechas__boton { padding-bottom: 0.1rem; }

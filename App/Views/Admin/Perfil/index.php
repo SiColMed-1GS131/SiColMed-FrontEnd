@@ -3,7 +3,7 @@ $currentPage = 'perfil';
 require_once __DIR__ . '/../../Partials/header.php';
 ?>
 
-<link rel="stylesheet" href="/SiColMed-FrontEnd/Public/Assets/CSS/base.css">
+<link rel="stylesheet" href="/Assets/CSS/base.css">
 
 <div class="app-layout">
 

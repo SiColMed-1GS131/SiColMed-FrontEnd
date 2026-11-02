@@ -1,3 +1,8 @@
+<?php
+// Ruta base: funciona igual en WAMP (/SiColMed-FrontEnd/Public) y en Docker (raíz)
+$base    = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '')), '/');
+$entrada = $base . '/index.php';
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/Assets/CSS/Dedicated/Auth/auth.css">
+  <link rel="stylesheet" href="<?= $base ?>/Assets/CSS/Dedicated/Auth/auth.css">
 </head>
 <body>
 <div class="auth">
@@ -21,7 +26,7 @@
 
     <div class="panel__main">
       <div class="glass glass--img">
-        <img src="/Assets/IMG/login.jpg" alt="Comunidad médica conectada">
+        <img src="<?= $base ?>/Assets/IMG/login.jpg" alt="Comunidad médica conectada">
       </div>
       <div>
         <h2>Bienvenidos<br>a SiColMed</h2>
@@ -82,7 +87,7 @@
         </form>
 
         <div class="divider"></div>
-        <p class="alt" style="margin:0">¿No tienes cuenta? <a href="/register">Regístrate como médico</a></p>
+        <p class="alt" style="margin:0">¿No tienes cuenta? <a href="<?= $entrada ?>?c=register&a=index">Regístrate como médico</a></p>
         <div class="pill"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>Se requiere idoneidad validada</div>
       </div>
     </main>
@@ -94,6 +99,6 @@
   </section>
 
 </div>
-<script type="module" src="/Assets/JavaScript/Dedicated/Auth/login.js"></script>
+<script type="module" src="<?= $base ?>/Assets/JavaScript/Dedicated/Auth/login.js"></script>
 </body>
 </html>
