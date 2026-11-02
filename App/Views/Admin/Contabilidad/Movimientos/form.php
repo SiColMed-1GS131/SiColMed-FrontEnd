@@ -47,7 +47,7 @@ $puedeEnviar = empty($errorApi) || !empty($cuentas);
             <label for="fecha">Fecha <span class="req" aria-hidden="true">*</span> <span class="field__oblig">(obligatoria)</span></label>
             <input type="date" id="fecha" name="fecha" value="<?= e($old['fecha']) ?>" required
                    aria-describedby="fecha-ayuda fecha-error" <?= $hayError('fecha') ? 'aria-invalid="true"' : '' ?>>
-            <p class="field__ayuda" id="fecha-ayuda">Se rellena con la fecha de hoy, pero puedes cambiarla.</p>
+            <p class="field__ayuda" id="fecha-ayuda"></p>
             <p class="field__error" id="fecha-error" data-error-for="fecha" role="alert"><?= e($errores['fecha'] ?? '') ?></p>
         </div>
 
@@ -70,7 +70,7 @@ $puedeEnviar = empty($errorApi) || !empty($cuentas);
                     </option>
                 <?php endforeach; ?>
             </select>
-            <p class="field__ayuda" id="id_cuenta-ayuda">Solo aparecen las cuentas activas.</p>
+            <p class="field__ayuda" id="id_cuenta-ayuda"></p>
             <p class="field__error" id="id_cuenta-error" data-error-for="id_cuenta" role="alert"><?= e($errores['id_cuenta'] ?? '') ?></p>
         </div>
 
@@ -79,7 +79,7 @@ $puedeEnviar = empty($errorApi) || !empty($cuentas);
             <input type="number" id="monto" name="monto" value="<?= e($old['monto']) ?>"
                    min="0.01" max="99999999.99" step="0.01" inputmode="decimal" required
                    aria-describedby="monto-ayuda monto-error" <?= $hayError('monto') ? 'aria-invalid="true"' : '' ?>>
-            <p class="field__ayuda" id="monto-ayuda">Mayor que cero y con máximo 2 decimales. Ejemplo: 1250.75</p>
+            <p class="field__ayuda" id="monto-ayuda"></p>
             <p class="field__error" id="monto-error" data-error-for="monto" role="alert"><?= e($errores['monto'] ?? '') ?></p>
         </div>
 
