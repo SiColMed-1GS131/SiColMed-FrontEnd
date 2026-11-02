@@ -154,7 +154,12 @@
     function reglasDe(form) {
         var e = form.elements;
         
-        // 1. Formulario de registro (crear)
+        // 0. Registro de partida doble: solo fecha y descripción aquí; las líneas se validan en validarDetalle()
+        if (form.id === 'form-movimiento') {
+            return { fecha: reglaFecha, descripcion: reglaDescripcion };
+        }
+
+        // 1. Formulario de registro simple (ya no se usa en crear)
         if (e.monto && e.descripcion) {
             return { 
                 fecha: reglaFecha, 
@@ -180,6 +185,84 @@
         return null;
     }
 
+    /* ==========================================================================
+       2b. PARTIDA DOBLE (detalle[] del formulario de registro)
+       ========================================================================== */
+
+    function centavos(texto) {
+        var n = Number(texto);
+        return isNaN(n) ? 0 : Math.round(n * 100);
+    }
+
+    function dinero(c) {
+        return (c / 100).toFixed(2);
+    }
+
+    // Suma débitos y créditos, los muestra y devuelve el estado
+    function actualizarCuadre(form) {
+        var tot = { DEBITO: 0, CREDITO: 0 };
+        var lineas = form.querySelectorAll('[data-linea]');
+        Array.prototype.forEach.call(lineas, function (fila) {
+            var tipo = fila.querySelector('select[name$="[tipo]"]').value;
+            var monto = fila.querySelector('input[name$="[monto]"]').value;
+            if (tot[tipo] !== undefined) { tot[tipo] += centavos(monto); }
+        });
+        form.querySelector('[data-total="DEBITO"]').textContent = dinero(tot.DEBITO);
+        form.querySelector('[data-total="CREDITO"]').textContent = dinero(tot.CREDITO);
+        var estado = form.querySelector('[data-cuadre]');
+        var cuadra = tot.DEBITO > 0 && tot.DEBITO === tot.CREDITO;
+        estado.textContent = cuadra ? 'El movimiento cuadra.' : 'Aún no cuadra: la diferencia es ' + dinero(Math.abs(tot.DEBITO - tot.CREDITO)) + '.';
+        return { debito: tot.DEBITO, credito: tot.CREDITO, cuadra: cuadra, lineas: lineas.length };
+    }
+
+    function validarDetalle(form) {
+        var estado = actualizarCuadre(form);
+        var mensaje = '';
+        var tipos = Array.prototype.map.call(form.querySelectorAll('[data-linea] select[name$="[tipo]"]'), function (s) { return s.value; });
+
+        if (estado.lineas < 2 || tipos.indexOf('DEBITO') === -1 || tipos.indexOf('CREDITO') === -1) {
+            mensaje = 'Debe haber al menos una línea de débito y una de crédito.';
+        } else {
+            var vacio = null;
+            Array.prototype.forEach.call(form.querySelectorAll('[data-linea] select[name$="[id_cuenta]"], [data-linea] input[name$="[monto]"]'), function (el) {
+                if (!vacio && (!el.value || (el.type === 'number' && Number(el.value) <= 0))) { vacio = el; }
+            });
+            if (vacio) {
+                mensaje = 'Completa la cuenta y un monto mayor que cero en cada línea.';
+                vacio.focus();
+            } else if (!estado.cuadra) {
+                mensaje = 'El movimiento no cuadra: los débitos (' + dinero(estado.debito) + ') deben ser iguales a los créditos (' + dinero(estado.credito) + ').';
+            }
+        }
+        var caja = form.querySelector('[data-error-for="detalle"]');
+        if (caja) { caja.textContent = mensaje; }
+        return mensaje === '';
+    }
+
+    function iniciarDetalle(form) {
+        var contenedor = form.querySelector('#detalle-lineas');
+        var plantilla = form.querySelector('#detalle-plantilla');
+        var agregar = form.querySelector('#detalle-agregar');
+        if (!contenedor || !plantilla || !agregar) { return; }
+
+        agregar.addEventListener('click', function () {
+            var siguiente = Number(contenedor.getAttribute('data-siguiente') || 0);
+            contenedor.setAttribute('data-siguiente', String(siguiente + 1));
+            contenedor.insertAdjacentHTML('beforeend', plantilla.innerHTML.replace(/__IDX__/g, String(siguiente)));
+            actualizarCuadre(form);
+        });
+        contenedor.addEventListener('click', function (ev) {
+            var btn = ev.target.closest('[data-quitar-linea]');
+            if (btn && contenedor.querySelectorAll('[data-linea]').length > 2) {
+                btn.closest('[data-linea]').remove();
+                actualizarCuadre(form);
+            }
+        });
+        contenedor.addEventListener('input', function () { actualizarCuadre(form); });
+        contenedor.addEventListener('change', function () { actualizarCuadre(form); });
+        actualizarCuadre(form);
+    }
+
     /**
      * Conecta los eventos de validación a un formulario.
      */
@@ -187,7 +270,7 @@
         var reglas = reglasDe(form);
         if (!reglas) { return; }
         
-        var esRegistro = !!(form.elements.monto && form.elements.descripcion);
+        var esRegistro = form.id === 'form-movimiento' || !!(form.elements.monto && form.elements.descripcion);
         var intentado = false; // Bandera para no gritarle al usuario antes de que intente enviar
 
         function validarCampo(nombre) {
@@ -229,6 +312,12 @@
                 }
             });
 
+            // Partida doble: líneas completas y débitos = créditos
+            if (form.id === 'form-movimiento' && !validarDetalle(form)) {
+                ev.preventDefault();
+                return;
+            }
+
             // Si hay error, detenemos el envío y enfocamos el primer campo mal llenado
             if (primeroConError) {
                 ev.preventDefault();
@@ -252,6 +341,9 @@
 
     // Inicializar todos los formularios al cargar la página
     document.addEventListener('DOMContentLoaded', function () {
-        Array.prototype.forEach.call(document.querySelectorAll('form'), iniciar);
+        Array.prototype.forEach.call(document.querySelectorAll('form'), function (form) {
+            iniciar(form);
+            if (form.id === 'form-movimiento') { iniciarDetalle(form); }
+        });
     });
 })();

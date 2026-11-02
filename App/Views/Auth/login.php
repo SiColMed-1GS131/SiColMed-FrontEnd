@@ -9,7 +9,6 @@ $entrada = $base . '/index.php';
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Iniciar sesión · SiColMed</title>
-  <meta name="sicolmed-api-url" content="<?= htmlspecialchars($apiBaseUrl, ENT_QUOTES, 'UTF-8') ?>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -90,7 +89,7 @@ $entrada = $base . '/index.php';
 
           <div class="row">
             <label class="check"><input type="checkbox" name="recordar"> Recordar sesión</label>
-            <a href="#">¿Olvidaste tu contraseña?</a>
+            <a href="#recuperar" id="enlace-olvido">¿Olvidaste tu contraseña?</a>
           </div>
 
           <button class="btn" type="submit">Iniciar sesión <svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
@@ -109,6 +108,20 @@ $entrada = $base . '/index.php';
   </section>
 
 </div>
+
+<dialog id="modal-recuperar" style="padding: 24px; border-radius: 12px; border: 1px solid #cbd5e1; max-width: 460px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); margin: auto;">
+  <h3 style="margin-top: 0; color: #0f172a; font-size: 1.25rem;">Recuperación de Contraseña</h3>
+  <p style="color: #475569; font-size: 0.95rem; line-height: 1.5;">Por normativas de seguridad y verificación de identidad médica, para restablecer el acceso a tu cuenta contacta a la secretaría del Colegio Médico de Panamá:</p>
+  <ul style="color: #334155; font-size: 0.9rem; line-height: 1.6; padding-left: 20px;">
+    <li><strong>Correo oficial:</strong> soporte@sicolmed.pa</li>
+    <li><strong>Teléfono:</strong> +507 264-4286</li>
+    <li><strong>Requisito:</strong> Indicar tu número de cédula y número de idoneidad médica.</li>
+  </ul>
+  <div style="text-align: right; margin-top: 20px;">
+    <button type="button" id="cerrar-modal-recuperar" class="btn" style="padding: 8px 18px; width: auto; display: inline-flex;">Entendido</button>
+  </div>
+</dialog>
+
 <script type="module" src="<?= $base ?>/Assets/JavaScript/Dedicated/Auth/login.js"></script>
 </body>
 </html>

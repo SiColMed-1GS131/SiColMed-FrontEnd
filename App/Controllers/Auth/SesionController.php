@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace App\Controllers\Auth;
 
+use App\Services\ApiClient;
+
 /**
- * Puente entre el login (JavaScript + JWT) y la sesión de PHP.
+ * Inicio y cierre de sesión. PHP es el único que habla con la API de autenticación:
+ * el JWT se guarda en $_SESSION y NUNCA llega al navegador (ni a localStorage ni a sessionStorage).
  *
- *   POST /index.php?c=sesion&a=iniciar   body JSON {"token": "<JWT>"}
+ *   POST /index.php?c=sesion&a=iniciar   body JSON {"username": "...", "password": "...", "recordar": false}
  *   POST /index.php?c=sesion&a=cerrar
  *
- * El rol NO se toma del token que manda el navegador: se le pregunta a la API
- * (GET /auth/me), que valida la firma y confirma que el usuario sigue activo.
+ * El rol NO lo decide el navegador: sale de GET /auth/me, que valida la firma
+ * del token y confirma que el usuario sigue activo.
  */
 final class SesionController
 {
@@ -26,28 +29,39 @@ final class SesionController
     {
         $this->exigirPeticionSegura();
 
-        $datos = json_decode((string) file_get_contents('php://input'), true);
-        $token = is_array($datos) ? (string) ($datos['token'] ?? '') : '';
+        $datos    = json_decode((string) file_get_contents('php://input'), true);
+        $usuario  = is_array($datos) && is_string($datos['username'] ?? null) ? trim($datos['username']) : '';
+        $password = is_array($datos) && is_string($datos['password'] ?? null) ? $datos['password'] : '';
+        $recordar = is_array($datos) && ($datos['recordar'] ?? false) === true;
+
+        if ($usuario === '' || $password === '' || strlen($usuario) > 254 || strlen($password) > 128) {
+            $this->responder(422, ['ok' => false, 'mensaje' => 'Ingresa tu correo o usuario y tu contraseña.']);
+        }
+
+        // 1) Login en la API → JWT
+        $api       = new ApiClient();
+        $respuesta = $api->postJson('/auth/login', ['username' => $usuario, 'password' => $password]);
+        if ($respuesta['status'] === 0 || $respuesta['body'] === null) {
+            $this->responder(502, ['ok' => false, 'mensaje' => 'No se pudo contactar con la API.']);
+        }
+        if ($respuesta['status'] < 200 || $respuesta['status'] >= 300) {
+            $this->responder(
+                $respuesta['status'] === 429 ? 429 : ($respuesta['status'] >= 500 ? 502 : 401),
+                ['ok' => false, 'mensaje' => $this->mensajeDeLogin($respuesta['status'])]
+            );
+        }
+        $cuerpo = json_decode($respuesta['body'], true);
+        $token  = is_array($cuerpo) ? (string) ($cuerpo['access_token'] ?? $cuerpo['token'] ?? '') : '';
 
         // Forma de un JWT (tres partes base64url) y tamaño razonable
         if (strlen($token) > 4096 || !preg_match('/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*$/', $token)) {
-            $this->responder(400, ['ok' => false, 'mensaje' => 'Token inválido.']);
+            $this->responder(502, ['ok' => false, 'mensaje' => 'El servidor respondió de forma inesperada. Inténtalo de nuevo.']);
         }
 
-        $api = rtrim((string) (getenv('API_URL') ?: 'http://api:8000'), '/');
-        $contexto = stream_context_create(['http' => [
-            'method'        => 'GET',
-            'header'        => "Accept: application/json\r\nAuthorization: Bearer {$token}\r\nConnection: close\r\n",
-            'timeout'       => 8,
-            'ignore_errors' => true,
-        ]]);
-        $cuerpo = @file_get_contents($api . '/auth/me', false, $contexto);
-        $estado = 0;
-        if (isset($http_response_header[0]) && preg_match('/\s(\d{3})\s/', $http_response_header[0], $m)) {
-            $estado = (int) $m[1];
-        }
-
-        if ($cuerpo === false || $estado === 0) {
+        // 2) Quién es y qué rol tiene (la API valida la firma)
+        $me     = $api->conToken($token)->getJson('/auth/me');
+        $estado = $me['status'];
+        if ($me['body'] === null || $estado === 0) {
             $this->responder(502, ['ok' => false, 'mensaje' => 'No se pudo contactar con la API.']);
         }
         if ($estado === 401) {
@@ -60,13 +74,14 @@ final class SesionController
             $this->responder(502, ['ok' => false, 'mensaje' => 'La API respondió con un error inesperado.']);
         }
 
-        $usuario = json_decode($cuerpo, true);
-        $rol     = is_array($usuario) ? (string) ($usuario['role'] ?? '') : '';
+        $perfil = json_decode($me['body'], true);
+        $rol    = is_array($perfil) ? (string) ($perfil['role'] ?? '') : '';
         if (!\Auth::rolValido($rol)) {
             $this->responder(403, ['ok' => false, 'mensaje' => 'Tu rol no tiene acceso a esta aplicación.']);
         }
 
-        \Auth::establecerSesion($rol, $token, (string) ($usuario['nombre'] ?? $usuario['email'] ?? ''));
+        // 3) Sesión de PHP (rol + JWT). «Recordar sesión» alarga la cookie de esta sesión.
+        \Auth::establecerSesion($rol, $token, (string) ($perfil['nombre'] ?? $perfil['email'] ?? ''), $recordar);
         $this->responder(200, [
             'ok'      => true,
             'rol'     => $rol,
@@ -79,6 +94,20 @@ final class SesionController
         $this->exigirPeticionSegura();
         \Auth::cerrarSesion();
         $this->responder(200, ['ok' => true]);
+    }
+
+    // No se muestra el texto crudo del backend (puede venir en inglés o ser una lista de errores
+    // de validación): se traduce el código de estado a un mensaje claro y sin filtrar detalles.
+    private function mensajeDeLogin(int $estado): string
+    {
+        return match (true) {
+            $estado === 400, $estado === 401, $estado === 404 => 'Usuario o contraseña incorrectos.',
+            $estado === 403 => 'Tu cuenta no tiene permiso para acceder en este momento.',
+            $estado === 422 => 'Revisa el usuario y la contraseña e inténtalo de nuevo.',
+            $estado === 429 => 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.',
+            $estado >= 500  => 'El servicio no está disponible en este momento. Inténtalo más tarde.',
+            default         => 'No fue posible iniciar sesión. Inténtalo de nuevo.',
+        };
     }
 
     /** Solo POST con JSON y del mismo sitio (defensa básica contra CSRF). */

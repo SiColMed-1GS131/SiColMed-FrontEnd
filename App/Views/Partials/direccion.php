@@ -5,18 +5,18 @@ $errores    = $errores    ?? [];
 $dirPrefijo = $dirPrefijo ?? 'direccion';
 $dirTitulo  = $dirTitulo  ?? 'Dirección';
 
-$provincias = $catalogos['provincias'] ?? [
-    'Bocas del Toro', 'Chiriquí', 'Coclé', 'Colón', 'Darién', 'Herrera',
-    'Los Santos', 'Panamá', 'Panamá Oeste', 'Veraguas',
-    'Comarca Emberá-Wounaan', 'Comarca Guna Yala', 'Comarca Ngäbe-Buglé',
-];
+// Lista de provincias de la API: [['id_provincia' => 1, 'nombre' => 'Panamá'], ...]
+$dirCatalogos = (isset($catalogos) && is_array($catalogos)) ? $catalogos : [];
+$provincias   = $dirCatalogos['provincias'] ?? [];
 
 // Funciones auxiliares
 $esc   = fn($texto) => htmlspecialchars((string) $texto, ENT_QUOTES, 'UTF-8');
 $valor = fn($campo) => $esc($medico[$dirPrefijo . '_' . $campo] ?? '');
 $error = fn($campo) => $esc($errores[$dirPrefijo . '_' . $campo] ?? '');
 $pref  = $esc($dirPrefijo);
-$provinciaActual = (string) ($medico[$dirPrefijo . '_provincia'] ?? '');
+$provinciaActual    = (string) ($medico[$dirPrefijo . '_id_provincia'] ?? '');
+$distritoActual     = (string) ($medico[$dirPrefijo . '_id_distrito'] ?? '');
+$corregimientoActual = (string) ($medico[$dirPrefijo . '_id_corregimiento'] ?? '');
 ?>
 
 <div class="registro__subgrupo" role="group" aria-labelledby="titulo-<?= $pref ?>">
@@ -25,30 +25,36 @@ $provinciaActual = (string) ($medico[$dirPrefijo . '_provincia'] ?? '');
   <div class="registro__grid registro__grid--3">
 
 
+    <!-- Provincia → distrito → corregimiento: los dos últimos se cargan por JS (registro.js) desde ?c=registro&a=catalogo.
+         La API solo recibe id_corregimiento; provincia y distrito sirven para llegar a él. -->
     <div class="field">
-      <label for="<?= $pref ?>_provincia">Provincia</label>
-      <select id="<?= $pref ?>_provincia" name="<?= $pref ?>_provincia">
+      <label for="<?= $pref ?>_id_provincia">Provincia</label>
+      <select id="<?= $pref ?>_id_provincia" name="<?= $pref ?>_id_provincia" data-geo="provincia" data-prefijo="<?= $pref ?>">
         <option value="">Seleccione</option>
         <?php foreach ($provincias as $provincia): ?>
-          <option value="<?= $esc($provincia) ?>"<?= $provinciaActual === (string) $provincia ? ' selected' : '' ?>>
-            <?= $esc($provincia) ?>
+          <?php $idProv = (string) ($provincia['id_provincia'] ?? ''); ?>
+          <option value="<?= $esc($idProv) ?>"<?= $provinciaActual === $idProv ? ' selected' : '' ?>>
+            <?= $esc($provincia['nombre'] ?? '') ?>
           </option>
         <?php endforeach; ?>
       </select>
-      <span class="field__error"><?= $error('provincia') ?></span>
-    </div>
-
-
-    <div class="field">
-      <label for="<?= $pref ?>_distrito">Distrito</label>
-      <input type="text" id="<?= $pref ?>_distrito" name="<?= $pref ?>_distrito" value="<?= $valor('distrito') ?>">
-      <span class="field__error"><?= $error('distrito') ?></span>
+      <span class="field__error"><?= $error('id_provincia') ?></span>
     </div>
 
     <div class="field">
-      <label for="<?= $pref ?>_corregimiento">Corregimiento</label>
-      <input type="text" id="<?= $pref ?>_corregimiento" name="<?= $pref ?>_corregimiento" value="<?= $valor('corregimiento') ?>">
-      <span class="field__error"><?= $error('corregimiento') ?></span>
+      <label for="<?= $pref ?>_id_distrito">Distrito</label>
+      <select id="<?= $pref ?>_id_distrito" name="<?= $pref ?>_id_distrito" data-geo="distrito" data-prefijo="<?= $pref ?>" data-seleccionado="<?= $esc($distritoActual) ?>" disabled>
+        <option value="">Seleccione una provincia</option>
+      </select>
+      <span class="field__error"><?= $error('id_distrito') ?></span>
+    </div>
+
+    <div class="field">
+      <label for="<?= $pref ?>_id_corregimiento">Corregimiento</label>
+      <select id="<?= $pref ?>_id_corregimiento" name="<?= $pref ?>_id_corregimiento" data-geo="corregimiento" data-prefijo="<?= $pref ?>" data-seleccionado="<?= $esc($corregimientoActual) ?>" disabled>
+        <option value="">Seleccione un distrito</option>
+      </select>
+      <span class="field__error"><?= $error('id_corregimiento') ?></span>
     </div>
 
     <div class="field">

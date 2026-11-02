@@ -55,7 +55,7 @@ if (!isset($medico) || empty($medico)) {
             <ul class="lista-datos">
                 <li>
                     <strong>Lugar de trabajo:</strong> 
-                    <span><?= htmlspecialchars($medico['empresa_institucion'] ?? 'No registrado') ?></span>
+                    <span><?= htmlspecialchars($medico['empresa_institucion'] ?? ($medico['empresa'] ?? ($medico['lugar_trabajo'] ?? 'No registrado')), ENT_QUOTES, 'UTF-8') ?></span>
                 </li>
                 <li>
                     <strong>Dirección laboral:</strong> 

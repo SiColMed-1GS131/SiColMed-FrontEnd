@@ -83,7 +83,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const respuesta = await fetch(csvEndpoint, {
         method: 'POST',
         credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-CSRF-Token': window.SICOLMED_CSRF || ''
+        },
         body: JSON.stringify(medicos[i])
       });
       const resultado = await respuesta.json().catch(() => null);
@@ -241,6 +245,61 @@ document.addEventListener('DOMContentLoaded', () => {
       const btn = e.target.closest('[data-quitar]');
       if (btn) btn.closest('[data-fila]').remove();
     });
+  });
+
+  /* Provincia → distrito → corregimiento (catálogos reales de la API, vía ?c=registro&a=catalogo) */
+  const urlCatalogo = window.SICOLMED_CATALOGO_URL;
+
+  async function cargarOpciones(select, tipo, idPadre, claveId) {
+    const textoVacio = tipo === 'distritos' ? 'Seleccione una provincia' : 'Seleccione un distrito';
+    select.innerHTML = '';
+    select.append(new Option(idPadre ? 'Seleccione' : textoVacio, ''));
+    select.disabled = true;
+    if (!idPadre || !urlCatalogo) return;
+
+    try {
+      const respuesta = await fetch(`${urlCatalogo}&tipo=${tipo}&id=${encodeURIComponent(idPadre)}`, {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' }
+      });
+      const resultado = await respuesta.json();
+      if (!respuesta.ok || !resultado.ok) throw new Error();
+      const elegido = select.dataset.seleccionado || '';
+      resultado.datos.forEach((item) => {
+        const opcion = new Option(item.nombre, String(item[claveId]));
+        if (String(item[claveId]) === elegido) opcion.selected = true;
+        select.append(opcion);
+      });
+      select.dataset.seleccionado = '';
+      select.disabled = false;
+    } catch (e) {
+      select.options[0].text = 'No se pudo cargar la lista';
+    }
+  }
+
+  document.querySelectorAll('[data-geo="provincia"]').forEach((provincia) => {
+    const prefijo = provincia.dataset.prefijo;
+    const distrito = document.getElementById(prefijo + '_id_distrito');
+    const corregimiento = document.getElementById(prefijo + '_id_corregimiento');
+    if (!distrito || !corregimiento) return;
+
+    provincia.addEventListener('change', async () => {
+      distrito.dataset.seleccionado = '';
+      corregimiento.dataset.seleccionado = '';
+      await cargarOpciones(corregimiento, 'corregimientos', '', 'id_corregimiento');
+      await cargarOpciones(distrito, 'distritos', provincia.value, 'id_distrito');
+    });
+    distrito.addEventListener('change', () => {
+      corregimiento.dataset.seleccionado = '';
+      cargarOpciones(corregimiento, 'corregimientos', distrito.value, 'id_corregimiento');
+    });
+
+    // Al editar, si ya hay provincia y distrito guardados, se cargan y se preseleccionan
+    if (provincia.value) {
+      cargarOpciones(distrito, 'distritos', provincia.value, 'id_distrito').then(() => {
+        if (distrito.value) cargarOpciones(corregimiento, 'corregimientos', distrito.value, 'id_corregimiento');
+      });
+    }
   });
 
   /* Certificado PDF */

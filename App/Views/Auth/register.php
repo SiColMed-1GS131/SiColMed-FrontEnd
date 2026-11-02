@@ -20,20 +20,20 @@ $entrada = $base . '/index.php';
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= $base ?>/Assets/CSS/Dedicated/Auth/auth.css">
+  <link rel="stylesheet" href="<?= htmlspecialchars($base . '/Assets/CSS/Dedicated/Auth/auth.css', ENT_QUOTES, 'UTF-8') ?>">
 </head>
 <body>
 <div class="auth">
 
   <aside class="panel panel--register">
     <div class="brand">
-      <span class="brand__logo"><img src="<?= $base ?>/Assets/IMG/LOGO-CM.png" alt="Logo del Colegio Médico de Panamá" height="30px"></span>
+      <span class="brand__logo"><img src="<?= htmlspecialchars($base . '/Assets/IMG/LOGO-CM.png', ENT_QUOTES, 'UTF-8') ?>" alt="Logo del Colegio Médico de Panamá" height="30px"></span>
       <div><div class="brand__name">SiColMed</div><div class="brand__sub">Colegio Médico de Panamá</div></div>
     </div>
 
     <div class="panel__main">
       <div class="glass glass--img">
-        <img src="<?= $base ?>/Assets/IMG/register.jpg" alt="Comunidad médica conectada">
+        <img src="<?= htmlspecialchars($base . '/Assets/IMG/register.jpg', ENT_QUOTES, 'UTF-8') ?>" alt="Comunidad médica conectada">
       </div>
       <div>
         <h2>Impulsa tu práctica<br>médica</h2>
@@ -62,7 +62,7 @@ $entrada = $base . '/index.php';
   <section class="side">
     <header class="side__top">
       <div class="brand">
-        <span class="brand__logo"><img src="<?= $base ?>/Assets/IMG/LOGO-CM.png" alt="Logo del Colegio Médico de Panamá" height="30px"></span>
+        <span class="brand__logo"><img src="<?= htmlspecialchars($base . '/Assets/IMG/LOGO-CM.png', ENT_QUOTES, 'UTF-8') ?>" alt="Logo del Colegio Médico de Panamá" height="30px"></span>
         <div><div class="brand__name">SiColMed</div><div class="brand__sub">Colegio Médico de Panamá</div></div>
       </div>
     </header>
@@ -83,7 +83,7 @@ $entrada = $base . '/index.php';
           </p>
         <?php endif; ?>
 
-        <form id="register-form" action="<?= $entrada ?>?c=register&a=index" method="post">
+        <form id="register-form" action="<?= htmlspecialchars($entrada, ENT_QUOTES, 'UTF-8') ?>?c=register&amp;a=index" method="post">
           <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
           <div class="field">
             <label class="lbl" for="idoneidad">Número de idoneidad / Registro médico</label>
@@ -120,7 +120,7 @@ $entrada = $base . '/index.php';
 
         <p class="alt">
           ¿Ya tienes cuenta?
-          <a href="<?= $entrada ?>?c=login&a=login">Iniciar sesión</a>
+          <a href="<?= htmlspecialchars($entrada, ENT_QUOTES, 'UTF-8') ?>?c=login&amp;a=login">Iniciar sesión</a>
         </p>
 
       </div>
@@ -138,7 +138,7 @@ $entrada = $base . '/index.php';
 
 <script
   type="module"
-  src="<?= $base ?>/Assets/JavaScript/Dedicated/Auth/register.js">
+  src="<?= htmlspecialchars($base . '/Assets/JavaScript/Dedicated/Auth/register.js', ENT_QUOTES, 'UTF-8') ?>">
 </script>
 
 </body>

@@ -1,22 +1,35 @@
-import { initializePasswordToggles } from '../../Functions/Auth/passwordToggle.js';
 // Comportamiento de la vista de inicio de sesión.
-import { login } from '../../Functions/Auth/auth.js';
-import { mockMode } from '../../Functions/Auth/mockAuth.js';
+// El navegador solo envía usuario y contraseña a PHP (SesionController). PHP habla con la API
+// y guarda el JWT en la sesión del servidor: aquí no se guarda ni se lee ningún token.
+import { initializePasswordToggles } from '../../Functions/Auth/passwordToggle.js';
 import { showStatus } from '../../Functions/Auth/formStatus.js';
-import { getToken, clearToken } from '../../Functions/Auth/token.js';
 
-async function openPhpSession(form, token) {
+const REQUEST_TIMEOUT_MS = 15000;
+
+async function iniciarSesion(form, credenciales) {
   const sessionUrl = form.dataset.sessionUrl;
-  if (!sessionUrl || !token) {
-    throw new Error('No se pudo preparar la sesión. Inténtalo de nuevo.');
+  if (!sessionUrl) throw new Error('No se pudo preparar la sesión. Inténtalo de nuevo.');
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  let response;
+  try {
+    response = await fetch(sessionUrl, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(credenciales),
+      signal: controller.signal
+    });
+  } catch (error) {
+    if (error && error.name === 'AbortError') {
+      throw new Error('El servidor tardó demasiado en responder. Inténtalo de nuevo.');
+    }
+    throw new Error('No se pudo conectar con el servidor. Verifica tu conexión e inténtalo de nuevo.');
+  } finally {
+    clearTimeout(timer);
   }
 
-  const response = await fetch(sessionUrl, {
-    method: 'POST',
-    credentials: 'same-origin',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({ token })
-  });
   let body = null;
   try {
     body = await response.json();
@@ -26,10 +39,12 @@ async function openPhpSession(form, token) {
   if (!response.ok || !body || body.ok !== true) {
     throw new Error(body && typeof body.mensaje === 'string'
       ? body.mensaje
-      : 'No se pudo abrir la sesión en el servidor.');
+      : 'No fue posible iniciar sesión. Inténtalo de nuevo.');
   }
   return body;
 }
+
+let intentosFallidos = 0;
 
 export function initializeLoginForm() {
   const form = document.getElementById('login-form');
@@ -39,13 +54,36 @@ export function initializeLoginForm() {
   const passwordInput = form.querySelector('#password');
   const button = form.querySelector('button[type="submit"]');
 
+  // Modal de recuperación de contraseña
+  const enlaceOlvido = document.getElementById('enlace-olvido');
+  const modalRecuperar = document.getElementById('modal-recuperar');
+  const btnCerrarModal = document.getElementById('cerrar-modal-recuperar');
+
+  if (enlaceOlvido && modalRecuperar) {
+    enlaceOlvido.addEventListener('click', (e) => {
+      e.preventDefault();
+      modalRecuperar.showModal();
+    });
+  }
+
+  if (btnCerrarModal && modalRecuperar) {
+    btnCerrarModal.addEventListener('click', () => {
+      modalRecuperar.close();
+    });
+  }
+
   form.addEventListener('submit', async event => {
     event.preventDefault();
     if (form.getAttribute('aria-busy') === 'true') return;
 
+    if (intentosFallidos >= 5) {
+      showStatus(form, 'Has superado los 5 intentos fallidos permitidos. Tu acceso está temporalmente pausado por seguridad. Utiliza la opción de recuperación de contraseña.', 'error');
+      return;
+    }
+
     const username = usernameInput.value.trim();
     const password = passwordInput.value;
-    const rememberSession = form.querySelector('input[name="recordar"]')?.checked ?? false;
+    const recordar = form.querySelector('input[name="recordar"]')?.checked ?? false;
 
     // "required" no detecta un campo con solo espacios.
     if (!username || !password) {
@@ -58,27 +96,20 @@ export function initializeLoginForm() {
     if (button) button.disabled = true;
     showStatus(form, 'Iniciando sesión...', 'info');
     try {
-      await login(username, password, rememberSession);
+      const sesion = await iniciarSesion(form, { username, password, recordar });
+      intentosFallidos = 0;
       passwordInput.value = '';
-      if (!mockMode) {
-        try {
-          const session = await openPhpSession(form, getToken());
-          const destination = session.destino || form.dataset.destination;
-          if (typeof window.SICOLMED_AFTER_LOGIN === 'function') {
-            window.SICOLMED_AFTER_LOGIN();
-          } else if (destination) {
-            window.location.assign(destination);
-          }
-          return;
-        } catch (sessionError) {
-          clearToken();
-          throw sessionError;
-        }
-      }
-      showStatus(form, mockMode ? 'Sesión iniciada (modo de prueba).' : 'Sesión iniciada correctamente.', 'success');
-      if (typeof window.SICOLMED_AFTER_LOGIN === 'function') window.SICOLMED_AFTER_LOGIN();
+      const destino = sesion.destino || form.dataset.destination;
+      if (destino) window.location.assign(destino);
     } catch (error) {
-      showStatus(form, error.message, 'error');
+      intentosFallidos++;
+      let mensajeError = error.message;
+      if (intentosFallidos >= 5) {
+        mensajeError = 'Has superado los 5 intentos fallidos. Por seguridad, contacta a soporte o solicita la recuperación de tu contraseña.';
+      } else if (intentosFallidos >= 3) {
+        mensajeError += ` (Intento fallido ${intentosFallidos} de 5).`;
+      }
+      showStatus(form, mensajeError, 'error');
       passwordInput.focus();
     } finally {
       form.removeAttribute('aria-busy');

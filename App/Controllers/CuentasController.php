@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Core\Csrf;
 use App\Repositories\CuentasRepository;
 
-// Controlador de la pantalla de Cuentas (solo para el tesorero)
+// Controlador de la pantalla de Cuentas (tesorero, administrador del CMP y administrador de asociación)
 final class CuentasController
 {
     private const LISTA = '/index.php?c=cuentas&a=index';   // las rutas del sistema son ?c=controlador&a=accion
@@ -167,27 +168,15 @@ final class CuentasController
             'totalPaginas' => $totalPaginas,
             'errorApi' => $lista['ok'] ? '' : $lista['error'],
             'flash' => $this->tomarFlash(),
-            'csrf' => $this->tokenCsrf(),
+            'csrf' => Csrf::token('cuentas'),
             'queryLista' => $this->queryLista(),
         ]));
     }
 
-    // Solo deja entrar al tesorero (puede cambiar cuando se suba Auth.php)
+    // Roles permitidos: ver PERMISOS['cuentas'] en App/Middleware/Auth.php (tesorero, admin_cmp, admin_asociacion)
     private function verificarAcceso(): void
     {
-        $auth = 'App\\Middleware\\Auth';
-        if (class_exists($auth) && method_exists($auth, 'requiere')) {
-            $auth::requiere(['tesorero', 'admin_cmp']);
-            return;
-        }
-
-        $rol = $_SESSION['rol'] ?? null;
-        $permitido = in_array($rol, ['tesorero', 'admin_cmp'], true) || ($rol === null && getenv('USE_MOCK') === '1');
-        if (!$permitido) {
-            http_response_code(403);
-            header('Content-Type: text/plain; charset=UTF-8');
-            exit('Acceso denegado: esta sección es solo para el Tesorero.');
-        }
+        \Auth::exigir('cuentas');
     }
 
     private function render(string $vista, array $datos = []): void
@@ -235,20 +224,10 @@ final class CuentasController
         return is_string($valor) && ctype_digit($valor) && (int) $valor > 0 ? (int) $valor : null;
     }
 
-    // Código de seguridad para los formularios
-    private function tokenCsrf(): string
-    {
-        if (empty($_SESSION['csrf_cuentas'])) {
-            $_SESSION['csrf_cuentas'] = bin2hex(random_bytes(32));
-        }
-        return $_SESSION['csrf_cuentas'];
-    }
-
     // Revisa que el código de seguridad sea el correcto
     private function verificarCsrf(): void
     {
-        $enviado = $_POST['csrf'] ?? '';
-        if (!is_string($enviado) || !hash_equals($this->tokenCsrf(), $enviado)) {
+        if (!Csrf::valido('cuentas', $_POST['csrf'] ?? null)) {
             $this->guardarFlash('error', 'La sesión expiró. Vuelve a intentarlo.');
             $this->redirigir(self::LISTA);
         }

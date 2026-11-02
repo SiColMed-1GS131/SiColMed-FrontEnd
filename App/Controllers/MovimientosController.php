@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Core\Csrf;
 use App\Repositories\CuentasRepository;
 use App\Repositories\MovimientosRepository;
 use DateTime;
@@ -93,9 +94,11 @@ final class MovimientosController
         $old = [
             'fecha'       => $this->fechaValida((string) ($_GET['fecha'] ?? '')) ?? date('Y-m-d'),
             'descripcion' => '',
-            'id_cuenta'   => '',
-            'monto'       => '',
-            'tipo'        => '',
+            // Partida doble: se empieza con una línea de débito y una de crédito
+            'detalle'     => [
+                ['id_cuenta' => '', 'tipo' => 'DEBITO', 'monto' => ''],
+                ['id_cuenta' => '', 'tipo' => 'CREDITO', 'monto' => ''],
+            ],
         ];
 
         // Solo cuentas activas: una cuenta inactiva no recibe movimientos
@@ -110,12 +113,10 @@ final class MovimientosController
             $old = [
                 'fecha'       => trim((string) ($_POST['fecha'] ?? '')),
                 'descripcion' => trim((string) ($_POST['descripcion'] ?? '')),
-                'id_cuenta'   => (string) ($_POST['id_cuenta'] ?? ''),
-                'monto'       => trim((string) ($_POST['monto'] ?? '')),
-                'tipo'        => (string) ($_POST['tipo'] ?? ''),
+                'detalle'     => $this->leerDetalle($_POST['detalle'] ?? []),
             ];
 
-            if (!$this->csrfValido()) {
+            if (!Csrf::valido('movimientos', $_POST['csrf'] ?? null)) {
                 $errorApi = 'La sesión del formulario venció. Intenta de nuevo.';
             } else {
                 $errores = $this->validar($old, $activas);
@@ -140,7 +141,7 @@ final class MovimientosController
             'errores'  => $errores,
             'cuentas'  => $activas,
             'errorApi' => $errorApi,
-            'csrf'     => $this->tokenCsrf(),
+            'csrf'     => Csrf::token('movimientos'),
         ]);
     }
 
@@ -270,23 +271,73 @@ final class MovimientosController
         }
 
         $ids = array_map(fn(array $c) => (string) $c['id_cuenta'], $cuentasActivas);
-        if ($d['id_cuenta'] === '') {
-            $errores['id_cuenta'] = 'Elige una cuenta.';
-        } elseif (!in_array($d['id_cuenta'], $ids, true)) {
-            $errores['id_cuenta'] = 'La cuenta elegida no está disponible.';
+        $deb = 0;
+        $cred = 0;
+
+        foreach ($d['detalle'] as $i => $l) {
+            if ($l['id_cuenta'] === '') {
+                $errores["detalle_{$i}_id_cuenta"] = 'Elige una cuenta.';
+            } elseif (!in_array($l['id_cuenta'], $ids, true)) {
+                $errores["detalle_{$i}_id_cuenta"] = 'La cuenta elegida no está disponible.';
+            }
+
+            if ($l['monto'] === '' || !preg_match('/^\d{1,8}(\.\d{1,2})?$/', $l['monto'])) {
+                $errores["detalle_{$i}_monto"] = 'Monto válido (máximo 2 decimales).';
+            } elseif ((float) $l['monto'] <= 0) {
+                $errores["detalle_{$i}_monto"] = 'Debe ser mayor que cero.';
+            } elseif ($l['tipo'] === 'DEBITO') {
+                $deb += $this->centavos($l['monto']);
+            } elseif ($l['tipo'] === 'CREDITO') {
+                $cred += $this->centavos($l['monto']);
+            }
+
+            if (!in_array($l['tipo'], self::TIPOS, true)) {
+                $errores["detalle_{$i}_tipo"] = 'Elige Débito o Crédito.';
+            }
         }
 
-        if ($d['monto'] === '' || !preg_match('/^\d{1,8}(\.\d{1,2})?$/', $d['monto'])) {
-            $errores['monto'] = 'Escribe un monto válido (máximo 2 decimales).';
-        } elseif ((float) $d['monto'] <= 0) {
-            $errores['monto'] = 'El monto debe ser mayor que cero.';
-        }
-
-        if (!in_array($d['tipo'], self::TIPOS, true)) {
-            $errores['tipo'] = 'Elige Débito o Crédito.';
+        // Reglas de la partida doble (la API las vuelve a validar)
+        if (count($d['detalle']) < 2) {
+            $errores['detalle'] = 'El movimiento necesita al menos un débito y un crédito.';
+        } elseif (!in_array('DEBITO', array_column($d['detalle'], 'tipo'), true)
+            || !in_array('CREDITO', array_column($d['detalle'], 'tipo'), true)) {
+            $errores['detalle'] = 'Debe haber al menos una línea de débito y una de crédito.';
+        } elseif (!array_filter($errores, fn($k) => str_starts_with($k, 'detalle_'), ARRAY_FILTER_USE_KEY) && $deb !== $cred) {
+            $errores['detalle'] = 'El movimiento no cuadra: los débitos (' . $this->dinero($deb)
+                . ') deben ser iguales a los créditos (' . $this->dinero($cred) . ').';
         }
 
         return $errores;
+    }
+
+    // Líneas del formulario (detalle[i][id_cuenta|tipo|monto]) en un formato fijo
+    private function leerDetalle(mixed $crudo): array
+    {
+        $lineas = [];
+        if (!is_array($crudo)) {
+            return $lineas;
+        }
+        foreach (array_values($crudo) as $l) {
+            if (!is_array($l)) {
+                continue;
+            }
+            $lineas[] = [
+                'id_cuenta' => trim((string) ($l['id_cuenta'] ?? '')),
+                'tipo'      => (string) ($l['tipo'] ?? ''),
+                'monto'     => trim((string) ($l['monto'] ?? '')),
+            ];
+        }
+        return array_slice($lineas, 0, 50);
+    }
+
+    private function centavos(string $monto): int
+    {
+        return (int) round(((float) $monto) * 100);
+    }
+
+    private function dinero(int $c): string
+    {
+        return intdiv($c, 100) . '.' . str_pad((string) ($c % 100), 2, '0', STR_PAD_LEFT);
     }
 
     private function fechaValida(string $texto): ?string
@@ -329,20 +380,7 @@ final class MovimientosController
         return ['debito' => $fmt($centavos['DEBITO']), 'credito' => $fmt($centavos['CREDITO'])];
     }
 
-    private function tokenCsrf(): string
-    {
-        if (empty($_SESSION['movimientos_csrf'])) {
-            $_SESSION['movimientos_csrf'] = bin2hex(random_bytes(32));
-        }
-        return $_SESSION['movimientos_csrf'];
-    }
 
-    private function csrfValido(): bool
-    {
-        $enviado = (string) ($_POST['csrf'] ?? '');
-        $guardado = (string) ($_SESSION['movimientos_csrf'] ?? '');
-        return $guardado !== '' && hash_equals($guardado, $enviado);
-    }
 
     private function tomarFlash(): ?array
     {

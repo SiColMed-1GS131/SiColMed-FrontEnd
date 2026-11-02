@@ -82,7 +82,7 @@
       const conMovimientos = formEliminar.dataset.movimientos === '1';
       const mensaje = conMovimientos
         ? '¿Eliminar la cuenta "' + nombre + '"?\n\nTiene movimientos registrados, por lo que se desactivará en lugar de eliminarse.'
-        : '¿Eliminar la cuenta "' + nombre + '"?\n\nEsta acción no se puede deshacer.';
+        : '¿Deseas eliminar la cuenta "' + nombre + '"?\n\nNota: Si la cuenta posee movimientos contables registrados, se desactivará automáticamente para preservar el historial.';
       if (!window.confirm(mensaje)) {
         evento.preventDefault(); // canceló
         return;

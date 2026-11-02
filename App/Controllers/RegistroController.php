@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Core\Csrf;
+use App\Repositories\CatalogosRepository;
 use App\Repositories\RegistroMedicoRepository;
 
 /** Registro médico, lista, formulario (nuevo o editar) y guardado. */
 final class RegistroController
 {
     private RegistroMedicoRepository $medicos;
+    private CatalogosRepository $catalogos;
 
     public function __construct()
     {
         $this->medicos = new RegistroMedicoRepository();
+        $this->catalogos = new CatalogosRepository();
     }
 
     // Lista de médicos
@@ -44,7 +48,7 @@ final class RegistroController
         $this->verificarAcceso();
 
         $id = $this->leerId($_GET['id'] ?? null);
-        $resultado = $id === null ? null : $this->medicos->obtener($id);
+        $resultado = $id === null ? null : $this->medicos->obtenerParaFormulario($id);
 
         if ($resultado === null || !$resultado['ok']) {
             $this->guardarMensaje(($resultado['error'] ?? '') ?: 'Médico no encontrado.');
@@ -59,11 +63,28 @@ final class RegistroController
     {
         $this->verificarAcceso();
 
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            header('Allow: POST');
+            http_response_code(405);
+            exit('Método no permitido.');
+        }
+
         $datos = $_POST;
         $id = $this->leerId($datos['id'] ?? null);
-        unset($datos['id']);
+        unset($datos['id'], $datos['csrf']);
 
-        // Posible cambio, foto y PDF ahora mismo solo se envían los textos.
+        // CSRF: si el código no coincide, no se envía nada a la API y se vuelve a mostrar el formulario.
+        if (!Csrf::valido('registro', $_POST['csrf'] ?? '')) {
+            http_response_code(403);
+            $this->render('form', [
+                'medico' => $id === null ? $datos : $datos + ['id' => $id],
+                'errores' => [],
+                'errorGeneral' => 'La sesión expiró o el formulario no es válido. Vuelve a intentarlo.',
+            ]);
+            return;
+        }
+
+        // Se envía JSON a la API: la foto y el PDF de idoneidad todavía no se suben (la API no tiene endpoint de archivos).
         $resultado = $id === null
             ? $this->medicos->crear($datos)
             : $this->medicos->actualizar($id, $datos);
@@ -81,10 +102,37 @@ final class RegistroController
         ]);
     }
 
+    // Distritos de una provincia o corregimientos de un distrito, para los selects en cascada.
+    // GET ?c=registro&a=catalogo&tipo=distritos|corregimientos&id=N
+    public function catalogo(): never
+    {
+        $this->verificarAcceso(true);
+
+        $id = $this->leerId($_GET['id'] ?? null);
+        $tipo = (string) ($_GET['tipo'] ?? '');
+        if ($id === null || !\in_array($tipo, ['distritos', 'corregimientos'], true)) {
+            $this->responderJson(400, ['ok' => false, 'error' => 'Parámetros no válidos.']);
+        }
+
+        $lista = $tipo === 'distritos'
+            ? $this->catalogos->distritos($id)
+            : $this->catalogos->corregimientos($id);
+        $this->responderJson(200, ['ok' => true, 'datos' => $lista]);
+    }
+
     // Registra una fila proveniente de la importación CSV.
     public function importarCsv(): never
     {
-        $this->verificarAcceso();
+        $this->verificarAcceso(true);
+
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            header('Allow: POST');
+            $this->responderJson(405, ['ok' => false, 'error' => 'Método no permitido.']);
+        }
+        // El JS manda el código en la cabecera X-CSRF-Token (el cuerpo es el JSON de la fila).
+        if (!Csrf::valido('registro', $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '')) {
+            $this->responderJson(403, ['ok' => false, 'error' => 'La sesión expiró. Recarga la página e inténtalo de nuevo.']);
+        }
 
         $datos = json_decode((string) file_get_contents('php://input'), true);
         if (!is_array($datos)) {
@@ -99,15 +147,28 @@ final class RegistroController
         ]);
     }
 
-    // Pendiente
-    private function verificarAcceso(): void
+    // Solo el administrador del CMP (ver PERMISOS en App/Middleware/Auth.php).
+    // $json = true en las acciones que responden JSON: sin permiso devuelven 401/403 en JSON, no HTML.
+    private function verificarAcceso(bool $json = false): void
     {
+        \Auth::exigir('registro', $json);
     }
 
     // Arma la página (posibles cambios dependiendo de /Views/Partials/...)
     private function render(string $vista, array $datos = []): void
     {
         extract($datos, EXTR_SKIP);
+        $csrf = Csrf::token('registro');   // lo usan el formulario y la importación CSV
+        // Catálogos reales de la API para los selects del formulario (provincias, especialidades, subespecialidades)
+        if ($vista === 'form') {
+            $catalogos = [
+                'provincias' => $this->catalogos->provincias(),
+                'especialidades' => $this->catalogos->especialidades(),
+                'subespecialidades' => $this->catalogos->subespecialidades(),
+                'asociaciones' => $this->catalogos->asociaciones(),
+            ];
+            $urlCatalogo = $this->entrada() . '?c=registro&a=catalogo';
+        }
         $currentPage = 'registro';
         $extraCss = 'registro.css';   // el header carga base.css y este CSS
         $entrada = $this->entrada();  // URL base de index.php para los enlaces y el formulario

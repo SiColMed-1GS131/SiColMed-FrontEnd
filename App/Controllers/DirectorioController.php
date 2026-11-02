@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Repositories\CatalogosRepository;
 use App\Repositories\RegistroMedicoRepository;
 
 /**
@@ -56,57 +57,30 @@ final class DirectorioController
     private function listado(bool $publico): void
     {
         $filtros = [];
-        foreach (['q', 'especialidad', 'asociacion', 'certificacion', 'provincia', 'lugar_trabajo'] as $campo) {
+        foreach (['apellido', 'lugar_trabajo', 'certificacion', 'id_especialidad', 'id_subespecialidad', 'id_asociacion', 'id_provincia'] as $campo) {
             $valor = $_GET[$campo] ?? '';
             $filtros[$campo] = \is_string($valor) ? trim($valor) : '';
         }
+        $pagina = \filter_var($_GET['page'] ?? 1, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $pagina = $pagina === false ? 1 : $pagina;
 
-        $resultado = $this->medicos->listar($filtros);
-        if (!$resultado['ok']) {
-            $this->render('index', [
-                'medicos' => [],
-                'filtros' => $filtros,
-                'paginaActual' => 1,
-                'totalPaginas' => 0,
-                'errorGeneral' => $resultado['error'],
-            ], $publico);
-            return;
-        }
+        $resultado = $this->medicos->directorio($filtros + ['pagina' => $pagina, 'tamano_pagina' => 20]);
+        $datos = $resultado['ok'] ? $resultado['datos'] : [];
 
-        if (!\is_array($resultado['datos']) || !\array_is_list($resultado['datos'])) {
-            $this->render('index', [
-                'medicos' => [],
-                'filtros' => $filtros,
-                'paginaActual' => 1,
-                'totalPaginas' => 0,
-                'errorGeneral' => 'La API devolvió una lista de médicos con formato inesperado.',
-            ], $publico);
-            return;
-        }
-
-        $medicos = $resultado['datos'];
-        usort($medicos, static function (array $a, array $b): int {
-            return strcmp((string) ($a['apellido'] ?? ''), (string) ($b['apellido'] ?? ''));
-        });
-
-        $porPagina = 50;
-        $totalMedicos = \count($medicos);
-        $totalPaginas = (int) \ceil($totalMedicos / $porPagina);
-        $paginaActual = \filter_var($_GET['page'] ?? 1, FILTER_VALIDATE_INT, [
-            'options' => ['min_range' => 1],
-        ]);
-        $paginaActual = $paginaActual === false ? 1 : $paginaActual;
-        if ($totalPaginas > 0) {
-            $paginaActual = \min($paginaActual, $totalPaginas);
-        }
-
-        $offset = ($paginaActual - 1) * $porPagina;
+        $catalogos = new CatalogosRepository();
         $this->render('index', [
-            'medicos' => \array_slice($medicos, $offset, $porPagina),
+            'medicos' => $datos['medicos'] ?? [],
             'filtros' => $filtros,
-            'paginaActual' => $paginaActual,
-            'totalPaginas' => $totalPaginas,
-            'errorGeneral' => '',
+            'paginaActual' => (int) ($datos['pagina'] ?? 1),
+            'totalPaginas' => (int) ($datos['total_paginas'] ?? 0),
+            'totalMedicos' => (int) ($datos['total'] ?? 0),
+            'errorGeneral' => $resultado['ok'] ? '' : $resultado['error'],
+            'catalogos' => [
+                'especialidades' => $catalogos->especialidades(),
+                'subespecialidades' => $catalogos->subespecialidades(),
+                'asociaciones' => $catalogos->asociaciones(),
+                'provincias' => $catalogos->provincias(),
+            ],
         ], $publico);
     }
 
@@ -123,6 +97,35 @@ final class DirectorioController
         $resultado = $this->medicos->obtener($id);
         $medico = $resultado['ok'] && \is_array($resultado['datos']) ? $resultado['datos'] : [];
         $errorGeneral = $resultado['ok'] ? '' : $resultado['error'];
+
+        // Si es vista pública y la API restringió el detalle sensible con 401
+        if (empty($medico) && $publico) {
+            $listaPublica = $this->medicos->directorio(['tamano_pagina' => 100]);
+            if ($listaPublica['ok'] && !empty($listaPublica['datos']['medicos'])) {
+                foreach ($listaPublica['datos']['medicos'] as $m) {
+                    if (($m['id_medico'] ?? null) === $id) {
+                        $nombres = explode(' ', (string) ($m['nombre_completo'] ?? ''), 2);
+                        $medico = [
+                            'id'                  => $id,
+                            'nombre'              => $nombres[0] ?? '',
+                            'apellido'            => $nombres[1] ?? '',
+                            'registro_medico'     => $m['numero_idoneidad'] ?? '',
+                            'especialidad'        => $m['especialidades'] ?? '',
+                            'subespecialidad'     => '—',
+                            'vigente'             => !empty($m['certificacion_vigente']),
+                            'provincia'           => $m['provincia'] ?? '',
+                            'empresa_institucion' => $m['lugar_trabajo'] ?? '',
+                            'direccion_laboral'   => 'Consulte al Colegio Médico de Panamá',
+                            'telefono_trabajo'    => 'Disponible para asociados',
+                            'email_laboral'       => '',
+                            'organizaciones'      => $m['asociaciones'] ?? 'Colegio Médico de Panamá',
+                        ];
+                        $errorGeneral = '';
+                        break;
+                    }
+                }
+            }
+        }
 
         $this->render('ver', [
             'medico' => $medico,
