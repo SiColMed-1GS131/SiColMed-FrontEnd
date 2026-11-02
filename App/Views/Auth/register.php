@@ -27,7 +27,7 @@ $entrada = $base . '/index.php';
 
   <aside class="panel panel--register">
     <div class="brand">
-      <span class="brand__logo"><svg class="i" viewBox="0 0 24 24"><path d="M11 2v2"/><path d="M5 2v2"/><path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/></svg></span>
+      <span class="brand__logo"><img src="<?= $base ?>/Assets/IMG/LOGO-CM.png" alt="Logo del Colegio Médico de Panamá" height="30px"></span>
       <div><div class="brand__name">SiColMed</div><div class="brand__sub">Colegio Médico de Panamá</div></div>
     </div>
 
@@ -48,7 +48,13 @@ $entrada = $base . '/index.php';
     </div>
 
     <div class="panel__foot">
-      <div class="secure"><svg class="i" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>Seguridad y confidencialidad</div>
+      <div class="panel__foot-top">
+        <div class="secure"><svg class="i" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>Seguridad y confidencialidad</div>
+        <a class="home-link panel-home" href="<?= htmlspecialchars($entrada, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 12 9-9 9 9"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg>
+          <span>Inicio</span>
+        </a>
+      </div>
       <p>Sistema de Información para la Gestión<br>del Colegio Médico de Panamá</p>
     </div>
   </aside>
@@ -56,7 +62,7 @@ $entrada = $base . '/index.php';
   <section class="side">
     <header class="side__top">
       <div class="brand">
-        <span class="brand__logo"><svg class="i" viewBox="0 0 24 24"><path d="M11 2v2"/><path d="M5 2v2"/><path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/></svg></span>
+        <span class="brand__logo"><img src="<?= $base ?>/Assets/IMG/LOGO-CM.png" alt="Logo del Colegio Médico de Panamá" height="30px"></span>
         <div><div class="brand__name">SiColMed</div><div class="brand__sub">Colegio Médico de Panamá</div></div>
       </div>
     </header>
@@ -68,7 +74,7 @@ $entrada = $base . '/index.php';
 
         <div class="notice">
           <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-          <p style="margin:0"><strong>Importante:</strong> Para que tu registro sea exitoso, debes estar previamente registrado en el sistema. Tu nombre e idoneidad serán validados automáticamente.</p>
+          <p style="margin:0"><strong>Importante:</strong> Para que tu registro sea exitoso, debes estar previamente registrado en el sistema. Tu idoneidad será validada automáticamente.</p>
         </div>
 
         <?php if ($formMessage !== ''): ?>
@@ -79,14 +85,6 @@ $entrada = $base . '/index.php';
 
         <form id="register-form" action="<?= $entrada ?>?c=register&a=index" method="post">
           <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
-          <div class="field">
-            <label class="lbl" for="nombre">Nombre completo (según idoneidad)</label>
-            <div class="control">
-              <svg class="i" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              <input id="nombre" name="nombre" type="text" placeholder="Ej.: Lionel Francisco Córdoba Amaro" autocomplete="name" maxlength="120" required>
-            </div>
-          </div>
-
           <div class="field">
             <label class="lbl" for="idoneidad">Número de idoneidad / Registro médico</label>
             <div class="control">

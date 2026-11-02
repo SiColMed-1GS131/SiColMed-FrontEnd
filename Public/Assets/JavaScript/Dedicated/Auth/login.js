@@ -3,6 +3,33 @@ import { initializePasswordToggles } from '../../Functions/Auth/passwordToggle.j
 import { login } from '../../Functions/Auth/auth.js';
 import { mockMode } from '../../Functions/Auth/mockAuth.js';
 import { showStatus } from '../../Functions/Auth/formStatus.js';
+import { getToken, clearToken } from '../../Functions/Auth/token.js';
+
+async function openPhpSession(form, token) {
+  const sessionUrl = form.dataset.sessionUrl;
+  if (!sessionUrl || !token) {
+    throw new Error('No se pudo preparar la sesión. Inténtalo de nuevo.');
+  }
+
+  const response = await fetch(sessionUrl, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ token })
+  });
+  let body = null;
+  try {
+    body = await response.json();
+  } catch (_error) {
+    // El mensaje genérico de abajo evita mostrar respuestas no JSON al usuario.
+  }
+  if (!response.ok || !body || body.ok !== true) {
+    throw new Error(body && typeof body.mensaje === 'string'
+      ? body.mensaje
+      : 'No se pudo abrir la sesión en el servidor.');
+  }
+  return body;
+}
 
 export function initializeLoginForm() {
   const form = document.getElementById('login-form');
@@ -33,6 +60,21 @@ export function initializeLoginForm() {
     try {
       await login(username, password, rememberSession);
       passwordInput.value = '';
+      if (!mockMode) {
+        try {
+          const session = await openPhpSession(form, getToken());
+          const destination = session.destino || form.dataset.destination;
+          if (typeof window.SICOLMED_AFTER_LOGIN === 'function') {
+            window.SICOLMED_AFTER_LOGIN();
+          } else if (destination) {
+            window.location.assign(destination);
+          }
+          return;
+        } catch (sessionError) {
+          clearToken();
+          throw sessionError;
+        }
+      }
       showStatus(form, mockMode ? 'Sesión iniciada (modo de prueba).' : 'Sesión iniciada correctamente.', 'success');
       if (typeof window.SICOLMED_AFTER_LOGIN === 'function') window.SICOLMED_AFTER_LOGIN();
     } catch (error) {
