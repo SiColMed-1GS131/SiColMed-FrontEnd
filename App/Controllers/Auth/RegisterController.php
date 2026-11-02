@@ -30,17 +30,16 @@ final class RegisterController
             return ['No se pudo validar la solicitud. Actualiza la página e inténtalo de nuevo.', false];
         }
 
-        $name = trim((string) ($_POST['nombre'] ?? ''));
         $license = trim((string) ($_POST['idoneidad'] ?? ''));
         $email = trim((string) ($_POST['correo'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
         $termsAccepted = isset($_POST['terminos']) && $_POST['terminos'] === 'on';
 
-        if (!$termsAccepted || $name === '' || $license === '' || $email === '' || $password === '') {
+        if (!$termsAccepted || $license === '' || $email === '' || $password === '') {
             http_response_code(422);
             return ['Completa los campos obligatorios y acepta los términos.', false];
         }
-        if (strlen($name) > 240 || strlen($license) > 100 || strlen($email) > 254
+        if (strlen($license) > 100 || strlen($email) > 254
             || strlen($password) > 128 || strlen($password) < 8
             || !preg_match('/[^\p{L}\p{N}]/u', $password)
             || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -48,12 +47,10 @@ final class RegisterController
             return ['Verifica el correo, los límites de longitud y la contraseña (mínimo 8 caracteres y un carácter especial).', false];
         }
 
-        // La API debe verificar realmente la idoneidad, impedir duplicados y aplicar políticas de contraseña.
+        // La API verifica la idoneidad, impide duplicados y aplica las políticas de contraseña.
         $result = (new ApiClient())->postJson('/auth/register', [
-            'username' => $email,
-            'nombre' => $name,
-            'idoneidad' => $license,
-            'email' => $email,
+            'numero_idoneidad' => $license,
+            'correo' => $email,
             'password' => $password,
         ]);
         $status = $result['status'];
