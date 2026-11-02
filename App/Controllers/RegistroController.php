@@ -81,6 +81,24 @@ final class RegistroController
         ]);
     }
 
+    // Registra una fila proveniente de la importación CSV.
+    public function importarCsv(): never
+    {
+        $this->verificarAcceso();
+
+        $datos = json_decode((string) file_get_contents('php://input'), true);
+        if (!is_array($datos)) {
+            $this->responderJson(400, ['ok' => false, 'error' => 'La fila CSV no tiene un formato válido.']);
+        }
+
+        $resultado = $this->medicos->crear($datos);
+        $this->responderJson($resultado['ok'] ? 201 : 422, [
+            'ok' => $resultado['ok'],
+            'error' => $resultado['error'],
+            'errores' => $resultado['errores'],
+        ]);
+    }
+
     // Pendiente
     private function verificarAcceso(): void
     {
@@ -130,6 +148,14 @@ final class RegistroController
     private function redirigir(string $ruta): never
     {
         header('Location: ' . $ruta);
+        exit;
+    }
+
+    private function responderJson(int $codigo, array $datos): never
+    {
+        http_response_code($codigo);
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode($datos, JSON_UNESCAPED_UNICODE);
         exit;
     }
 }

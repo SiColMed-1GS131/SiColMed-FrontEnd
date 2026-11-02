@@ -104,7 +104,6 @@ $controladores = [
     'home'        => HomeController::class,
     'panel'       => \App\Controllers\PanelController::class,
     'login'       => AuthController::class,
-    'sesion'      => SesionController::class,
     'register'    => RegisterController::class,
     'sesion'      => SesionController::class,
     'directorio'  => \App\Controllers\DirectorioController::class,

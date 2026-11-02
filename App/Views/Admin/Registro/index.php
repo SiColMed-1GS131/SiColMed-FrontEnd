@@ -14,7 +14,14 @@ $esc = static fn($t): string => htmlspecialchars((string) $t, ENT_QUOTES, 'UTF-8
             <h1>Registro Médico</h1>
             <p>Administración y listado de médicos en el sistema.</p>
         </div>
-        <a href="<?= $esc($entrada . '?c=registro&a=nuevo') ?>" class="btn btn--primario">Nuevo médico</a>
+        <div class="registro-lista__acciones">
+            <label class="btn btn--primario registro-lista__btn-csv" for="csv-medicos">
+                <span aria-hidden="true">▤</span>
+                Cargar médicos con .csv
+                <input type="file" id="csv-medicos" accept=".csv,text/csv" hidden>
+            </label>
+            <a href="<?= $esc($entrada . '?c=registro&a=nuevo') ?>" class="btn btn--primario">Nuevo médico</a>
+        </div>
     </header>
 
     <?php if (!empty($mensaje)): ?>
@@ -55,4 +62,9 @@ $esc = static fn($t): string => htmlspecialchars((string) $t, ENT_QUOTES, 'UTF-8
             </div>
         <?php endif; ?>
     </div>
+    <div id="csv-medicos-estado" class="registro-lista__csv-estado" role="status" aria-live="polite" hidden></div>
 </section>
+<script>
+  window.SICOLMED_CSV_ENDPOINT = <?= json_encode($entrada . '?c=registro&a=importarCsv', JSON_UNESCAPED_SLASHES) ?>;
+</script>
+<script src="<?= $esc(rtrim(dirname($entrada), '/') . '/Assets/JavaScript/Dedicated/registro.js') ?>"></script>

@@ -1,4 +1,128 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const csvInput = document.getElementById('csv-medicos');
+  const csvEstado = document.getElementById('csv-medicos-estado');
+  const csvEndpoint = window.SICOLMED_CSV_ENDPOINT;
+
+  function csvError(message) {
+    if (!csvEstado) return;
+    csvEstado.hidden = false;
+    csvEstado.classList.add('is-error');
+    csvEstado.textContent = message;
+  }
+
+  function parseCsv(text) {
+    const filas = [];
+    let fila = [];
+    let campo = '';
+    let entreComillas = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const caracter = text[i];
+      const siguiente = text[i + 1];
+      if (caracter === '"' && entreComillas && siguiente === '"') {
+        campo += '"';
+        i++;
+      } else if (caracter === '"') {
+        entreComillas = !entreComillas;
+      } else if (caracter === ',' && !entreComillas) {
+        fila.push(campo);
+        campo = '';
+      } else if ((caracter === '\n' || caracter === '\r') && !entreComillas) {
+        if (caracter === '\r' && siguiente === '\n') i++;
+        fila.push(campo);
+        if (fila.some((valor) => valor.trim() !== '')) filas.push(fila);
+        fila = [];
+        campo = '';
+      } else {
+        campo += caracter;
+      }
+    }
+    if (campo !== '' || fila.length > 0) {
+      fila.push(campo);
+      if (fila.some((valor) => valor.trim() !== '')) filas.push(fila);
+    }
+    return filas;
+  }
+
+  function convertirFilas(filas) {
+    if (filas.length < 2) throw new Error('El CSV debe incluir encabezados y al menos un médico.');
+    const encabezados = filas[0].map((valor) => valor.replace(/^\uFEFF/, '').trim());
+    if (encabezados.some((valor) => valor === '')) throw new Error('El CSV contiene un encabezado vacío.');
+    return filas.slice(1).map((fila, indice) => {
+      const datos = {};
+      encabezados.forEach((encabezado, columna) => {
+        const valor = (fila[columna] ?? '').trim();
+        const partes = encabezado.replace(/\]/g, '').split('[');
+        let destino = datos;
+        partes.forEach((parte, posicion) => {
+          if (posicion === partes.length - 1) {
+            destino[parte] = valor;
+            return;
+          }
+          if (!destino[parte] || typeof destino[parte] !== 'object') destino[parte] = {};
+          destino = destino[parte];
+        });
+      });
+      if (!datos.nombre || !datos.apellido_paterno || !datos.cedula ||
+          !datos.registro_medico || !datos.fecha_nacimiento) {
+        throw new Error(`La fila ${indice + 2} no contiene todos los campos obligatorios.`);
+      }
+      return datos;
+    });
+  }
+
+  async function importarCsv(archivo) {
+    if (!csvEndpoint) throw new Error('No se configuró el endpoint de importación.');
+    const contenido = await archivo.text();
+    const medicos = convertirFilas(parseCsv(contenido));
+    let registrados = 0;
+    const errores = [];
+
+    for (let i = 0; i < medicos.length; i++) {
+      if (csvEstado) csvEstado.textContent = `Registrando médico ${i + 1} de ${medicos.length}...`;
+      const respuesta = await fetch(csvEndpoint, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(medicos[i])
+      });
+      const resultado = await respuesta.json().catch(() => null);
+      if (respuesta.ok && resultado?.ok) {
+        registrados++;
+      } else {
+        errores.push(`Fila ${i + 2}: ${resultado?.error || 'No se pudo registrar el médico.'}`);
+      }
+    }
+
+    if (errores.length > 0) {
+      csvError(`Se registraron ${registrados} de ${medicos.length}. ${errores.join(' ')}`);
+      return;
+    }
+    window.location.assign(window.location.href);
+  }
+
+  if (csvInput) {
+    csvInput.addEventListener('change', async () => {
+      const archivo = csvInput.files[0];
+      csvInput.value = '';
+      if (!archivo) return;
+      if (!/\.csv$/i.test(archivo.name)) {
+        csvError('Selecciona un archivo con extensión .csv.');
+        return;
+      }
+      if (csvEstado) {
+        csvEstado.hidden = false;
+        csvEstado.classList.remove('is-error');
+        csvEstado.textContent = 'Leyendo archivo CSV...';
+      }
+      try {
+        await importarCsv(archivo);
+      } catch (error) {
+        csvError(error.message);
+      }
+    });
+  }
+
   /*Pestañas*/
   const tabs = Array.from(document.querySelectorAll('.registro__tab'));
   const paneles = Array.from(document.querySelectorAll('.registro__tabpanel'));

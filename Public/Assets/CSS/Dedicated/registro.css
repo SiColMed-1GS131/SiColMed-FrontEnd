@@ -276,6 +276,19 @@
 .registro-lista__cabecera h1 { margin-bottom: 4px; }
 .registro-lista__cabecera p { color: var(--venice-blue); }
 .registro-lista .btn--primario { display: inline-block; text-decoration: none; }
+.registro-lista__acciones { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+.registro-lista__btn-csv {
+  display: inline-block;
+  text-decoration: none;
+  background: #737b83;
+  color: #fff;
+  cursor: pointer;
+}
+.registro-lista .registro-lista__btn-csv:hover,
+.registro-lista .registro-lista__btn-csv:focus-visible { background: #5d646b; }
+.registro-lista__btn-csv span { margin-right: 0.35rem; }
+.registro-lista__csv-estado { margin: 1rem 0; padding: 0.75rem 1rem; border-radius: 4px; background: #eef2f4; color: var(--venice-bluedark); }
+.registro-lista__csv-estado.is-error { background: #fbe9e9; color: #8b1e1e; }
 .registro-lista__panel {
   background: #fff;
   border: 2px solid var(--rock-bluelight);
