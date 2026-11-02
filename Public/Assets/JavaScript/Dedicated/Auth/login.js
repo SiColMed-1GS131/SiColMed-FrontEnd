@@ -1,8 +1,9 @@
-import { initializePasswordToggles } from '../../Functions/Auth/passwordToggle.js';
+import { initializePasswordToggles } from '../../Functions/passwordToggle.js';
 // Comportamiento de la vista de inicio de sesión.
-import { login } from '../../Functions/Auth/auth.js';
+import { establishFrontendSession, login } from '../../Functions/Auth/auth.js';
 import { mockMode } from '../../Functions/Auth/mockAuth.js';
 import { showStatus } from '../../Functions/Auth/formStatus.js';
+import { getToken } from '../../Functions/Auth/token.js';
 
 export function initializeLoginForm() {
   const form = document.getElementById('login-form');
@@ -18,8 +19,17 @@ export function initializeLoginForm() {
       const password = form.querySelector('#password').value;
       const rememberSession = form.querySelector('input[name="recordar"]')?.checked ?? false;
       await login(username, password, rememberSession);
+      if (mockMode) {
+        window.location.assign('/index.php?c=panel&a=index');
+        return;
+      }
+      const session = await establishFrontendSession(getToken());
       showStatus(form, mockMode ? 'Sesión iniciada (modo de prueba).' : 'Sesión iniciada correctamente.');
-      if (typeof window.SICOLMED_AFTER_LOGIN === 'function') window.SICOLMED_AFTER_LOGIN();
+      if (typeof window.SICOLMED_AFTER_LOGIN === 'function') {
+        window.SICOLMED_AFTER_LOGIN(session);
+      } else {
+        window.location.assign(session.destino);
+      }
     } catch (error) {
       showStatus(form, error.message, true);
     } finally {

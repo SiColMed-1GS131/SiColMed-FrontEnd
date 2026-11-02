@@ -74,6 +74,7 @@ use App\Core\Router;
 use App\Controllers\HomeController;
 use App\Controllers\Auth\AuthController;
 use App\Controllers\Auth\RegisterController;
+use App\Controllers\Auth\SesionController;
 
 /* ==================================================
    PÁGINA 404 CON EL DISEÑO DEL SISTEMA
@@ -103,6 +104,7 @@ $controladores = [
     'home'        => HomeController::class,
     'panel'       => \App\Controllers\PanelController::class,
     'login'       => AuthController::class,
+    'sesion'      => SesionController::class,
     'register'    => RegisterController::class,
     'directorio'  => \App\Controllers\DirectorioController::class,
     'registro'    => \App\Controllers\RegistroController::class,

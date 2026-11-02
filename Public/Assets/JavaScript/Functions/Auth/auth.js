@@ -37,6 +37,28 @@ export async function login(username, password, rememberSession = false) {
   return body;
 }
 
+export async function establishFrontendSession(token) {
+  const endpoint = document.body.dataset.sessionEndpoint ||
+    '/index.php?c=sesion&a=iniciar';
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json'
+    },
+    body: JSON.stringify({ token })
+  });
+  const body = await parseResponse(response);
+  if (!response.ok) {
+    throw new Error(apiError(body, 'No fue posible establecer la sesión.'));
+  }
+  if (!body || typeof body.destino !== 'string' || body.destino === '') {
+    throw new Error('La respuesta de sesión no contiene un destino válido.');
+  }
+  return body;
+}
+
 export async function register(userData) {
   if (mockMode) return mockRegister(userData);
 

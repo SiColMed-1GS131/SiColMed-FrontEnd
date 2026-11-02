@@ -15,6 +15,13 @@ namespace App\Controllers\Auth;
  */
 final class SesionController
 {
+    private const DESTINOS_POR_ROL = [
+        'medico'           => '/index.php?c=perfil&a=index',
+        'admin_cmp'        => '/index.php?c=panel&a=index',
+        'tesorero'         => '/index.php?c=cuentas&a=index',
+        'admin_asociacion' => '/index.php?c=reportes&a=balance',
+    ];
+
     public function iniciar(): void
     {
         $this->exigirPeticionSegura();
@@ -60,7 +67,11 @@ final class SesionController
         }
 
         \Auth::establecerSesion($rol, $token, (string) ($usuario['nombre'] ?? $usuario['email'] ?? ''));
-        $this->responder(200, ['ok' => true, 'rol' => $rol, 'destino' => '/index.php?c=panel&a=index']);
+        $this->responder(200, [
+            'ok'      => true,
+            'rol'     => $rol,
+            'destino' => self::DESTINOS_POR_ROL[$rol],
+        ]);
     }
 
     public function cerrar(): void
