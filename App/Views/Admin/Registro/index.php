@@ -66,6 +66,5 @@ $esc = static fn($t): string => htmlspecialchars((string) $t, ENT_QUOTES, 'UTF-8
 </section>
 <script>
   window.SICOLMED_CSV_ENDPOINT = <?= json_encode($entrada . '?c=registro&a=importarCsv', JSON_UNESCAPED_SLASHES) ?>;
-  window.SICOLMED_CSRF = <?= json_encode((string) ($csrf ?? '')) ?>;
 </script>
 <script src="<?= $esc(rtrim(dirname($entrada), '/') . '/Assets/JavaScript/Dedicated/registro.js') ?>"></script>

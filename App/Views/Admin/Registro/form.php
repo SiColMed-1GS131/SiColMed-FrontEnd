@@ -3,41 +3,24 @@
 $medico  = $medico  ?? [];
 $errores = $errores ?? [];
 $errorGeneral = $errorGeneral ?? '';
-$catalogos = $catalogos ?? [];
 
 // Funciones auxiliares
 // No usar los nombres $valor ni $error, porque direccion.php los redefine
 $dato = fn($campo) => htmlspecialchars((string) ($medico[$campo]  ?? ''), ENT_QUOTES, 'UTF-8');
 $err  = fn($campo) => htmlspecialchars((string) ($errores[$campo] ?? ''), ENT_QUOTES, 'UTF-8');
 
-// Fila de estudios. Título básico (estudio_medico en la API): título, institución, lugar y fecha.
-// Especialidad y subespecialidad: la API solo guarda el id del catálogo, sin institución ni fecha.
-$filaEstudio = function (string $grupo, $indice, array $fila, string $etiqueta, bool $quitable = true) use ($catalogos, $errores) {
+// Fila de estudios (se usa para título básico, especialidad y subespecialidad)
+$filaEstudio = function (string $grupo, $indice, array $fila, string $etiqueta, bool $quitable = true) {
     $esc = fn($texto) => htmlspecialchars((string) $texto, ENT_QUOTES, 'UTF-8');
     $val = fn($campo) => $esc($fila[$campo] ?? '');
     $id  = 'educacion_' . $esc($grupo) . '_' . $esc($indice);
     $nm  = 'educacion[' . $esc($grupo) . '][' . $esc($indice) . ']';
-    $claveCat = $grupo === 'subespecialidades' ? 'id_subespecialidad' : 'id_especialidad';
-    $lista = $catalogos[$grupo] ?? [];
-    $actual = (string) ($fila[$claveCat] ?? '');
     ?>
     <div class="registro__fila" data-fila>
       <div class="field">
         <label for="<?= $id ?>_titulo"><?= $esc($etiqueta) ?></label>
-        <?php if ($grupo === 'basico'): ?>
-          <input type="text" id="<?= $id ?>_titulo" name="<?= $nm ?>[titulo]" value="<?= $val('titulo') ?>">
-        <?php else: ?>
-          <select id="<?= $id ?>_titulo" name="<?= $nm ?>[<?= $claveCat ?>]">
-            <option value="">Seleccione</option>
-            <?php foreach ($lista as $opcion): ?>
-              <?php $idOpc = (string) ($opcion[$claveCat] ?? ''); ?>
-              <option value="<?= $esc($idOpc) ?>"<?= $actual === $idOpc ? ' selected' : '' ?>><?= $esc($opcion['nombre'] ?? '') ?></option>
-            <?php endforeach; ?>
-          </select>
-        <?php endif; ?>
-        <span class="field__error"><?= $esc($errores['educacion_' . $grupo . '_' . $indice] ?? '') ?></span>
+        <input type="text" id="<?= $id ?>_titulo" name="<?= $nm ?>[titulo]" value="<?= $val('titulo') ?>">
       </div>
-      <?php if ($grupo === 'basico'): ?>
       <div class="field">
         <label for="<?= $id ?>_institucion">Institución</label>
         <input type="text" id="<?= $id ?>_institucion" name="<?= $nm ?>[institucion]" value="<?= $val('institucion') ?>">
@@ -50,7 +33,6 @@ $filaEstudio = function (string $grupo, $indice, array $fila, string $etiqueta, 
         <label for="<?= $id ?>_fecha">Fecha</label>
         <input type="date" id="<?= $id ?>_fecha" name="<?= $nm ?>[fecha]" value="<?= $val('fecha') ?>">
       </div>
-      <?php endif; ?>
       <?php if ($quitable): ?>
         <button type="button" class="btn registro__quitar" data-quitar>Quitar</button>
       <?php endif; ?>
@@ -65,8 +47,8 @@ $especialidades    = !empty($educacion['especialidades'])    ? $educacion['espec
 $subespecialidades = !empty($educacion['subespecialidades']) ? $educacion['subespecialidades'] : [[]];
 ?>
 <section class="registro">
-    <form class="registro__form" method="post" action="<?= htmlspecialchars(($entrada ?? 'index.php') . '?c=registro&a=guardar', ENT_QUOTES, 'UTF-8') ?>" enctype="multipart/form-data">
-     <input type="hidden" name="csrf" value="<?= htmlspecialchars((string) ($csrf ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+  <!-- Puede cambiar en base como se envie desde el backend -->
+  <form class="registro__form" method="post" action="<?= htmlspecialchars(($entrada ?? 'index.php') . '?c=registro&a=guardar', ENT_QUOTES, 'UTF-8') ?>" enctype="multipart/form-data">
      <?php if (!empty($medico['id'])): ?>
        <input type="hidden" name="id" value="<?= $dato('id') ?>">
      <?php endif; ?>
@@ -77,7 +59,7 @@ $subespecialidades = !empty($educacion['subespecialidades']) ? $educacion['subes
       <div class="registro__acciones">
         <!-- El nombre se puede cambiar despues -->
         <button type="submit" class="btn btn--primary">Guardar / Registrar</button>
-        <a href="<?= htmlspecialchars(($entrada ?? 'index.php') . '?c=registro&a=index', ENT_QUOTES, 'UTF-8') ?>" class="btn">Cancelar</a>
+        <a href="/index.php?c=registro&a=index" class="btn">Cancelar</a>
       </div>
     </div>
     <!-- Fin: título y botones -->
@@ -102,7 +84,7 @@ $subespecialidades = !empty($educacion['subespecialidades']) ? $educacion['subes
         <button type="button" class="registro__tab is-active" role="tab" id="tabbtn-personal" aria-controls="tab-personal" aria-selected="true">Información personal</button>
         <button type="button" class="registro__tab" role="tab" id="tabbtn-laboral" aria-controls="tab-laboral" aria-selected="false" tabindex="-1">Información laboral</button>
         <button type="button" class="registro__tab" role="tab" id="tabbtn-educacion" aria-controls="tab-educacion" aria-selected="false" tabindex="-1">Educación</button>
-        <button type="button" class="registro__tab" role="tab" id="tabbtn-organizaciones" aria-controls="tab-organizaciones" aria-selected="false" tabindex="-1">Asociaciones</button>
+        <button type="button" class="registro__tab" role="tab" id="tabbtn-organizaciones" aria-controls="tab-organizaciones" aria-selected="false" tabindex="-1">Organizaciones</button>
       </div>
 
       <!-- Inicio: pestaña 1, información personal -->
@@ -163,11 +145,6 @@ $subespecialidades = !empty($educacion['subespecialidades']) ? $educacion['subes
                   <label for="cedula">Cédula</label>
                   <input type="text" id="cedula" name="cedula" value="<?= $dato('cedula') ?>" required>
                   <span class="field__error"><?= $err('cedula') ?></span>
-                </div>
-                <div class="field">
-                  <label for="numero_idoneidad">N.º Idoneidad</label>
-                  <input type="text" id="numero_idoneidad" name="numero_idoneidad" value="<?= $dato('numero_idoneidad') ?>" required>
-                  <span class="field__error"><?= $err('numero_idoneidad') ?></span>
                 </div>
                 <div class="field">
                   <label for="registro_medico">N.º Registro médico</label>
@@ -299,38 +276,53 @@ $subespecialidades = !empty($educacion['subespecialidades']) ? $educacion['subes
       </div>
       <!-- Fin: pestaña 3 -->
 
-      <!-- Inicio: pestaña 4, asociaciones (catálogo de la API; se envían solo los ids) -->
+      <!-- Inicio: pestaña 4, organizaciones (puede cambiar segun el backend) -->
       <div class="registro__tabpanel" id="tab-organizaciones" role="tabpanel" aria-labelledby="tabbtn-organizaciones" hidden>
-        <fieldset class="registro__subgrupo registro__subgrupo--simple">
-          <legend class="registro__subtitulo">Asociaciones</legend>
-          <?php $marcadas = array_map('strval', (array) ($medico['asociaciones'] ?? [])); ?>
-          <?php foreach (($catalogos['asociaciones'] ?? []) as $asoc): ?>
-            <?php $idAsoc = (string) ($asoc['id_asociacion'] ?? ''); ?>
-            <label class="registro__opcion">
-              <input type="checkbox" name="asociaciones[]" value="<?= htmlspecialchars($idAsoc, ENT_QUOTES, 'UTF-8') ?>"<?= in_array($idAsoc, $marcadas, true) ? ' checked' : '' ?>>
-              <?= htmlspecialchars((string) ($asoc['nombre'] ?? ''), ENT_QUOTES, 'UTF-8') ?>
-            </label>
-          <?php endforeach; ?>
-          <?php if (empty($catalogos['asociaciones'])): ?>
-            <p class="registro__ayuda">No se pudo cargar el catálogo de asociaciones.</p>
-          <?php endif; ?>
-          <span class="field__error"><?= $err('asociaciones') ?></span>
-        </fieldset>
+        <div class="registro__grid">
+          <div class="field">
+            <label for="profesor_universitario">Profesor universitario (universidad y cátedra)</label>
+            <input type="text" id="profesor_universitario" name="profesor_universitario" value="<?= $dato('profesor_universitario') ?>">
+            <span class="field__error"><?= $err('profesor_universitario') ?></span>
+          </div>
+          <div class="field">
+            <label for="gremios">Gremios</label>
+            <input type="text" id="gremios" name="gremios" value="<?= $dato('gremios') ?>">
+            <span class="field__error"><?= $err('gremios') ?></span>
+          </div>
+          <div class="field">
+            <label for="sociedades">Sociedades</label>
+            <input type="text" id="sociedades" name="sociedades" value="<?= $dato('sociedades') ?>">
+            <span class="field__error"><?= $err('sociedades') ?></span>
+          </div>
+          <div class="field">
+            <label for="clubes_civicos">Clubes cívicos</label>
+            <input type="text" id="clubes_civicos" name="clubes_civicos" value="<?= $dato('clubes_civicos') ?>">
+            <span class="field__error"><?= $err('clubes_civicos') ?></span>
+          </div>
+          <div class="field">
+            <label for="otras_organizaciones">Otros</label>
+            <input type="text" id="otras_organizaciones" name="otras_organizaciones" value="<?= $dato('otras_organizaciones') ?>">
+            <span class="field__error"><?= $err('otras_organizaciones') ?></span>
+          </div>
+        </div>
       </div>
       <!-- Fin: pestaña 4 -->
 
     </section>
     <!-- Fin: panel con pestañas -->
 
-    <!-- Inicio: certificación. Fechas y puntaje se envían; "vigente" lo calcula la API y solo se muestra -->
+    <!-- Inicio: certificación (No se si va como lectura o estos datos vienen cargados) -->
     <section class="registro__panel registro__panel--cert" aria-labelledby="titulo-cert">
       <h2 class="registro__panel-titulo" id="titulo-cert">Certificación</h2>
 
       <div class="registro__cert-campos">
         <div class="field">
           <label for="cert_vigente">Estado / Vigencia</label>
-          <input type="text" id="cert_vigente" class="readonly" readonly
-                 value="<?= $dato('cert_vigente') === 'vigente' ? 'Vigente' : ($dato('cert_vigente') === 'no_vigente' ? 'No vigente' : '') ?>">
+          <select id="cert_vigente" name="cert_vigente">
+            <option value="">Seleccione</option>
+            <option value="vigente"<?= $dato('cert_vigente') === 'vigente' ? ' selected' : '' ?>>Vigente</option>
+            <option value="no_vigente"<?= $dato('cert_vigente') === 'no_vigente' ? ' selected' : '' ?>>No vigente</option>
+          </select>
           <span class="field__error"><?= $err('cert_vigente') ?></span>
         </div>
         <div class="field">
@@ -362,5 +354,4 @@ $subespecialidades = !empty($educacion['subespecialidades']) ? $educacion['subes
   </form>
 </section>
 
-<script>window.SICOLMED_CATALOGO_URL = <?= json_encode($urlCatalogo ?? '', JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES) ?>;</script>
 <script src="<?= htmlspecialchars(rtrim(dirname($entrada ?? 'index.php'), '/') . '/Assets/JavaScript/Dedicated/registro.js', ENT_QUOTES, 'UTF-8') ?>"></script>

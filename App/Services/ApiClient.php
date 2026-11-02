@@ -4,21 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Core\Config;
-
 final class ApiClient
 {
-    /** JWT explícito (solo durante el login, antes de que exista la sesión). */
-    private ?string $tokenFijo = null;
-
-    /** Devuelve un cliente que usa este JWT en lugar del de la sesión. */
-    public function conToken(string $token): self
-    {
-        $copia = clone $this;
-        $copia->tokenFijo = $token;
-        return $copia;
-    }
-
     /** @return array{status:int, body:string|null} */
     public function getJson(string $path): array
     {
@@ -52,7 +39,7 @@ final class ApiClient
     /** @return array{status:int, body:string|null} */
     private function enviar(string $metodo, string $path, ?array $payload = null): array
     {
-        $base = Config::apiUrl();
+        $base = rtrim((string) (getenv('API_URL') ?: 'http://api:8000'), '/');
 
         $cabeceras = "Accept: application/json\r\nConnection: close\r\n";
         $opciones = [
@@ -64,7 +51,7 @@ final class ApiClient
             $cabeceras .= "Content-Type: application/json\r\n";
             $opciones['content'] = json_encode($payload, JSON_THROW_ON_ERROR);
         }
-        $token = $this->tokenFijo ?? $this->tokenDeSesion();
+        $token = $this->tokenDeSesion();
         if ($token !== null) {
             $cabeceras .= "Authorization: Bearer {$token}\r\n";
         }

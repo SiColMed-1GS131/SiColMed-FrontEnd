@@ -35,10 +35,10 @@ $e = static fn($v): string => htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8')
             <span class="panel__icono panel__icono--editar" aria-hidden="true"></span>
             <span><strong>Registrar médico</strong><small>Alta de un nuevo asociado</small></span>
         </a>
-        <a class="panel__tarjeta panel__acceso" href="<?= $e($urls['solicitudes']) ?>">
+        <div class="panel__tarjeta panel__acceso panel__acceso--off" aria-disabled="true">
             <span class="panel__icono panel__icono--mensaje" aria-hidden="true"></span>
-            <span><strong>Solicitudes de cambio</strong><small>Bandeja de solicitudes</small></span>
-        </a>
+            <span><strong>Solicitudes de cambio</strong><small>Próximamente</small></span>
+        </div>
         <a class="panel__tarjeta panel__acceso" href="<?= $e($urls['directorio']) ?>">
             <span class="panel__icono panel__icono--lupa" aria-hidden="true"></span>
             <span><strong>Directorio médico</strong><small>Buscar y consultar</small></span>

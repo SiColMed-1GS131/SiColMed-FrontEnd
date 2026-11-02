@@ -29,18 +29,14 @@ class Auth
      * Si un controlador no aparece aquí, es de acceso libre.
      */
     private const PERMISOS = [
-        // Módulo 2
-        'registro'    => [self::ADMIN],
-        'perfil'      => [self::MEDICO],
-        'solicitudes' => [self::ADMIN, self::MEDICO],
-        // Módulo 5 (cuentas: mismos tres roles que el backend en /cuentas)
-        'cuentas'     => [self::TESORERO, self::ADMIN, self::ADMIN_ASOCIACION],
+        // Módulo 2: se activan cuando exista el login (hoy todos entran como 'publico')
+        // 'registro' => [self::ADMIN],
+        // 'perfil'   => [self::MEDICO],
+        // Módulo 5
+        'cuentas'     => [self::TESORERO, self::ADMIN],
         'movimientos' => [self::TESORERO, self::ADMIN],
         'reportes'    => [self::ADMIN_ASOCIACION, self::ADMIN],
     ];
-
-    /** Duración de la cookie de sesión cuando se marca «Recordar sesión» (la API puede cerrarla antes: ver token_exp). */
-    public const DURACION_RECORDAR = 7 * 24 * 3600;
 
     /** Inicia la sesión una sola vez. */
     private static function iniciarSesion(): void
@@ -48,22 +44,6 @@ class Auth
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        // Si el JWT que guardó el login ya venció, la sesión deja de valer (la API respondería 401).
-        if (isset($_SESSION['token_exp']) && (int) $_SESSION['token_exp'] <= time()) {
-            unset($_SESSION['rol'], $_SESSION['token'], $_SESSION['usuario'], $_SESSION['token_exp']);
-        }
-    }
-
-    /** Fecha de vencimiento (claim exp) del JWT; solo para la experiencia de uso, la firma la valida la API. */
-    private static function vencimientoDelToken(string $token): ?int
-    {
-        $partes = explode('.', $token);
-        if (count($partes) !== 3) {
-            return null;
-        }
-        $json = base64_decode(strtr($partes[1], '-_', '+/'), true);
-        $datos = $json === false ? null : json_decode($json, true);
-        return is_array($datos) && isset($datos['exp']) && is_numeric($datos['exp']) ? (int) $datos['exp'] : null;
     }
 
     /**
@@ -113,37 +93,14 @@ class Auth
     /**
      * Guarda en la sesión de PHP el rol y el JWT que la API ya validó (/auth/me).
      * Se llama desde SesionController después del login.
-     *
-     * $recordar = true → la cookie de sesión dura DURACION_RECORDAR (sin límite al cerrar el navegador).
-     * $recordar = false → cookie de sesión normal (se borra al cerrar el navegador).
-     * En ambos casos la sesión termina cuando vence el JWT de la API.
      */
-    public static function establecerSesion(string $rol, string $token, string $nombre = '', bool $recordar = false): void
+    public static function establecerSesion(string $rol, string $token, string $nombre = ''): void
     {
         self::iniciarSesion();
         session_regenerate_id(true);   // evita fijación de sesión
         $_SESSION['rol']     = $rol;
         $_SESSION['token']   = $token;
         $_SESSION['usuario'] = $nombre;
-
-        $exp = self::vencimientoDelToken($token);
-        if ($exp !== null) {
-            $_SESSION['token_exp'] = $exp;
-        } else {
-            unset($_SESSION['token_exp']);
-        }
-
-        if ($recordar) {
-            $p = session_get_cookie_params();
-            setcookie(session_name(), session_id(), [
-                'expires'  => time() + self::DURACION_RECORDAR,
-                'path'     => $p['path'],
-                'domain'   => $p['domain'],
-                'secure'   => (bool) $p['secure'],
-                'httponly' => true,
-                'samesite' => $p['samesite'] !== '' ? $p['samesite'] : 'Lax',
-            ]);
-        }
     }
 
     /** JWT de la sesión actual (lo usa ApiClient para llamar a la API). */
@@ -184,32 +141,12 @@ class Auth
 
     /**
      * Llamar al inicio de un controlador o del router.
-     *
-     * Sin sesión (rol 'publico'): lleva al login (o responde 401 si $json es true).
-     * Con sesión pero sin permiso: responde 403 y detiene la ejecución.
-     *
-     * @param bool $json true en las acciones que responden JSON (fetch), para no devolver HTML ni redirigir.
+     * Si no tiene permiso, responde 403 y detiene la ejecución.
      */
-    public static function exigir(string $controlador, bool $json = false): void
+    public static function exigir(string $controlador): void
     {
         if (self::puedeEntrar($controlador)) {
             return;
-        }
-
-        $sinSesion = self::rol() === self::PUBLICO;
-
-        if ($json) {
-            http_response_code($sinSesion ? 401 : 403);
-            header('Content-Type: application/json; charset=UTF-8');
-            echo json_encode(
-                ['ok' => false, 'error' => $sinSesion ? 'Inicia sesión para continuar.' : 'No tienes permiso para esta acción.'],
-                JSON_UNESCAPED_UNICODE
-            );
-            exit;
-        }
-
-        if ($sinSesion) {
-            self::irAlLogin();
         }
 
         http_response_code(403);
@@ -222,23 +159,9 @@ class Auth
                . '<title>Acceso denegado</title></head><body>'
                . '<h1>Acceso denegado</h1>'
                . '<p>No tienes permiso para ver esta página.</p>'
-               . '<p><a href="/index.php">Volver al inicio</a></p>'
+               . '<p><a href="index.php">Volver al inicio</a></p>'
                . '</body></html>';
         }
-        exit;
-    }
-
-    /** Si no hay sesión, redirige al login (lo usa la cabecera de las pantallas internas). Con el modo de prueba no hace nada. */
-    public static function exigirSesion(): void
-    {
-        if (!self::modoPrueba() && self::rol() === self::PUBLICO) {
-            self::irAlLogin();
-        }
-    }
-
-    private static function irAlLogin(): never
-    {
-        header('Location: /index.php?c=login&a=login', true, 302);
         exit;
     }
 }

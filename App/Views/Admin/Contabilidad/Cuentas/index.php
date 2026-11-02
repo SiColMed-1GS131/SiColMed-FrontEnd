@@ -7,6 +7,19 @@ $pagina = $pagina ?? 1;
 $totalPaginas = $totalPaginas ?? 1;
 $h = fn($t) => htmlspecialchars((string) $t, ENT_QUOTES, 'UTF-8');
 
+// Etiqueta Débito / Crédito (usa badge_tipo.php cuando exista, cambiar en caso de hacerse de otra forma :D)
+$badgeTipo = static function (string $tipoCuenta) use ($h): void {
+    $partial = __DIR__ . '/../../../Partials/badge_tipo.php';
+    if (is_file($partial)) {
+        $tipo = $tipoCuenta;
+        require $partial;
+        return;
+    }
+    $esDebito = $tipoCuenta === 'DEBITO';
+    echo '<span class="badge ' . ($esDebito ? 'badge--debito' : 'badge--credito') . '">'
+        . $h($esDebito ? 'Débito' : 'Crédito') . '</span>';
+};
+
 // Opciones del filtro
 $filtros = ['todas' => 'Todas', 'activas' => 'Solo activas', 'inactivas' => 'Solo inactivas'];
 
@@ -90,7 +103,7 @@ $urlLista = static function (array $params): string {
               <?php foreach ($cuentas as $c): ?>
                 <tr class="tabla-cuentas__fila<?= $c['activa'] ? '' : ' tabla-cuentas__fila--inactiva' ?>">
                   <th scope="row" class="tabla-cuentas__nombre"><?= $h($c['nombre']) ?></th>
-                  <td><?= badgeTipo($c['tipo']) ?></td>
+                  <td><?php $badgeTipo($c['tipo']); ?></td>
                   <td>
                     <?php if ($c['activa']): ?>
                       <span class="estado estado--activa">Activa</span>

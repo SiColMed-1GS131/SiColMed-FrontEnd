@@ -131,8 +131,7 @@ body {
 }
 
 /* Botones */
-.btn--primario,
-.btn--primary {
+.btn--primario {
     background-color: var(--venice-blue);
     color: white;
     padding: 10px 20px;
@@ -144,8 +143,7 @@ body {
     transition: background-color 0.3s;
 }
 
-.btn--primario:hover,
-.btn--primary:hover {
+.btn--primario:hover {
     background-color: var(--venice-bluedark);
 }
 

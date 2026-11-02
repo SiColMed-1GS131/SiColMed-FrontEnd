@@ -9,43 +9,6 @@ $hayError = fn(string $campo): bool => !empty($errores[$campo]);
 // Rutas del sistema: ?c=controlador&a=accion
 $urlCancelar = '/index.php?c=movimientos&a=index&' . http_build_query(['fecha' => $old['fecha']]);
 $puedeEnviar = empty($errorApi) || !empty($cuentas);
-
-// Una línea del detalle (cuenta, tipo y monto). Se usa para las filas del formulario y para la plantilla de JS.
-$lineaMovimiento = function ($i, array $l) use ($cuentas, $errores): string {
-    $err = fn(string $campo): string => e($errores["detalle_{$i}_{$campo}"] ?? '');
-    ob_start(); ?>
-    <div class="registro__fila" data-linea>
-        <div class="field">
-            <label for="detalle_<?= e($i) ?>_id_cuenta">Cuenta</label>
-            <select id="detalle_<?= e($i) ?>_id_cuenta" name="detalle[<?= e($i) ?>][id_cuenta]" required>
-                <option value="">Selecciona una cuenta</option>
-                <?php foreach ($cuentas as $c): ?>
-                    <option value="<?= e($c['id_cuenta']) ?>" <?= (string) $l['id_cuenta'] === (string) $c['id_cuenta'] ? 'selected' : '' ?>>
-                        <?= e($c['nombre']) ?> (<?= $c['tipo'] === 'DEBITO' ? 'Débito' : 'Crédito' ?>)
-                    </option>
-                <?php endforeach; ?>
-            </select>
-            <p class="field__error" role="alert"><?= $err('id_cuenta') ?></p>
-        </div>
-        <div class="field">
-            <label for="detalle_<?= e($i) ?>_tipo">Tipo</label>
-            <select id="detalle_<?= e($i) ?>_tipo" name="detalle[<?= e($i) ?>][tipo]" required>
-                <option value="DEBITO" <?= $l['tipo'] === 'DEBITO' ? 'selected' : '' ?>>Débito</option>
-                <option value="CREDITO" <?= $l['tipo'] === 'CREDITO' ? 'selected' : '' ?>>Crédito</option>
-            </select>
-            <p class="field__error" role="alert"><?= $err('tipo') ?></p>
-        </div>
-        <div class="field">
-            <label for="detalle_<?= e($i) ?>_monto">Monto</label>
-            <input type="number" id="detalle_<?= e($i) ?>_monto" name="detalle[<?= e($i) ?>][monto]" value="<?= e($l['monto']) ?>"
-                   min="0.01" max="99999999.99" step="0.01" inputmode="decimal" required>
-            <p class="field__error" role="alert"><?= $err('monto') ?></p>
-        </div>
-        <button type="button" class="btn registro__quitar" data-quitar-linea>Quitar</button>
-    </div>
-    <?php
-    return (string) ob_get_clean();
-};
 ?>
 <section class="movs">
     <header class="movs__cabecera">
@@ -77,7 +40,6 @@ $lineaMovimiento = function ($i, array $l) use ($cuentas, $errores): string {
 
     <form class="formulario" id="form-movimiento" method="post"
           action="/index.php?c=movimientos&a=crear" novalidate>
-        <input type="hidden" name="csrf" value="<?= e($csrf ?? '') ?>">
 
         <p class="formulario__nota">Los campos con <span class="req" aria-hidden="true">*</span> son obligatorios.</p>
 
@@ -97,26 +59,44 @@ $lineaMovimiento = function ($i, array $l) use ($cuentas, $errores): string {
             <p class="field__error" id="descripcion-error" data-error-for="descripcion" role="alert"><?= e($errores['descripcion'] ?? '') ?></p>
         </div>
 
-        <!-- Partida doble: varias líneas; los débitos deben ser iguales a los créditos -->
-        <fieldset class="field field--grupo <?= $hayError('detalle') ? 'field--error' : '' ?>" aria-describedby="detalle-error">
-            <legend>Detalle del movimiento <span class="req" aria-hidden="true">*</span></legend>
-
-            <div id="detalle-lineas" data-siguiente="<?= count($old['detalle']) ?>">
-                <?php foreach ($old['detalle'] as $i => $l): ?>
-                    <?= $lineaMovimiento($i, $l) ?>
+        <div class="field <?= $hayError('id_cuenta') ? 'field--error' : '' ?>">
+            <label for="id_cuenta">Cuenta <span class="req" aria-hidden="true">*</span></label>
+            <select id="id_cuenta" name="id_cuenta" required
+                    aria-describedby="id_cuenta-ayuda id_cuenta-error" <?= $hayError('id_cuenta') ? 'aria-invalid="true"' : '' ?>>
+                <option value="">Selecciona una cuenta</option>
+                <?php foreach ($cuentas as $c): ?>
+                    <option value="<?= e($c['id_cuenta']) ?>" <?= (string) $old['id_cuenta'] === (string) $c['id_cuenta'] ? 'selected' : '' ?>>
+                        <?= e($c['nombre']) ?> (<?= $c['tipo'] === 'DEBITO' ? 'Débito' : 'Crédito' ?>)
+                    </option>
                 <?php endforeach; ?>
+            </select>
+            <p class="field__ayuda" id="id_cuenta-ayuda"></p>
+            <p class="field__error" id="id_cuenta-error" data-error-for="id_cuenta" role="alert"><?= e($errores['id_cuenta'] ?? '') ?></p>
+        </div>
+
+        <div class="field <?= $hayError('monto') ? 'field--error' : '' ?>">
+            <label for="monto">Monto <span class="req" aria-hidden="true">*</span></label>
+            <input type="number" id="monto" name="monto" value="<?= e($old['monto']) ?>"
+                   min="0.01" max="99999999.99" step="0.01" inputmode="decimal" required
+                   aria-describedby="monto-ayuda monto-error" <?= $hayError('monto') ? 'aria-invalid="true"' : '' ?>>
+            <p class="field__ayuda" id="monto-ayuda"></p>
+            <p class="field__error" id="monto-error" data-error-for="monto" role="alert"><?= e($errores['monto'] ?? '') ?></p>
+        </div>
+
+        <fieldset class="field field--grupo <?= $hayError('tipo') ? 'field--error' : '' ?>"
+                  aria-describedby="tipo-error">
+            <legend>Tipo <span class="req" aria-hidden="true">*</span></legend>
+            <div class="opciones">
+                <label class="opcion">
+                    <input type="radio" name="tipo" value="DEBITO" <?= $old['tipo'] === 'DEBITO' ? 'checked' : '' ?> required>
+                    <span>Débito</span>
+                </label>
+                <label class="opcion">
+                    <input type="radio" name="tipo" value="CREDITO" <?= $old['tipo'] === 'CREDITO' ? 'checked' : '' ?>>
+                    <span>Crédito</span>
+                </label>
             </div>
-
-            <button type="button" class="btn btn--secondary" id="detalle-agregar">Agregar línea</button>
-
-            <p class="field__ayuda" id="detalle-cuadre" aria-live="polite">
-                Débitos: <strong data-total="DEBITO">0.00</strong> ·
-                Créditos: <strong data-total="CREDITO">0.00</strong> ·
-                <span data-cuadre></span>
-            </p>
-            <p class="field__error" id="detalle-error" data-error-for="detalle" role="alert"><?= e($errores['detalle'] ?? '') ?></p>
-
-            <template id="detalle-plantilla"><?= $lineaMovimiento('__IDX__', ['id_cuenta' => '', 'tipo' => 'DEBITO', 'monto' => '']) ?></template>
+            <p class="field__error" id="tipo-error" data-error-for="tipo" role="alert"><?= e($errores['tipo'] ?? '') ?></p>
         </fieldset>
 
         <div class="formulario__acciones">

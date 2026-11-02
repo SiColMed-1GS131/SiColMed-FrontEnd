@@ -1,7 +1,0 @@
-App/Configs/local.php
-vendor/
-.env
-logs/
-*.log
-.DS_Store
-Thumbs.db

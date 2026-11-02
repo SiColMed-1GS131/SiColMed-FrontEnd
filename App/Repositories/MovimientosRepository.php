@@ -9,7 +9,6 @@ use App\Services\ApiClient;
 // Pide y guarda los movimientos contables (Módulo 5).
 // Con USE_MOCK=1 usa datos de prueba guardados en la sesión, en vez de la API.
 // Cada línea del movimiento: id_movimiento, fecha, descripcion, id_cuenta, nombre_cuenta, tipo, monto
-// Un movimiento es una partida doble: varias líneas (detalle) con al menos un DEBITO y un CREDITO que cuadran.
 final class MovimientosRepository
 {
     private const SESION_MOCK = 'mock_movimientos';
@@ -35,7 +34,7 @@ final class MovimientosRepository
         return $this->normalizarLista($respuesta);
     }
 
-    // Movimientos de una cuenta en un rango. GET /cuentas/{id}/movimientos?fecha_inicio=...&fecha_fin=...
+    // Movimientos de una cuenta en un rango. GET /cuentas/{id}/movimientos?inicio=...&fin=...
     public function listarPorCuenta(int $idCuenta, string $inicio, string $fin): array
     {
         if ($this->usaMock()) {
@@ -47,44 +46,38 @@ final class MovimientosRepository
             return $this->resultado(true, $this->conNombres($lineas));
         }
 
-        $ruta = '/cuentas/' . $idCuenta . '/movimientos?' . http_build_query(['fecha_inicio' => $inicio, 'fecha_fin' => $fin]);
+        $ruta = '/cuentas/' . $idCuenta . '/movimientos?' . http_build_query(['inicio' => $inicio, 'fin' => $fin]);
         return $this->normalizarLista($this->interpretar($this->llamar('getJson', $ruta)));
     }
 
-    // Registra un movimiento de partida doble. POST /movimientos
-    // $datos: fecha (AAAA-MM-DD), descripcion, detalle = [ ['id_cuenta' => int, 'tipo' => DEBITO|CREDITO, 'monto' => "1250.00"], ... ]
+    // Registra un movimiento. POST /movimientos
+    // $datos: fecha (AAAA-MM-DD), descripcion, id_cuenta (int), monto ("1250.00"), tipo (DEBITO|CREDITO)
     public function registrar(array $datos): array
     {
-        $detalle = array_map(fn(array $l): array => [
-            'id_cuenta' => (int) $l['id_cuenta'],
-            'tipo' => $l['tipo'],
-            // El monto viaja como texto con 2 decimales para no perder centavos
-            'monto' => $this->dosDecimales($l['monto']),
-        ], array_values($datos['detalle'] ?? []));
-
         if ($this->usaMock()) {
             $lineas = $this->mockLeer();
             $id = $lineas === [] ? 1 : max(array_column($lineas, 'id_movimiento')) + 1;
-            foreach ($detalle as $l) {
-                $lineas[] = [
-                    'id_movimiento' => $id,
-                    'fecha' => $datos['fecha'],
-                    'descripcion' => $datos['descripcion'],
-                    'id_cuenta' => $l['id_cuenta'],
-                    'nombre_cuenta' => '',
-                    'tipo' => $l['tipo'],
-                    'monto' => $l['monto'],
-                ];
-                $this->marcarCuentaConMovimientos($l['id_cuenta']);
-            }
+            $lineas[] = [
+                'id_movimiento' => $id,
+                'fecha' => $datos['fecha'],
+                'descripcion' => $datos['descripcion'],
+                'id_cuenta' => (int) $datos['id_cuenta'],
+                'nombre_cuenta' => '',
+                'tipo' => $datos['tipo'],
+                'monto' => $this->dosDecimales($datos['monto']),
+            ];
             $this->mockGuardar($lineas);
+            $this->marcarCuentaConMovimientos((int) $datos['id_cuenta']);
             return $this->resultado(true, ['id_movimiento' => $id]);
         }
 
+        // El monto viaja como texto con 2 decimales para no perder centavos
         $payload = [
             'fecha' => $datos['fecha'],
             'descripcion' => $datos['descripcion'],
-            'detalle' => $detalle,
+            'id_cuenta' => (int) $datos['id_cuenta'],
+            'monto' => $this->dosDecimales($datos['monto']),
+            'tipo' => $datos['tipo'],
         ];
         return $this->interpretar($this->llamar('postJson', '/movimientos', $payload));
     }
@@ -214,11 +207,7 @@ final class MovimientosRepository
         $errores = [];
         if (is_array($cuerpo['detail'] ?? null)) {
             foreach ($cuerpo['detail'] as $item) {
-                $loc = is_array($item['loc'] ?? null) ? array_values(array_filter($item['loc'], fn($p) => $p !== 'body')) : [];
-                // Errores de una línea: detalle.0.monto => "detalle_0_monto"; del resto: el último nombre
-                $campo = ($loc[0] ?? '') === 'detalle'
-                    ? implode('_', array_map('strval', $loc))
-                    : ($loc === [] ? '' : (string) end($loc));
+                $campo = is_array($item['loc'] ?? null) ? (string) end($item['loc']) : '';
                 if ($campo !== '') {
                     $errores[$campo] = (string) ($item['msg'] ?? 'Dato no válido.');
                 }

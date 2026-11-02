@@ -35,21 +35,12 @@ return [
         'icon'  => 'registro',
         'url'   => "$entrada?c=registro&a=index",
         'match' => ['registro'],
-        'roles' => [Auth::ADMIN],
-    ],
-    [
-        'label' => 'Solicitudes',
-        'icon'  => 'registro',
-        'url'   => "$entrada?c=solicitudes&a=index",
-        'match' => ['solicitudes'],
-        'roles' => [Auth::ADMIN],
     ],
     [
         'label' => 'Perfil médico',
         'icon'  => 'perfil',
         'url'   => "$entrada?c=perfil&a=index",
         'match' => ['perfil'],
-        'roles' => [Auth::MEDICO],
     ],
     [
         'label'    => 'Gestión financiera',
@@ -60,7 +51,7 @@ return [
                 'icon'  => 'cuentas',
                 'url'   => "$entrada?c=cuentas&a=index",
                 'match' => ['cuentas'],
-                'roles' => [Auth::TESORERO, Auth::ADMIN, Auth::ADMIN_ASOCIACION],
+                'roles' => [Auth::TESORERO, Auth::ADMIN],
             ],
             [
                 'label' => 'Movimientos',
