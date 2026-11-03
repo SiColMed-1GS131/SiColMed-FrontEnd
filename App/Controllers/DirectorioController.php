@@ -7,6 +7,8 @@ namespace App\Controllers;
 use App\Repositories\CatalogosRepository;
 use App\Repositories\RegistroMedicoRepository;
 
+require_once __DIR__ . '/../Helpers/ui.php';   // enviarImagen()
+
 /**
  * DirectorioController · directorio médico.
  *
@@ -56,6 +58,13 @@ final class DirectorioController
     public function publicoVer(): void
     {
         $this->perfil(true);
+    }
+
+    // Foto de perfil de un médico (pública, como la ficha). La guarda la API, no el webroot.
+    public function foto(): never
+    {
+        $id = \filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        enviarImagen($id === false ? null : $this->medicos->verFoto($id));
     }
 
     // ==================================================================

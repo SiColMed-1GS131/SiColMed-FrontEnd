@@ -20,37 +20,56 @@ require_once __DIR__ . '/../../Partials/header.php';
                 <a href="/index.php?c=perfil&a=editar" class="btn btn--primario">Editar Perfil</a>
             </header>
 
+            <?php
+            // Datos reales de PerfilController::index (GET /medicos/{id} del médico con sesión)
+            $medico = $medico ?? [];
+            $v = static fn(string $k): string => htmlspecialchars(trim((string) ($medico[$k] ?? '')) ?: 'No registrado', ENT_QUOTES, 'UTF-8');
+            $nombreCompleto = trim(implode(' ', array_filter([$medico['nombre'] ?? '', $medico['segundo_nombre'] ?? '',
+                                                              $medico['apellido_paterno'] ?? '', $medico['apellido_materno'] ?? ''])));
+            $nacimiento = ($t = strtotime((string) ($medico['fecha_nacimiento'] ?? ''))) ? date('d/m/Y', $t) : '';
+            $contacto = implode(' | ', array_filter([
+                !empty($medico['celular']) ? 'Cel: ' . $medico['celular'] : null,
+                !empty($medico['telefono_residencial']) ? 'Tel: ' . $medico['telefono_residencial'] : null,
+            ]));
+            ?>
+            <?php if (!empty($errorPerfil)): ?>
+                <div class="alerta alerta--error" role="alert"><?= htmlspecialchars($errorPerfil, ENT_QUOTES, 'UTF-8') ?></div>
+            <?php endif; ?>
+
             <!-- Datos en modo lectura (Sin inputs) -->
             <div class="formulario__seccion">
                 <legend>Información Personal</legend>
+                <!-- Foto subida con POST /medicos/{id}/foto; sin foto se usa el avatar por defecto -->
+                <img src="<?= htmlspecialchars(($medico['foto_url'] ?? '') ?: '/Assets/IMG/ICONS/usuario.png', ENT_QUOTES, 'UTF-8') ?>"
+                     alt="Foto de perfil" width="120" height="120" style="object-fit: cover; border-radius: 50%;">
                 <div class="formulario__grid">
                     <div class="campo">
                         <label>Nombre Completo</label>
-                        <p>Juan Carlos Pérez Gómez</p>
+                        <p><?= htmlspecialchars($nombreCompleto ?: 'No registrado', ENT_QUOTES, 'UTF-8') ?></p>
                     </div>
                     <div class="campo">
                         <label>Cédula</label>
-                        <p>8-000-0000</p>
+                        <p><?= $v('cedula') ?></p>
                     </div>
                     <div class="campo">
                         <label>Número de Registro Médico</label>
-                        <p>RM-12345</p>
+                        <p><?= $v('registro_medico') ?></p>
                     </div>
                     <div class="campo">
                         <label>Fecha de Nacimiento</label>
-                        <p>15/05/1980 (46 años)</p>
+                        <p><?= htmlspecialchars($nacimiento ? $nacimiento . (isset($medico['edad']) ? ' (' . $medico['edad'] . ' años)' : '') : 'No registrada', ENT_QUOTES, 'UTF-8') ?></p>
                     </div>
                     <div class="campo campo--full">
                         <label>Dirección Residencial</label>
-                        <p>Calle 50, Torre Global, 15A. Bella Vista, Panamá, Panamá.</p>
+                        <p><?= $v('direccion_residencial') ?></p>
                     </div>
                     <div class="campo">
                         <label>Contacto</label>
-                        <p>Cel: 6000-0000 | Tel: 200-0000</p>
+                        <p><?= htmlspecialchars($contacto ?: 'No registrado', ENT_QUOTES, 'UTF-8') ?></p>
                     </div>
                     <div class="campo">
                         <label>Email personal</label>
-                        <p>juan.perez@email.com</p>
+                        <p><?= $v('email_personal') ?></p>
                     </div>
                 </div>
             </div>

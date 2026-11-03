@@ -190,6 +190,47 @@ final class RegistroMedicoRepository
         return $this->interpretar($respuesta);
     }
 
+    /**
+     * Sube la foto de perfil (POST /medicos/{id}/foto, multipart). $archivo es la entrada
+     * de $_FILES. La API valida que sea JPG o PNG real de hasta 2 MB, y el permiso.
+     */
+    public function subirFoto(int $id, array $archivo): array
+    {
+        $error = (int) ($archivo['error'] ?? UPLOAD_ERR_NO_FILE);
+        if ($error === UPLOAD_ERR_INI_SIZE || $error === UPLOAD_ERR_FORM_SIZE) {
+            return $this->resultado(false, [], 'La foto no puede superar 2 MB.');
+        }
+        if ($error !== UPLOAD_ERR_OK || !\is_uploaded_file((string) ($archivo['tmp_name'] ?? ''))) {
+            return $this->resultado(false, [], 'No se pudo recibir el archivo de la foto.');
+        }
+        if ($this->usaMock()) {
+            return $this->resultado(true, ['foto' => 'fotos/' . $id . '.jpg']);
+        }
+
+        // Se reenvía el tipo que declaró el navegador; la API comprueba que el contenido coincida
+        $tipo = \strtolower((string) ($archivo['type'] ?? ''));
+        $tipo = \in_array($tipo, ['image/jpg', 'image/pjpeg'], true) ? 'image/jpeg' : $tipo;
+        $respuesta = $this->api->postArchivo('/medicos/' . $id . '/foto', 'archivo',
+            (string) $archivo['tmp_name'], (string) ($archivo['name'] ?? 'foto'), $tipo);
+        return $this->interpretar($respuesta);
+    }
+
+    // Foto de perfil (GET /medicos/{id}/foto, pública). 'datos' trae el contenido binario.
+    public function verFoto(int $id): array
+    {
+        $respuesta = $this->api->getJson('/medicos/' . $id . '/foto');
+        if ($respuesta['status'] === 200 && \is_string($respuesta['body'])) {
+            return $this->resultado(true, $respuesta['body']);
+        }
+        return $this->interpretar($respuesta);
+    }
+
+    // URL del frontend que muestra la foto (DirectorioController::foto, pública)
+    public static function urlFoto(int $id): string
+    {
+        return '/index.php?c=directorio&a=foto&id=' . $id;
+    }
+
     // PDF del certificado (GET /medicos/{id}/certificado). 'datos' trae el contenido binario.
     public function descargarCertificado(int $id): array
     {
@@ -365,7 +406,8 @@ final class RegistroMedicoRepository
     {
         $perfil = \is_array($perfil) ? $perfil : [];
         $dp = \is_array($perfil['datos_personales'] ?? null) ? $perfil['datos_personales'] : [];
-        $medico = ['id' => $id, 'foto_url' => (string) ($dp['foto'] ?? ''), 'foto' => (string) ($dp['foto'] ?? ''),
+        // medico.foto guarda la ruta del archivo en la API; las vistas usan la URL del frontend
+        $medico = ['id' => $id, 'foto_url' => !empty($dp['foto']) ? self::urlFoto($id) : '',
                    'certificado_pdf' => (string) ($dp['certificado_pdf'] ?? '')];
         foreach (self::CAMPOS_MEDICO as $campo => $api) {
             $medico[$campo] = (string) ($dp[$api] ?? '');
@@ -412,6 +454,12 @@ final class RegistroMedicoRepository
         $partes = \array_filter([$direccionTrabajo['calle'] ?? null, $direccionTrabajo['corregimiento'] ?? null,
                                  $direccionTrabajo['distrito'] ?? null, $direccionTrabajo['provincia'] ?? null]);
         $medico['direccion_laboral'] = $partes !== [] ? \implode(', ', $partes) : null;
+        // Dirección residencial en una línea (perfil del médico, solo lectura)
+        $medico['direccion_residencial'] = \implode(', ', \array_filter([
+            $residencia['calle'] ?? null, $residencia['edificio'] ?? null, $residencia['numero_direccion'] ?? null,
+            $residencia['corregimiento'] ?? null, $residencia['distrito'] ?? null, $residencia['provincia'] ?? null,
+        ]));
+        $medico['edad'] = isset($dp['edad']) ? (int) $dp['edad'] : null;
 
         return $medico;
     }
@@ -438,6 +486,7 @@ final class RegistroMedicoRepository
             'provincia'           => (string) ($ficha['provincia'] ?? ''),
             'vigente'             => (bool) ($ficha['certificacion_vigente'] ?? false),
             'empresa_institucion' => $ficha['lugar_trabajo'] ?? null,
+            'foto_url'            => !empty($ficha['foto_url']) ? self::urlFoto((int) ($ficha['id_medico'] ?? 0)) : '',
         ];
     }
 

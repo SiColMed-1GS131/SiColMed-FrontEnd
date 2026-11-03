@@ -48,6 +48,29 @@ if (!function_exists('enviarPdf')) {
     }
 }
 
+// Responde una imagen JPG/PNG descargada de la API (RegistroMedicoRepository::verFoto).
+// El tipo se toma del contenido; si no hay foto responde 404 (la vista usa el avatar).
+if (!function_exists('enviarImagen')) {
+    function enviarImagen(?array $resultado): never
+    {
+        $datos = ($resultado['ok'] ?? false) && is_string($resultado['datos']) ? $resultado['datos'] : '';
+        $tipo = match (true) {
+            str_starts_with($datos, "\xFF\xD8\xFF") => 'image/jpeg',
+            str_starts_with($datos, "\x89PNG\r\n\x1a\n") => 'image/png',
+            default => null,
+        };
+        if ($tipo === null) {
+            http_response_code(404);
+            header('Content-Type: text/plain; charset=UTF-8');
+            exit('Foto no encontrada.');
+        }
+        header('Content-Type: ' . $tipo);
+        header('Content-Length: ' . strlen($datos));
+        echo $datos;
+        exit;
+    }
+}
+
 // Clase View: las vistas la usan como View::partial('badge_tipo', [...]).
 // Carga App/Views/Partials/<nombre>.php con las variables recibidas.
 if (!class_exists('View')) {

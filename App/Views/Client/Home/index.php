@@ -2,7 +2,7 @@
 /**
  * Página de inicio de SiColMed.
  * Variables que entrega HomeController: $base, $urls, $especialidades, $provincias,
- * $servicios, $estadisticas, $roles, $noticias.
+ * $servicios, $roles, $noticias, $noticiasEjemplo.
  */
 // Si alguien abre este archivo directo (sin pasar por el controlador), lo mandamos a la portada.
 if (!isset($urls, $servicios)) {
@@ -87,11 +87,11 @@ $meses = ['', 'ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oc
 
                     <div class="campo-home">
                         <label for="q">Apellido</label>
-                        <input type="text" id="q" name="q" placeholder="Ej. Pérez" autocomplete="off">
+                        <input type="text" id="q" name="apellido" placeholder="Ej. Pérez" autocomplete="off" maxlength="100">
                     </div>
                     <div class="campo-home">
                         <label for="especialidad">Especialidad</label>
-                        <select id="especialidad" name="especialidad">
+                        <select id="especialidad" name="id_especialidad">
                             <option value="">Todas</option>
                             <?php foreach ($especialidades as $valor => $nombre): ?>
                                 <option value="<?= $e($valor) ?>"><?= $e($nombre) ?></option>
@@ -100,7 +100,7 @@ $meses = ['', 'ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oc
                     </div>
                     <div class="campo-home">
                         <label for="provincia">Provincia</label>
-                        <select id="provincia" name="provincia">
+                        <select id="provincia" name="id_provincia">
                             <option value="">Todas</option>
                             <?php foreach ($provincias as $valor => $nombre): ?>
                                 <option value="<?= $e($valor) ?>"><?= $e($nombre) ?></option>
@@ -201,17 +201,23 @@ $meses = ['', 'ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oc
             <header class="seccion__cabecera">
                 <h2 class="seccion__titulo" id="noticias-titulo">Novedades</h2>
                 <p class="seccion__texto">Comunicados y avisos para la comunidad del Colegio.</p>
+                <?php if (!empty($noticiasEjemplo)): ?>
+                    <!-- PLACEHOLDER: no existe un módulo ni endpoint de noticias -->
+                    <p class="seccion__texto"><strong>Contenido de ejemplo:</strong> todavía no hay comunicados publicados.</p>
+                <?php endif; ?>
             </header>
 
             <div class="noticias">
                 <?php foreach ($noticias as $n):
-                    $f = strtotime($n['fecha']);
+                    $f = $n['fecha'] !== null ? strtotime($n['fecha']) : null;
                 ?>
                 <article class="noticia">
+                    <?php if ($f !== null): ?>
                     <time class="noticia__fecha" datetime="<?= $e($n['fecha']) ?>">
                         <strong><?= date('d', $f) ?></strong>
                         <span><?= $e($meses[(int) date('n', $f)]) ?> <?= date('Y', $f) ?></span>
                     </time>
+                    <?php endif; ?>
                     <div class="noticia__cuerpo">
                         <span class="noticia__categoria"><?= $e($n['categoria']) ?></span>
                         <h3 class="noticia__titulo"><?= $e($n['titulo']) ?></h3>

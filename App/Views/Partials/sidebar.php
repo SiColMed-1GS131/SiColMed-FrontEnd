@@ -13,9 +13,15 @@ $sbUri         = $_SERVER['REQUEST_URI'] ?? '';
 
 // ---------- Helpers locales (prefijo sb para no chocar con variables de la vista) ----------
 
-/** ¿El rol actual puede ver esta opción? (sin 'roles' = visible para todos) */
+/**
+ * ¿El rol actual puede ver esta opción? Se decide con Auth::puedeEntrar() sobre el
+ * controlador (?c=) del enlace: la misma regla que aplica Public/index.php al abrirlo,
+ * así el menú nunca muestra algo que termine en 403.
+ */
 $sbVisible = static function (array $op): bool {
-    return empty($op['roles']) || Auth::es(...$op['roles']);
+    parse_str((string) parse_url($op['url'] ?? '', PHP_URL_QUERY), $query);
+    $controlador = is_string($query['c'] ?? null) ? $query['c'] : '';
+    return $controlador !== '' && Auth::puedeEntrar($controlador);
 };
 
 /** ¿Esta opción corresponde a la página actual? */

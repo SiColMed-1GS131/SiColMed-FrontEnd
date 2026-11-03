@@ -29,7 +29,7 @@ $hay = static fn(string $clave): bool => array_key_exists($clave, $medico);
     <!-- Encabezado del Perfil -->
     <header class="perfil-header">
         <div class="perfil-header__foto-contenedor">
-            <img src="<?= !empty($medico['foto']) ? htmlspecialchars($medico['foto']) : $avatar ?>" alt="Foto del Dr/Dra" class="perfil-header__foto">
+            <img src="<?= !empty($medico['foto_url']) ? htmlspecialchars($medico['foto_url'], ENT_QUOTES, 'UTF-8') : $avatar ?>" alt="Foto del Dr/Dra" class="perfil-header__foto">
         </div>
         <div class="perfil-header__info">
             <h1 class="perfil-header__nombre">Dr(a). <?= htmlspecialchars(trim(($medico['nombre'] ?? '') . ' ' . ($medico['apellido'] ?? ''))) ?></h1>

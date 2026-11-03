@@ -97,23 +97,31 @@ final class RegistroController
         $id = $this->leerId($datos['id'] ?? null);
         unset($datos['id']);
 
-        // Primero los datos (un médico nuevo necesita su id) y después el certificado PDF.
-        // La foto todavía no se envía.
+        // Primero los datos (un médico nuevo necesita su id) y después los archivos
+        // que se hayan adjuntado: foto (POST /medicos/{id}/foto) y certificado PDF.
         $resultado = $id === null
             ? $this->medicos->crear($datos)
             : $this->medicos->actualizar($id, $datos);
 
         if ($resultado['ok']) {
-            $mensaje = 'Médico guardado correctamente.';
             $idMedico = $id ?? (int) ($resultado['datos']['id_medico'] ?? 0);
-            $pdf = $_FILES['certificado_idoneidad'] ?? null;
-            if (\is_array($pdf) && ($pdf['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE && $idMedico > 0) {
-                $subida = $this->medicos->subirCertificado($idMedico, $pdf);
-                $mensaje = $subida['ok']
-                    ? 'Médico y certificado guardados correctamente.'
-                    : 'Médico guardado, pero el certificado no se subió: ' . $subida['error'] . ' Edítalo para intentarlo de nuevo.';
+            $archivos = [
+                'foto'                  => ['la foto', fn(array $f) => $this->medicos->subirFoto($idMedico, $f)],
+                'certificado_idoneidad' => ['el certificado', fn(array $f) => $this->medicos->subirCertificado($idMedico, $f)],
+            ];
+            $fallos = [];
+            foreach ($archivos as $campo => [$nombre, $subir]) {
+                $archivo = $_FILES[$campo] ?? null;
+                if ($idMedico > 0 && \is_array($archivo) && ($archivo['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+                    $subida = $subir($archivo);
+                    if (!$subida['ok']) {
+                        $fallos[] = 'no se subió ' . $nombre . ' (' . ($subida['error'] ?: 'error desconocido') . ')';
+                    }
+                }
             }
-            $this->guardarMensaje($mensaje);
+            $this->guardarMensaje($fallos === []
+                ? 'Médico guardado correctamente.'
+                : 'Médico guardado, pero ' . \implode(' y ', $fallos) . '. Edítalo para intentarlo de nuevo.');
             $this->redirigir($this->entrada() . '?c=registro&a=index');
         }
 

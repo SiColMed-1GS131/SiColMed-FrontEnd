@@ -57,11 +57,7 @@ require_once __DIR__ . '/../../Partials/header.php';
                             <input type="number" id="edad" name="edad" value="46" readonly class="input-readonly">
                         </div>
 
-                        <!-- Campos editables de contacto -->
-                        <div class="campo campo--full">
-                            <label for="foto">Foto de Perfil</label>
-                            <input type="file" id="foto" name="foto" accept="image/*">
-                        </div>
+                        <!-- Campos editables de contacto (la foto se sube en su propio formulario, abajo) -->
                         <div class="campo campo--full">
                             <label>Dirección Residencial</label>
                             <div class="direccion-grid">
@@ -199,16 +195,34 @@ require_once __DIR__ . '/../../Partials/header.php';
                 </div>
             </form>
 
+            <?php $certificado = $certificado ?? ['url' => null, 'flash' => null, 'csrf' => '', 'foto_url' => null]; ?>
+            <?php if ($certificado['flash']): ?>
+                <div class="alerta alerta--<?= $certificado['flash']['tipo'] === 'success' ? 'exito' : 'error' ?>" role="status">
+                    <?= e($certificado['flash']['texto']) ?>
+                </div>
+            <?php endif; ?>
+
+            <!-- Foto de perfil: formulario aparte (PerfilController::subirFoto → POST /medicos/{id}/foto) -->
+            <form action="/index.php?c=perfil&a=subirFoto" method="post" enctype="multipart/form-data" class="formulario">
+                <fieldset class="formulario__seccion">
+                    <legend>Foto de perfil</legend>
+                    <img src="<?= e($certificado['foto_url'] ?: '/Assets/IMG/ICONS/usuario.png') ?>" alt="Tu foto de perfil"
+                         width="96" height="96" style="object-fit: cover; border-radius: 50%;">
+                    <div class="campo">
+                        <label for="foto">Imagen JPG o PNG (máx. 2 MB)</label>
+                        <input type="file" id="foto" name="foto" accept="image/jpeg,image/png" required>
+                    </div>
+                    <input type="hidden" name="csrf" value="<?= e($certificado['csrf']) ?>">
+                    <div class="formulario__acciones">
+                        <button type="submit" class="btn btn--primario">Subir foto</button>
+                    </div>
+                </fieldset>
+            </form>
+
             <!-- Certificado de idoneidad: formulario aparte (PerfilController::subirCertificado → API) -->
-            <?php $certificado = $certificado ?? ['url' => null, 'flash' => null, 'csrf' => '']; ?>
             <form action="/index.php?c=perfil&a=subirCertificado" method="post" enctype="multipart/form-data" class="formulario">
                 <fieldset class="formulario__seccion">
                     <legend>Certificado de idoneidad (PDF)</legend>
-                    <?php if ($certificado['flash']): ?>
-                        <div class="alerta alerta--<?= $certificado['flash']['tipo'] === 'success' ? 'exito' : 'error' ?>" role="status">
-                            <?= e($certificado['flash']['texto']) ?>
-                        </div>
-                    <?php endif; ?>
                     <?php if ($certificado['url']): ?>
                         <p><a href="<?= e($certificado['url']) ?>" target="_blank" rel="noopener">Ver mi certificado actual (PDF)</a>. Si subes otro, reemplaza al actual.</p>
                     <?php endif; ?>

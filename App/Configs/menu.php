@@ -11,8 +11,12 @@
  *   url      Enlace (se omite en un grupo: toma el de su primer hijo visible).
  *   match    Controladores (?c=) que marcan la opción como activa.
  *   uri      Fragmentos de la URL que también la marcan como activa.
- *   roles    Roles de Auth que la ven. Sin este campo, la ven todos.
  *   children Submenú (un solo nivel). El grupo se muestra si algún hijo es visible.
+ *
+ * Quién ve cada opción NO se declara aquí: Partials/sidebar.php la muestra solo si
+ * Auth::puedeEntrar() permite el controlador (?c=) de su url, es decir, con los mismos
+ * PERMISOS de App/Middleware/Auth.php que autorizan la página. Para cambiar quién ve
+ * una opción, cambia sus permisos en Auth.php.
  */
 
 $entrada = '/index.php';   // Docker: el webroot es Public/
@@ -37,7 +41,7 @@ return [
         'match' => ['registro'],
     ],
     [
-        'label' => 'Perfil médico',
+        'label' => 'Mi perfil',
         'icon'  => 'perfil',
         'url'   => "$entrada?c=perfil&a=index",
         'match' => ['perfil'],
@@ -51,21 +55,18 @@ return [
                 'icon'  => 'cuentas',
                 'url'   => "$entrada?c=cuentas&a=index",
                 'match' => ['cuentas'],
-                'roles' => [Auth::TESORERO, Auth::ADMIN],
             ],
             [
                 'label' => 'Movimientos',
                 'icon'  => 'movimientos',
                 'url'   => "$entrada?c=movimientos&a=index",
                 'match' => ['movimientos'],
-                'roles' => [Auth::TESORERO, Auth::ADMIN],
             ],
             [
                 'label' => 'Reportes',
                 'icon'  => 'reportes',
                 'url'   => "$entrada?c=reportes&a=balance",
                 'match' => ['reportes'],
-                'roles' => [Auth::ADMIN_ASOCIACION, Auth::ADMIN],
             ],
         ],
     ],

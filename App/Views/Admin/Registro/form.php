@@ -119,7 +119,7 @@ $selectMultiple = function (string $campo, string $etiqueta) use ($medico, $cata
 
         <div class="registro__personal">
 
-          <!-- Foto (puede cambiar el nombre del campo foto_url y tamaño máximo) -->
+          <!-- Foto: se sube al guardar con POST /medicos/{id}/foto (JPG o PNG, máx. 2 MB); reemplaza la anterior -->
           <div class="registro__foto">
             <div class="registro__foto-marco">
               <img id="foto_preview" class="registro__foto-img" alt="Vista previa de la foto del médico"
@@ -180,7 +180,7 @@ $selectMultiple = function (string $campo, string $etiqueta) use ($medico, $cata
                 </div>
                 <div class="field">
                   <label for="registro_medico">N.º Registro médico</label>
-                  <input type="text" id="registro_medico" name="registro_medico" value="<?= $dato('registro_medico') ?>" pattern="[A-Za-z0-9]+" title="Solo letras y números" required>
+                  <input type="text" id="registro_medico" name="registro_medico" value="<?= $dato('registro_medico') ?>" pattern="[A-Za-z0-9\-]+" title="Letras, números y guiones (ej. RM-0001)" required>
                   <span class="field__error"><?= $err('registro_medico') ?></span>
                 </div>
                 <div class="field">
