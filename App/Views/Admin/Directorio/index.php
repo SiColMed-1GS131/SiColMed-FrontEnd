@@ -111,14 +111,18 @@ $enlacePagina = static fn (int $pagina): string => $entrada . '?' . http_build_q
                                 
                                 <div class="tarjeta-flotante">
                                     <div class="tarjeta-flotante__header">
-                                        <img src="<?= !empty($medico['foto']) ? $esc($medico['foto']) : $esc($avatar) ?>" alt="Foto" class="tarjeta-flotante__foto">
+                                        <!-- lazy: la tarjeta está oculta hasta el hover, así no se piden todas las fotos al cargar la lista -->
+                                        <img src="<?= $esc(($medico['foto_url'] ?? '') ?: $avatar) ?>" alt="Foto" class="tarjeta-flotante__foto"
+                                             loading="lazy" data-avatar="<?= $esc($avatar) ?>"
+                                             onerror="this.onerror=null; this.src=this.dataset.avatar;">
                                         <div class="tarjeta-flotante__info-principal">
                                             <span class="tarjeta-flotante__nombre"><?= $esc($medico['nombre_completo'] ?? '') ?></span>
                                             <span class="tarjeta-flotante__especialidad"><?= $esc($medico['especialidad'] ?? '') ?></span>
                                         </div>
                                     </div>
                                     <div class="tarjeta-flotante__body">
-                                        <span class="tarjeta-flotante__correo"><?= $esc($medico['email_laboral'] ?? 'Correo no disponible') ?></span>
+                                        <!-- GET /medicos no devuelve el correo laboral (dato no público); se muestra el lugar de trabajo -->
+                                        <span class="tarjeta-flotante__correo"><?= $esc(($medico['lugar_trabajo'] ?? '') !== '' ? $medico['lugar_trabajo'] : 'Lugar de trabajo no registrado') ?></span>
                                     </div>
                                 </div>
                             </td>

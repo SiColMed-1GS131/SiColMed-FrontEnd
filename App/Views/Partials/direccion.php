@@ -5,9 +5,12 @@ $errores    = $errores    ?? [];
 $catalogos  = $catalogos  ?? [];
 $dirPrefijo = $dirPrefijo ?? 'direccion';
 $dirTitulo  = $dirTitulo  ?? 'Dirección';
+// true: muestra "Apartado postal" (<prefijo>_apartado_postal). La residencia lo tiene en Contacto.
+$dirApartado = $dirApartado ?? false;
 
 // Listas con ['id' => int, 'nombre' => string] (RegistroController::catalogosFormulario).
 // Distritos y corregimientos solo traen lo ya elegido; registro.js carga el resto al cambiar el select.
+// Un select sin opciones queda deshabilitado: no se elige distrito sin provincia ni corregimiento sin distrito.
 $provincias     = $catalogos['provincias'] ?? [];
 $distritos      = $catalogos['distritos'][$dirPrefijo] ?? [];
 $corregimientos = $catalogos['corregimientos'][$dirPrefijo] ?? [];
@@ -46,7 +49,7 @@ $opciones = function (array $lista, string $campo) use ($medico, $dirPrefijo, $e
     <div class="field">
       <label for="<?= $pref ?>_distrito">Distrito</label>
       <select id="<?= $pref ?>_distrito" name="<?= $pref ?>_distrito"
-              data-cascada="corregimientos" data-destino="<?= $pref ?>_corregimiento">
+              data-cascada="corregimientos" data-destino="<?= $pref ?>_corregimiento"<?= $distritos === [] ? ' disabled' : '' ?>>
         <option value="">Seleccione</option>
         <?php $opciones($distritos, 'distrito'); ?>
       </select>
@@ -55,7 +58,7 @@ $opciones = function (array $lista, string $campo) use ($medico, $dirPrefijo, $e
 
     <div class="field">
       <label for="<?= $pref ?>_corregimiento">Corregimiento</label>
-      <select id="<?= $pref ?>_corregimiento" name="<?= $pref ?>_corregimiento">
+      <select id="<?= $pref ?>_corregimiento" name="<?= $pref ?>_corregimiento"<?= $corregimientos === [] ? ' disabled' : '' ?>>
         <option value="">Seleccione</option>
         <?php $opciones($corregimientos, 'corregimiento'); ?>
       </select>
@@ -80,6 +83,14 @@ $opciones = function (array $lista, string $campo) use ($medico, $dirPrefijo, $e
       <input type="text" id="<?= $pref ?>_numero" name="<?= $pref ?>_numero" value="<?= $valor('numero') ?>">
       <span class="field__error"><?= $error('numero') ?></span>
     </div>
+
+    <?php if ($dirApartado): ?>
+    <div class="field">
+      <label for="<?= $pref ?>_apartado_postal">Apartado postal</label>
+      <input type="text" id="<?= $pref ?>_apartado_postal" name="<?= $pref ?>_apartado_postal" value="<?= $valor('apartado_postal') ?>">
+      <span class="field__error"><?= $error('apartado_postal') ?></span>
+    </div>
+    <?php endif; ?>
 
   </div>
 </div>

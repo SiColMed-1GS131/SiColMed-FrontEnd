@@ -40,7 +40,8 @@ $puedeEnviar = empty($errorApi) || !empty($cuentas);
 
     <form class="formulario" id="form-movimiento" method="post"
           action="/index.php?c=movimientos&a=crear" novalidate>
-
+          <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
+          
         <p class="formulario__nota">Los campos con <span class="req" aria-hidden="true">*</span> son obligatorios.</p>
 
         <div class="field <?= $hayError('fecha') ? 'field--error' : '' ?>">

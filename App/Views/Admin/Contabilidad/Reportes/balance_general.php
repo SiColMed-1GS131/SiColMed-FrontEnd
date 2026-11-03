@@ -44,6 +44,7 @@
           <thead>
             <tr>
               <th scope="col">Cuenta</th>
+              <th scope="col">Naturaleza</th>
               <th scope="col" class="reportes__num">Total débito</th>
               <th scope="col" class="reportes__num">Total crédito</th>
               <th scope="col" class="reportes__num">Saldo</th>
@@ -53,6 +54,7 @@
             <?php foreach ($filas as $f): ?>
               <tr>
                 <th scope="row"><?= e($f['cuenta']) ?></th>
+                <td><?= e($f['tipo']) ?></td>
                 <td class="reportes__num"><?= e($f['debito']) ?></td>
                 <td class="reportes__num"><?= e($f['credito']) ?></td>
                 <td class="reportes__num<?= $f['negativo'] ? ' reportes__negativo' : '' ?>">
@@ -63,11 +65,25 @@
           </tbody>
           <tfoot>
             <tr>
-              <th scope="row">Totales</th>
+              <th scope="row" colspan="2">Totales</th>
               <td class="reportes__num"><?= e($totales['debito']) ?></td>
               <td class="reportes__num"><?= e($totales['credito']) ?></td>
-              <td class="reportes__num<?= $totales['negativo'] ? ' reportes__negativo' : '' ?>"><?= e($totales['saldo']) ?></td>
+              <td class="reportes__num">—</td>
             </tr>
+            <!-- Los saldos se totalizan por naturaleza: sumar deudores con acreedores no tiene sentido contable -->
+            <tr>
+              <th scope="row" colspan="4">Saldo de cuentas deudoras</th>
+              <td class="reportes__num<?= $totales['deudor_negativo'] ? ' reportes__negativo' : '' ?>"><?= e($totales['saldo_deudor']) ?></td>
+            </tr>
+            <tr>
+              <th scope="row" colspan="4">Saldo de cuentas acreedoras</th>
+              <td class="reportes__num<?= $totales['acreedor_negativo'] ? ' reportes__negativo' : '' ?>"><?= e($totales['saldo_acreedor']) ?></td>
+            </tr>
+            <?php if (!$totales['cuadra']): ?>
+            <tr>
+              <td colspan="5" class="reportes__negativo" role="alert">Atención: el total de débitos no coincide con el de créditos.</td>
+            </tr>
+            <?php endif; ?>
           </tfoot>
         </table>
       </div>

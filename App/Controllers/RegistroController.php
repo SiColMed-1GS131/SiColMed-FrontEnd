@@ -143,21 +143,28 @@ final class RegistroController
         enviarPdf($resultado, 'certificado_idoneidad_' . $id . '.pdf');
     }
 
-    // Registra una fila proveniente de la importación CSV.
+    // Carga masiva: recibe el .csv (multipart, campo "archivo") y lo envía a POST /medicos/importar.
+    // Responde JSON para registro.js. 401 solo si la API rechazó el token (sesión vencida).
     public function importarCsv(): never
     {
         $this->verificarAcceso();
 
-        $datos = json_decode((string) file_get_contents('php://input'), true);
-        if (!is_array($datos)) {
-            $this->responderJson(400, ['ok' => false, 'error' => 'La fila CSV no tiene un formato válido.']);
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            $this->responderJson(405, ['ok' => false, 'error' => 'Método no permitido.']);
+        }
+        $archivo = $_FILES['archivo'] ?? null;
+        if (!\is_array($archivo)) {
+            $this->responderJson(400, ['ok' => false, 'error' => 'Selecciona un archivo .csv.']);
         }
 
-        $resultado = $this->medicos->crear($datos);
-        $this->responderJson($resultado['ok'] ? 201 : 422, [
-            'ok' => $resultado['ok'],
-            'error' => $resultado['error'],
-            'errores' => $resultado['errores'],
+        $resultado = $this->medicos->importarCsv($archivo);
+        $status = (int) ($resultado['status'] ?? 0);
+        if ($resultado['ok']) {
+            $this->responderJson(200, ['ok' => true] + $resultado['datos']);
+        }
+        $this->responderJson($status === 401 ? 401 : 422, [
+            'ok' => false,
+            'error' => $resultado['error'] ?: 'No se pudo procesar el archivo CSV.',
         ]);
     }
 

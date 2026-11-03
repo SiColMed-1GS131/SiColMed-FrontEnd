@@ -50,7 +50,7 @@ final class PanelController
             ['etiqueta' => 'Certificaciones por vencer', 'valor' => '—'],   // pendiente: no hay endpoint
             ['etiqueta' => 'Cuentas activas',            'valor' => $this->contar(fn() => $this->total((new CuentasRepository())->listar(true)))],
             ['etiqueta' => 'Movimientos de hoy',         'valor' => $this->contar(fn() => $this->movimientosDelDia($hoy))],
-            ['etiqueta' => 'Saldo del mes',              'valor' => $this->contar(fn() => $this->saldoDelMes($hoy))],
+            ['etiqueta' => 'Movimiento del mes',         'valor' => $this->contar(fn() => $this->saldoDelMes($hoy))],
         ];
 
         // En modo de prueba se muestran filas de ejemplo; con la API real vienen de /solicitudes-cambio
@@ -132,18 +132,19 @@ final class PanelController
         return ($res['ok'] ?? false) ? (int) ($res['paginacion']['total'] ?? 0) : null;
     }
 
-    // Suma de saldos del Balance General del 1 del mes a hoy (GET /reportes/balance-general)
+    // Total movido del 1 del mes a hoy: débitos del Balance General (en partida doble son
+    // iguales a los créditos). Antes sumaba los saldos de todas las cuentas, mezclando
+    // deudoras y acreedoras, y el resultado no tenía sentido contable.
     private function saldoDelMes(string $hoy): ?string
     {
         $res = (new ApiClient())->getJson('/reportes/balance-general?' . http_build_query([
             'fecha_inicio' => substr($hoy, 0, 8) . '01', 'fecha_fin' => $hoy,
         ]));
         $json = $res['status'] === 200 ? json_decode((string) $res['body'], true) : null;
-        if (!is_array($json['filas'] ?? null)) {
+        if (!isset($json['totales']['total_debito'])) {
             return null;
         }
-        $centavos = array_sum(array_map(fn($f) => (int) round(((float) ($f['saldo'] ?? 0)) * 100), $json['filas']));
-        return dinero($centavos / 100);
+        return dinero((float) $json['totales']['total_debito']);
     }
 
     // Las 5 solicitudes más recientes con el formato de la tabla del panel

@@ -141,6 +141,9 @@ final class RegistroMedicoRepository
         if ($this->usaMock()) {
             return $this->resultado(true, $datos);
         }
+        if ($errores = $this->erroresDireccion($datos)) {
+            return $this->resultado(false, [], 'Revisa la dirección: provincia, distrito y corregimiento no coinciden.', $errores);
+        }
         return $this->interpretar($this->api->postJson('/medicos', $this->paraRegistro($datos)));
     }
 
@@ -157,6 +160,9 @@ final class RegistroMedicoRepository
         }
         if (!empty($actual['datos']['publico'])) {
             return $this->resultado(false, [], 'Tu sesión expiró. Inicia sesión de nuevo para editar este médico.');
+        }
+        if ($errores = $this->erroresDireccion($datos)) {
+            return $this->resultado(false, [], 'Revisa la dirección: provincia, distrito y corregimiento no coinciden.', $errores);
         }
 
         $cambios = $this->paraActualizacion($datos, $actual['datos']);
@@ -188,6 +194,32 @@ final class RegistroMedicoRepository
         $respuesta = $this->api->postArchivo('/medicos/' . $id . '/certificado', 'archivo',
             (string) $archivo['tmp_name'], (string) ($archivo['name'] ?? 'certificado.pdf'), 'application/pdf');
         return $this->interpretar($respuesta);
+    }
+
+    /**
+     * Carga masiva por CSV (POST /medicos/importar, multipart). La API lee el archivo,
+     * registra cada fila y deja la carga en auditoria. En 'datos' devuelve su resumen:
+     * {archivo, procesados, registrados, rechazados, errores: [{fila, error}], id_auditoria}.
+     */
+    public function importarCsv(array $archivo): array
+    {
+        $error = (int) ($archivo['error'] ?? UPLOAD_ERR_NO_FILE);
+        if ($error === UPLOAD_ERR_INI_SIZE || $error === UPLOAD_ERR_FORM_SIZE) {
+            return $this->resultado(false, [], 'El CSV no puede superar 2 MB.');
+        }
+        if ($error !== UPLOAD_ERR_OK || !\is_uploaded_file((string) ($archivo['tmp_name'] ?? ''))) {
+            return $this->resultado(false, [], 'No se pudo recibir el archivo CSV.');
+        }
+        if ($this->usaMock()) {
+            return $this->resultado(false, [], 'La carga por CSV necesita la API (modo de prueba activo).');
+        }
+
+        // Hasta 500 filas, una llamada a registrar_medico por fila: más tiempo que el normal
+        $respuesta = $this->api->postArchivo('/medicos/importar', 'archivo', (string) $archivo['tmp_name'],
+            (string) ($archivo['name'] ?? 'carga.csv'), 'text/csv', 300);
+        $resultado = $this->interpretar($respuesta);
+        $resultado['status'] = (int) ($respuesta['status'] ?? 0);
+        return $resultado;
     }
 
     /**
@@ -259,9 +291,11 @@ final class RegistroMedicoRepository
 
         $trabajo = $this->bloque($d, self::CAMPOS_TRABAJO);
         if ($trabajo !== null) {
-            // La API exige la dirección del trabajo cuando hay lugar de trabajo
+            // La API exige la dirección del trabajo cuando hay lugar de trabajo; su apartado
+            // postal tiene campo propio (trabajo_apartado_postal), distinto del residencial
             $payload['lugar_trabajo'] = $trabajo;
-            $payload['direccion_trabajo'] = $this->direccion($d, 'trabajo');
+            $payload['direccion_trabajo'] = $this->direccion($d, 'trabajo')
+                + ['apartado_postal' => $this->texto($d['trabajo_apartado_postal'] ?? null)];
         }
 
         $basico = $d['educacion']['basico'][0] ?? [];
@@ -333,6 +367,27 @@ final class RegistroMedicoRepository
         return $direccion;
     }
 
+    // La API solo recibe id_corregimiento y deduce provincia y distrito, así que una combinación
+    // alterada en el navegador se guardaría sin aviso. Se comprueba cada nivel contra su superior
+    // cuando ambos vienen (una fila CSV puede traer solo el corregimiento).
+    private function erroresDireccion(array $d): array
+    {
+        $errores = [];
+        foreach (['residencia', 'trabajo'] as $prefijo) {
+            $provincia = $this->entero($d[$prefijo . '_provincia'] ?? null);
+            $distrito = $this->entero($d[$prefijo . '_distrito'] ?? null);
+            $corregimiento = $this->entero($d[$prefijo . '_corregimiento'] ?? null);
+            if ($provincia !== null && $distrito !== null
+                && !\in_array($distrito, \array_column($this->catalogos->distritos($provincia), 'id'), true)) {
+                $errores[$prefijo . '_distrito'] = 'El distrito no pertenece a la provincia elegida.';
+            } elseif ($distrito !== null && $corregimiento !== null
+                && !\in_array($corregimiento, \array_column($this->catalogos->corregimientos($distrito), 'id'), true)) {
+                $errores[$prefijo . '_corregimiento'] = 'El corregimiento no pertenece al distrito elegido.';
+            }
+        }
+        return $errores;
+    }
+
     // Devuelve los campos traducidos, o null si todos están vacíos (el bloque es opcional)
     private function bloque(array $d, array $campos): ?array
     {
@@ -394,6 +449,9 @@ final class RegistroMedicoRepository
             'vigente'          => (bool) ($m['certificacion_vigente'] ?? false),
             'provincia'        => (string) ($m['provincia'] ?? ''),
             'lugar_trabajo'    => (string) ($m['lugar_trabajo'] ?? ''),
+            // GET /medicos no dice si hay foto: la tarjeta pide la del proxy público y,
+            // si responde 404, muestra el avatar (Directorio/index.php)
+            'foto_url'         => self::urlFoto((int) ($m['id_medico'] ?? 0)),
         ];
     }
 
@@ -506,6 +564,7 @@ final class RegistroMedicoRepository
             $prefijo . '_calle'         => (string) ($dir['calle'] ?? ''),
             $prefijo . '_edificio'      => (string) ($dir['edificio'] ?? ''),
             $prefijo . '_numero'        => (string) ($dir['numero_direccion'] ?? ''),
+            $prefijo . '_apartado_postal' => (string) ($dir['apartado_postal'] ?? ''),
         ];
     }
 
@@ -518,7 +577,7 @@ final class RegistroMedicoRepository
         if ($grupo === 'direccion' || $grupo === 'direccion_trabajo') {
             $prefijo = $grupo === 'direccion' ? 'residencia' : 'trabajo';
             if ($campo === 'apartado_postal') {
-                return 'apartado_postal';
+                return $grupo === 'direccion' ? 'apartado_postal' : 'trabajo_apartado_postal';
             }
             $sufijo = \array_search($campo, self::CAMPOS_DIRECCION, true);
             return $sufijo === false ? null : $prefijo . '_' . $sufijo;

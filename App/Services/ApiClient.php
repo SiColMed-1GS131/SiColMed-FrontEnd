@@ -40,7 +40,8 @@ final class ApiClient
      * Sube un archivo como multipart/form-data (un solo campo).
      * @return array{status:int, body:string|null}
      */
-    public function postArchivo(string $path, string $campo, string $rutaArchivo, string $nombre, string $tipo): array
+    // $timeout en segundos: una carga masiva (POST /medicos/importar) tarda más que una petición normal
+    public function postArchivo(string $path, string $campo, string $rutaArchivo, string $nombre, string $tipo, int $timeout = 8): array
     {
         $limite = '----SiColMed' . bin2hex(random_bytes(12));
         $nombre = str_replace(['"', "\r", "\n"], '', $nombre);
@@ -49,18 +50,18 @@ final class ApiClient
             . "Content-Type: {$tipo}\r\n\r\n"
             . (string) file_get_contents($rutaArchivo) . "\r\n"
             . "--{$limite}--\r\n";
-        return $this->enviar('POST', $path, null, $cuerpo, "multipart/form-data; boundary={$limite}");
+        return $this->enviar('POST', $path, null, $cuerpo, "multipart/form-data; boundary={$limite}", $timeout);
     }
 
     /** @return array{status:int, body:string|null} */
-    private function enviar(string $metodo, string $path, ?array $payload = null, ?string $cuerpo = null, ?string $tipoCuerpo = null): array
+    private function enviar(string $metodo, string $path, ?array $payload = null, ?string $cuerpo = null, ?string $tipoCuerpo = null, int $timeout = 8): array
     {
         $base = rtrim((string) (getenv('API_URL') ?: 'http://api:8000'), '/');
 
         $cabeceras = "Accept: application/json\r\nConnection: close\r\n";
         $opciones = [
             'method'        => $metodo,
-            'timeout'       => 8,
+            'timeout'       => $timeout,
             'ignore_errors' => true,
         ];
         if ($payload !== null) {

@@ -262,9 +262,11 @@ $selectMultiple = function (string $campo, string $etiqueta) use ($medico, $cata
           </div>
           
           <?php
-            $dirPrefijo = 'trabajo';
-            $dirTitulo  = 'Dirección del trabajo';
+            $dirPrefijo  = 'trabajo';
+            $dirTitulo   = 'Dirección del trabajo';
+            $dirApartado = true;   // direccion.apartado_postal es obligatorio también en el trabajo
             require __DIR__ . '/../../Partials/direccion.php';
+            $dirApartado = false;
           ?>
 
         </div>

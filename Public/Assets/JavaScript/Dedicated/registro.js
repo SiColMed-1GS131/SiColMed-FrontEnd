@@ -1,104 +1,59 @@
 document.addEventListener('DOMContentLoaded', () => {
+  /* Carga masiva por CSV: el archivo se envía completo; la API lo valida, registra
+     cada fila y deja la carga en auditoría (POST /medicos/importar). */
   const csvInput = document.getElementById('csv-medicos');
   const csvEstado = document.getElementById('csv-medicos-estado');
   const csvEndpoint = window.SICOLMED_CSV_ENDPOINT;
+  const loginUrl = document.body.dataset.loginUrl || '/index.php?c=login&a=login';
 
-  function csvError(message) {
+  function csvMensaje(texto, esError, detalles = []) {
     if (!csvEstado) return;
     csvEstado.hidden = false;
-    csvEstado.classList.add('is-error');
-    csvEstado.textContent = message;
-  }
-
-  function parseCsv(text) {
-    const filas = [];
-    let fila = [];
-    let campo = '';
-    let entreComillas = false;
-
-    for (let i = 0; i < text.length; i++) {
-      const caracter = text[i];
-      const siguiente = text[i + 1];
-      if (caracter === '"' && entreComillas && siguiente === '"') {
-        campo += '"';
-        i++;
-      } else if (caracter === '"') {
-        entreComillas = !entreComillas;
-      } else if (caracter === ',' && !entreComillas) {
-        fila.push(campo);
-        campo = '';
-      } else if ((caracter === '\n' || caracter === '\r') && !entreComillas) {
-        if (caracter === '\r' && siguiente === '\n') i++;
-        fila.push(campo);
-        if (fila.some((valor) => valor.trim() !== '')) filas.push(fila);
-        fila = [];
-        campo = '';
-      } else {
-        campo += caracter;
-      }
-    }
-    if (campo !== '' || fila.length > 0) {
-      fila.push(campo);
-      if (fila.some((valor) => valor.trim() !== '')) filas.push(fila);
-    }
-    return filas;
-  }
-
-  function convertirFilas(filas) {
-    if (filas.length < 2) throw new Error('El CSV debe incluir encabezados y al menos un médico.');
-    const encabezados = filas[0].map((valor) => valor.replace(/^\uFEFF/, '').trim());
-    if (encabezados.some((valor) => valor === '')) throw new Error('El CSV contiene un encabezado vacío.');
-    return filas.slice(1).map((fila, indice) => {
-      const datos = {};
-      encabezados.forEach((encabezado, columna) => {
-        const valor = (fila[columna] ?? '').trim();
-        const partes = encabezado.replace(/\]/g, '').split('[');
-        let destino = datos;
-        partes.forEach((parte, posicion) => {
-          if (posicion === partes.length - 1) {
-            destino[parte] = valor;
-            return;
-          }
-          if (!destino[parte] || typeof destino[parte] !== 'object') destino[parte] = {};
-          destino = destino[parte];
-        });
+    csvEstado.classList.toggle('is-error', esError);
+    csvEstado.textContent = texto;
+    if (detalles.length > 0) {
+      const lista = document.createElement('ul');
+      detalles.forEach((d) => {
+        const item = document.createElement('li');
+        item.textContent = d;
+        lista.appendChild(item);
       });
-      if (!datos.nombre || !datos.apellido_paterno || !datos.cedula ||
-          !datos.registro_medico || !datos.fecha_nacimiento) {
-        throw new Error(`La fila ${indice + 2} no contiene todos los campos obligatorios.`);
-      }
-      return datos;
-    });
+      csvEstado.appendChild(lista);
+    }
   }
 
   async function importarCsv(archivo) {
     if (!csvEndpoint) throw new Error('No se configuró el endpoint de importación.');
-    const contenido = await archivo.text();
-    const medicos = convertirFilas(parseCsv(contenido));
-    let registrados = 0;
-    const errores = [];
+    const datos = new FormData();
+    datos.append('archivo', archivo);
 
-    for (let i = 0; i < medicos.length; i++) {
-      if (csvEstado) csvEstado.textContent = `Registrando médico ${i + 1} de ${medicos.length}...`;
-      const respuesta = await fetch(csvEndpoint, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify(medicos[i])
-      });
-      const resultado = await respuesta.json().catch(() => null);
-      if (respuesta.ok && resultado?.ok) {
-        registrados++;
-      } else {
-        errores.push(`Fila ${i + 2}: ${resultado?.error || 'No se pudo registrar el médico.'}`);
-      }
-    }
+    const respuesta = await fetch(csvEndpoint, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { Accept: 'application/json' },
+      body: datos
+    });
 
-    if (errores.length > 0) {
-      csvError(`Se registraron ${registrados} de ${medicos.length}. ${errores.join(' ')}`);
+    // Solo un 401 (token vencido o inválido) lleva al login. 400, 422 o 500 se muestran
+    // en pantalla y la sesión sigue abierta.
+    if (respuesta.status === 401) {
+      window.location.replace(loginUrl);
       return;
     }
-    window.location.assign(window.location.href);
+    const resultado = await respuesta.json().catch(() => null);
+    if (!respuesta.ok || !resultado?.ok) {
+      csvMensaje(resultado?.error || `No se pudo procesar el archivo (error ${respuesta.status}).`, true);
+      return;
+    }
+
+    const resumen = `Archivo ${resultado.archivo}: ${resultado.registrados} de ${resultado.procesados} médicos registrados.`;
+    if (resultado.errores.length > 0) {
+      csvMensaje(`${resumen} Filas con error:`, true,
+        resultado.errores.map((e) => (e.fila > 0 ? `Línea ${e.fila}: ${e.error}` : e.error)));
+      return;
+    }
+    csvMensaje(resumen, false);
+    window.location.assign(window.location.href);   // recarga la lista con los médicos nuevos
   }
 
   if (csvInput) {
@@ -107,18 +62,14 @@ document.addEventListener('DOMContentLoaded', () => {
       csvInput.value = '';
       if (!archivo) return;
       if (!/\.csv$/i.test(archivo.name)) {
-        csvError('Selecciona un archivo con extensión .csv.');
+        csvMensaje('Selecciona un archivo con extensión .csv.', true);
         return;
       }
-      if (csvEstado) {
-        csvEstado.hidden = false;
-        csvEstado.classList.remove('is-error');
-        csvEstado.textContent = 'Leyendo archivo CSV...';
-      }
+      csvMensaje('Subiendo y registrando el archivo CSV...', false);
       try {
         await importarCsv(archivo);
       } catch (error) {
-        csvError(error.message);
+        csvMensaje(error.message || 'No se pudo enviar el archivo.', true);
       }
     });
   }
@@ -249,6 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function vaciarSelect(select) {
     if (!select) return;
     select.length = 1;   // deja solo "Seleccione"
+    select.disabled = true;
     const siguiente = select.dataset.destino ? document.getElementById(select.dataset.destino) : null;
     vaciarSelect(siguiente);
   }
@@ -263,6 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const respuesta = await fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
         const lista = respuesta.ok ? await respuesta.json() : [];
         lista.forEach((item) => destino.add(new Option(item.nombre, String(item.id))));
+        destino.disabled = lista.length === 0;   // sin opciones (ej. Naso Tjër Di) sigue deshabilitado
       } catch (error) {
         // Sin catálogo el select queda vacío; el backend avisará que falta el corregimiento
       }

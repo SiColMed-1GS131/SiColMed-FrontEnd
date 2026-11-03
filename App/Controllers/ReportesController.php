@@ -90,11 +90,11 @@ final class ReportesController
             return ['ok' => false, 'datos' => [], 'error' => $mensaje];
         }
 
-        if (!is_array($json) || !isset($json['filas']) || !is_array($json['filas'])) {
+        if (!is_array($json) || !is_array($json['filas'] ?? null) || !is_array($json['totales'] ?? null)) {
             return ['ok' => false, 'datos' => [], 'error' => 'La API devolvió una respuesta inesperada.'];
         }
 
-        return ['ok' => true, 'datos' => $json['filas'], 'error' => ''];
+        return ['ok' => true, 'datos' => $json, 'error' => ''];
     }
 
     /** Devuelve el mensaje de error, o '' si las fechas están bien. */
@@ -125,39 +125,36 @@ final class ReportesController
     }
 
     /**
-     * Da formato a los montos y calcula la fila de totales.
-     * Se suma en centavos (enteros) para evitar errores de decimales.
+     * Da formato a las filas y a los totales que calcula la API.
+     * Los saldos no se suman entre sí: una cuenta DEBITO y una CREDITO tienen saldos de
+     * naturaleza distinta, así que la API devuelve un total deudor y uno acreedor.
      */
-    private function prepararFilas(array $filas): array
+    private function prepararFilas(array $balance): array
     {
-        $sumaDebito = 0;
-        $sumaCredito = 0;
-        $sumaSaldo = 0;
         $salida = [];
-
-        foreach ($filas as $fila) {
-            $debito = $this->aCentavos($fila['total_debito'] ?? 0);
-            $credito = $this->aCentavos($fila['total_credito'] ?? 0);
+        foreach ($balance['filas'] as $fila) {
             $saldo = $this->aCentavos($fila['saldo'] ?? 0);
-
-            $sumaDebito += $debito;
-            $sumaCredito += $credito;
-            $sumaSaldo += $saldo;
-
             $salida[] = [
                 'cuenta' => (string) ($fila['nombre_cuenta'] ?? ''),
-                'debito' => dinero($debito / 100),
-                'credito' => dinero($credito / 100),
+                'tipo' => ($fila['tipo'] ?? '') === 'CREDITO' ? 'Acreedora' : 'Deudora',
+                'debito' => dinero($this->aCentavos($fila['total_debito'] ?? 0) / 100),
+                'credito' => dinero($this->aCentavos($fila['total_credito'] ?? 0) / 100),
                 'saldo' => dinero($saldo / 100),
                 'negativo' => $saldo < 0,
             ];
         }
 
+        $t = $balance['totales'];
+        $deudor = $this->aCentavos($t['saldo_deudor'] ?? 0);
+        $acreedor = $this->aCentavos($t['saldo_acreedor'] ?? 0);
         $totales = [
-            'debito' => dinero($sumaDebito / 100),
-            'credito' => dinero($sumaCredito / 100),
-            'saldo' => dinero($sumaSaldo / 100),
-            'negativo' => $sumaSaldo < 0,
+            'debito' => dinero($this->aCentavos($t['total_debito'] ?? 0) / 100),
+            'credito' => dinero($this->aCentavos($t['total_credito'] ?? 0) / 100),
+            'saldo_deudor' => dinero($deudor / 100),
+            'saldo_acreedor' => dinero($acreedor / 100),
+            'deudor_negativo' => $deudor < 0,
+            'acreedor_negativo' => $acreedor < 0,
+            'cuadra' => (bool) ($t['cuadra'] ?? false),
         ];
 
         return [$salida, $totales];
