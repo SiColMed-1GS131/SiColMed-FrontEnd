@@ -198,6 +198,30 @@ require_once __DIR__ . '/../../Partials/header.php';
                     <button type="submit" class="btn btn--primario">Guardar mis cambios</button>
                 </div>
             </form>
+
+            <!-- Certificado de idoneidad: formulario aparte (PerfilController::subirCertificado → API) -->
+            <?php $certificado = $certificado ?? ['url' => null, 'flash' => null, 'csrf' => '']; ?>
+            <form action="/index.php?c=perfil&a=subirCertificado" method="post" enctype="multipart/form-data" class="formulario">
+                <fieldset class="formulario__seccion">
+                    <legend>Certificado de idoneidad (PDF)</legend>
+                    <?php if ($certificado['flash']): ?>
+                        <div class="alerta alerta--<?= $certificado['flash']['tipo'] === 'success' ? 'exito' : 'error' ?>" role="status">
+                            <?= e($certificado['flash']['texto']) ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php if ($certificado['url']): ?>
+                        <p><a href="<?= e($certificado['url']) ?>" target="_blank" rel="noopener">Ver mi certificado actual (PDF)</a>. Si subes otro, reemplaza al actual.</p>
+                    <?php endif; ?>
+                    <div class="campo">
+                        <label for="certificado_idoneidad">Archivo PDF (máx. 5 MB)</label>
+                        <input type="file" id="certificado_idoneidad" name="certificado_idoneidad" accept="application/pdf,.pdf" required>
+                    </div>
+                    <input type="hidden" name="csrf" value="<?= e($certificado['csrf']) ?>">
+                    <div class="formulario__acciones">
+                        <button type="submit" class="btn btn--primario">Subir certificado</button>
+                    </div>
+                </fieldset>
+            </form>
         </div>
 
     </main>

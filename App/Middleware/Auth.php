@@ -102,13 +102,22 @@ class Auth
      * Guarda en la sesión de PHP el rol y el JWT que la API ya validó (/auth/me).
      * Se llama desde SesionController después del login.
      */
-    public static function establecerSesion(string $rol, string $token, string $nombre = ''): void
+    public static function establecerSesion(string $rol, string $token, string $nombre = '', ?int $idMedico = null): void
     {
         self::iniciarSesion();
         session_regenerate_id(true);   // evita fijación de sesión
-        $_SESSION['rol']     = $rol;
-        $_SESSION['token']   = $token;
-        $_SESSION['usuario'] = $nombre;
+        $_SESSION['rol']       = $rol;
+        $_SESSION['token']     = $token;
+        $_SESSION['usuario']   = $nombre;
+        $_SESSION['id_medico'] = $idMedico;
+    }
+
+    /** id_medico del usuario con sesión (solo el rol médico lo tiene; lo da GET /auth/me). */
+    public static function idMedico(): ?int
+    {
+        self::iniciarSesion();
+        $id = $_SESSION['id_medico'] ?? null;
+        return is_int($id) && $id > 0 ? $id : null;
     }
 
     /** JWT de la sesión actual (lo usa ApiClient para llamar a la API). */

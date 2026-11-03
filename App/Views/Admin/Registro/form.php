@@ -98,7 +98,8 @@ $selectMultiple = function (string $campo, string $etiqueta) use ($medico, $cata
       <!-- PATCH /medicos/{id} solo acepta datos personales, dirección residencial y relaciones -->
       <div class="registro__alerta" role="note">
         Al editar solo se guardan los datos personales, la dirección residencial, las especialidades,
-        subespecialidades y asociaciones. Los cambios en información laboral, título básico y certificación no se guardan todavía.
+        subespecialidades, asociaciones y el PDF del certificado. Los cambios en información laboral, título básico
+        y datos de certificación (fechas, puntaje) no se guardan todavía.
       </div>
     <?php endif; ?>
 
@@ -332,10 +333,17 @@ $selectMultiple = function (string $campo, string $etiqueta) use ($medico, $cata
         </div>
       </div>
 
-      <!-- Certificado de idoneidad en PDF (esto puede cambiar en base al backend) -->
+      <!-- Certificado de idoneidad en PDF: se sube con POST /medicos/{id}/certificado al guardar -->
+      <?php if (!empty($medico['id']) && !empty($medico['certificado_pdf'])): ?>
+        <p class="registro__certificado-actual">
+          <a href="<?= htmlspecialchars(($entrada ?? 'index.php') . '?' . http_build_query(['c' => 'registro', 'a' => 'certificado', 'id' => $medico['id']]), ENT_QUOTES, 'UTF-8') ?>"
+             target="_blank" rel="noopener">Ver certificado de idoneidad actual (PDF)</a>
+          · Si adjuntas otro, reemplaza al actual.
+        </p>
+      <?php endif; ?>
       <label class="registro__adjuntar" for="certificado_idoneidad">
-        <span id="certificado_nombre">Adjuntar certificado de idoneidad (PDF)</span>
-        <input type="file" id="certificado_idoneidad" name="certificado_idoneidad" accept="application/pdf">
+        <span id="certificado_nombre">Adjuntar certificado de idoneidad (PDF, máx. 5 MB)</span>
+        <input type="file" id="certificado_idoneidad" name="certificado_idoneidad" accept="application/pdf,.pdf">
       </label>
       <span class="field__error"><?= $err('certificado_idoneidad') ?></span>
     </section>

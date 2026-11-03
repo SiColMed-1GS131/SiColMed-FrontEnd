@@ -66,7 +66,8 @@ final class SesionController
             $this->responder(403, ['ok' => false, 'mensaje' => 'Tu rol no tiene acceso a esta aplicación.']);
         }
 
-        \Auth::establecerSesion($rol, $token, (string) ($usuario['nombre'] ?? $usuario['email'] ?? ''));
+        $idMedico = is_int($usuario['id_medico'] ?? null) ? $usuario['id_medico'] : null;
+        \Auth::establecerSesion($rol, $token, (string) ($usuario['nombre'] ?? $usuario['email'] ?? ''), $idMedico);
         $this->responder(200, [
             'ok'      => true,
             'rol'     => $rol,

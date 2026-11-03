@@ -7,6 +7,8 @@ namespace App\Controllers;
 use App\Repositories\CatalogosRepository;
 use App\Repositories\RegistroMedicoRepository;
 
+require_once __DIR__ . '/../Helpers/ui.php';   // enviarPdf()
+
 /** Registro médico, lista, formulario (nuevo o editar) y guardado. */
 final class RegistroController
 {
@@ -74,6 +76,10 @@ final class RegistroController
         $id = $this->leerId($_GET['id'] ?? null);
         $resultado = $id === null ? null : $this->medicos->obtener($id);
 
+        // Con la sesión vencida la API solo devuelve la ficha pública: no sirve para editar
+        if ($resultado !== null && $resultado['ok'] && !empty($resultado['datos']['publico'])) {
+            $resultado = ['ok' => false, 'error' => 'Tu sesión expiró. Inicia sesión de nuevo para editar este médico.'];
+        }
         if ($resultado === null || !$resultado['ok']) {
             $this->guardarMensaje(($resultado['error'] ?? '') ?: 'Médico no encontrado.');
             $this->redirigir($this->entrada() . '?c=registro&a=index');
@@ -91,13 +97,23 @@ final class RegistroController
         $id = $this->leerId($datos['id'] ?? null);
         unset($datos['id']);
 
-        // Posible cambio, foto y PDF ahora mismo solo se envían los textos.
+        // Primero los datos (un médico nuevo necesita su id) y después el certificado PDF.
+        // La foto todavía no se envía.
         $resultado = $id === null
             ? $this->medicos->crear($datos)
             : $this->medicos->actualizar($id, $datos);
 
         if ($resultado['ok']) {
-            $this->guardarMensaje('Médico guardado correctamente.');
+            $mensaje = 'Médico guardado correctamente.';
+            $idMedico = $id ?? (int) ($resultado['datos']['id_medico'] ?? 0);
+            $pdf = $_FILES['certificado_idoneidad'] ?? null;
+            if (\is_array($pdf) && ($pdf['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE && $idMedico > 0) {
+                $subida = $this->medicos->subirCertificado($idMedico, $pdf);
+                $mensaje = $subida['ok']
+                    ? 'Médico y certificado guardados correctamente.'
+                    : 'Médico guardado, pero el certificado no se subió: ' . $subida['error'] . ' Edítalo para intentarlo de nuevo.';
+            }
+            $this->guardarMensaje($mensaje);
             $this->redirigir($this->entrada() . '?c=registro&a=index');
         }
 
@@ -107,6 +123,16 @@ final class RegistroController
             'errores' => $resultado['errores'],
             'errorGeneral' => $resultado['error'],
         ]);
+    }
+
+    // Descarga el certificado de idoneidad de un médico (la API exige sesión de administrador)
+    public function certificado(): never
+    {
+        $this->verificarAcceso();
+
+        $id = $this->leerId($_GET['id'] ?? null);
+        $resultado = $id === null ? null : $this->medicos->descargarCertificado($id);
+        enviarPdf($resultado, 'certificado_idoneidad_' . $id . '.pdf');
     }
 
     // Registra una fila proveniente de la importación CSV.

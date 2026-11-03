@@ -30,6 +30,24 @@ if (!function_exists('badgeTipo')) {
     }
 }
 
+// Responde un PDF descargado de la API (RegistroMedicoRepository::descargarCertificado)
+// o un mensaje de error en texto. Termina la petición.
+if (!function_exists('enviarPdf')) {
+    function enviarPdf(?array $resultado, string $nombreArchivo): never
+    {
+        if ($resultado === null || !$resultado['ok'] || !is_string($resultado['datos'])) {
+            http_response_code(404);
+            header('Content-Type: text/plain; charset=UTF-8');
+            exit(($resultado['error'] ?? '') ?: 'Certificado no encontrado.');
+        }
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: inline; filename="' . preg_replace('/[^A-Za-z0-9_.-]/', '', $nombreArchivo) . '"');
+        header('Content-Length: ' . strlen($resultado['datos']));
+        echo $resultado['datos'];
+        exit;
+    }
+}
+
 // Clase View: las vistas la usan como View::partial('badge_tipo', [...]).
 // Carga App/Views/Partials/<nombre>.php con las variables recibidas.
 if (!class_exists('View')) {

@@ -125,9 +125,12 @@ final class RegistroMedicoRepository
             return $this->resultado(false, [], 'Médico no encontrado.');
         }
 
+        // Sin sesión (o sin permiso) la API devuelve la ficha pública, no el perfil completo
         $resultado = $this->interpretar($this->api->getJson('/medicos/' . $id));
         if ($resultado['ok']) {
-            $resultado['datos'] = $this->desdePerfil($resultado['datos'], $id);
+            $resultado['datos'] = isset($resultado['datos']['datos_personales'])
+                ? $this->desdePerfil($resultado['datos'], $id)
+                : $this->desdeFichaPublica($resultado['datos']);
         }
         return $resultado;
     }
@@ -152,12 +155,49 @@ final class RegistroMedicoRepository
         if (!$actual['ok']) {
             return $actual;
         }
+        if (!empty($actual['datos']['publico'])) {
+            return $this->resultado(false, [], 'Tu sesión expiró. Inicia sesión de nuevo para editar este médico.');
+        }
 
         $cambios = $this->paraActualizacion($datos, $actual['datos']);
         if ($cambios === []) {
             return $this->resultado(true, []);
         }
         return $this->interpretar($this->api->patchJson('/medicos/' . $id, $cambios));
+    }
+
+    /**
+     * Sube el certificado de idoneidad (POST /medicos/{id}/certificado, multipart).
+     * $archivo es la entrada de $_FILES. La API valida que sea un PDF de hasta 5 MB
+     * y solo lo acepta del administrador o del propio médico.
+     */
+    public function subirCertificado(int $id, array $archivo): array
+    {
+        $error = (int) ($archivo['error'] ?? UPLOAD_ERR_NO_FILE);
+        if ($error === UPLOAD_ERR_INI_SIZE || $error === UPLOAD_ERR_FORM_SIZE) {
+            return $this->resultado(false, [], 'El certificado no puede superar 5 MB.');
+        }
+        if ($error !== UPLOAD_ERR_OK || !\is_uploaded_file((string) ($archivo['tmp_name'] ?? ''))) {
+            return $this->resultado(false, [], 'No se pudo recibir el archivo del certificado.');
+        }
+        if ($this->usaMock()) {
+            return $this->resultado(true, ['certificado_pdf' => 'certificados/' . $id . '.pdf']);
+        }
+
+        // Se declara application/pdf; la API revisa además que el contenido sea un PDF
+        $respuesta = $this->api->postArchivo('/medicos/' . $id . '/certificado', 'archivo',
+            (string) $archivo['tmp_name'], (string) ($archivo['name'] ?? 'certificado.pdf'), 'application/pdf');
+        return $this->interpretar($respuesta);
+    }
+
+    // PDF del certificado (GET /medicos/{id}/certificado). 'datos' trae el contenido binario.
+    public function descargarCertificado(int $id): array
+    {
+        $respuesta = $this->api->getJson('/medicos/' . $id . '/certificado');
+        if ($respuesta['status'] === 200 && \is_string($respuesta['body'])) {
+            return $this->resultado(true, $respuesta['body']);
+        }
+        return $this->interpretar($respuesta);
     }
 
     // ------------------------------------------------------------------
@@ -325,7 +365,8 @@ final class RegistroMedicoRepository
     {
         $perfil = \is_array($perfil) ? $perfil : [];
         $dp = \is_array($perfil['datos_personales'] ?? null) ? $perfil['datos_personales'] : [];
-        $medico = ['id' => $id, 'foto_url' => (string) ($dp['foto'] ?? ''), 'foto' => (string) ($dp['foto'] ?? '')];
+        $medico = ['id' => $id, 'foto_url' => (string) ($dp['foto'] ?? ''), 'foto' => (string) ($dp['foto'] ?? ''),
+                   'certificado_pdf' => (string) ($dp['certificado_pdf'] ?? '')];
         foreach (self::CAMPOS_MEDICO as $campo => $api) {
             $medico[$campo] = (string) ($dp[$api] ?? '');
         }
@@ -373,6 +414,31 @@ final class RegistroMedicoRepository
         $medico['direccion_laboral'] = $partes !== [] ? \implode(', ', $partes) : null;
 
         return $medico;
+    }
+
+    /**
+     * Ficha pública de GET /medicos/{id} (MedicoPublico) → claves de Directorio/ver.php.
+     * No trae datos de contacto ni registro médico: la vista oculta esas filas.
+     */
+    private function desdeFichaPublica(array $ficha): array
+    {
+        $nombres = static fn (string $clave): string => \implode(', ', \array_map(
+            static fn ($r) => (string) ($r['nombre'] ?? ''),
+            \is_array($ficha[$clave] ?? null) ? $ficha[$clave] : []
+        ));
+        return [
+            'id'                  => (int) ($ficha['id_medico'] ?? 0),
+            'publico'             => true,
+            'nombre'              => (string) ($ficha['nombre_completo'] ?? ''),
+            'apellido'            => '',
+            'numero_idoneidad'    => (string) ($ficha['numero_idoneidad'] ?? ''),
+            'especialidad'        => $nombres('especialidades'),
+            'subespecialidad'     => $nombres('subespecialidades') !== '' ? $nombres('subespecialidades') : null,
+            'organizaciones'      => $nombres('asociaciones') !== '' ? $nombres('asociaciones') : null,
+            'provincia'           => (string) ($ficha['provincia'] ?? ''),
+            'vigente'             => (bool) ($ficha['certificacion_vigente'] ?? false),
+            'empresa_institucion' => $ficha['lugar_trabajo'] ?? null,
+        ];
     }
 
     // Dirección de la API (con nombres) → campos del formulario (con IDs)

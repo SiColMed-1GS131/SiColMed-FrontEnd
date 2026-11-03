@@ -36,8 +36,24 @@ final class ApiClient
         return $this->enviar('DELETE', $path);
     }
 
+    /**
+     * Sube un archivo como multipart/form-data (un solo campo).
+     * @return array{status:int, body:string|null}
+     */
+    public function postArchivo(string $path, string $campo, string $rutaArchivo, string $nombre, string $tipo): array
+    {
+        $limite = '----SiColMed' . bin2hex(random_bytes(12));
+        $nombre = str_replace(['"', "\r", "\n"], '', $nombre);
+        $cuerpo = "--{$limite}\r\n"
+            . "Content-Disposition: form-data; name=\"{$campo}\"; filename=\"{$nombre}\"\r\n"
+            . "Content-Type: {$tipo}\r\n\r\n"
+            . (string) file_get_contents($rutaArchivo) . "\r\n"
+            . "--{$limite}--\r\n";
+        return $this->enviar('POST', $path, null, $cuerpo, "multipart/form-data; boundary={$limite}");
+    }
+
     /** @return array{status:int, body:string|null} */
-    private function enviar(string $metodo, string $path, ?array $payload = null): array
+    private function enviar(string $metodo, string $path, ?array $payload = null, ?string $cuerpo = null, ?string $tipoCuerpo = null): array
     {
         $base = rtrim((string) (getenv('API_URL') ?: 'http://api:8000'), '/');
 
@@ -50,6 +66,9 @@ final class ApiClient
         if ($payload !== null) {
             $cabeceras .= "Content-Type: application/json\r\n";
             $opciones['content'] = json_encode($payload, JSON_THROW_ON_ERROR);
+        } elseif ($cuerpo !== null) {
+            $cabeceras .= "Content-Type: {$tipoCuerpo}\r\n";
+            $opciones['content'] = $cuerpo;
         }
         $token = $this->tokenDeSesion();
         if ($token !== null) {
