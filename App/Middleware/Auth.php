@@ -25,13 +25,21 @@ class Auth
     ];
 
     /**
+     * Controladores (parámetro ?c=) que puede abrir cualquier visitante, con o sin sesión.
+     * 'sistema' lo atiende Public/index.php antes de llegar aquí.
+     */
+    private const PUBLICOS = ['home', 'login', 'register', 'sesion', 'directorio'];
+
+    /**
      * Qué roles pueden entrar a cada controlador (parámetro ?c=).
-     * Si un controlador no aparece aquí, es de acceso libre.
+     * Si un controlador no aparece aquí ni en PUBLICOS, se deniega el acceso.
      */
     private const PERMISOS = [
-        // Módulo 2: se activan cuando exista el login (hoy todos entran como 'publico')
-        // 'registro' => [self::ADMIN],
-        // 'perfil'   => [self::MEDICO],
+        // Cualquier usuario con sesión
+        'panel'       => [self::MEDICO, self::ADMIN, self::TESORERO, self::ADMIN_ASOCIACION],
+        // Módulo 2
+        'registro'    => [self::ADMIN],
+        'perfil'      => [self::MEDICO],
         // Módulo 5
         'cuentas'     => [self::TESORERO, self::ADMIN],
         'movimientos' => [self::TESORERO, self::ADMIN],
@@ -133,10 +141,12 @@ class Auth
     public static function puedeEntrar(string $controlador): bool
     {
         $controlador = strtolower($controlador);
-        if (self::modoPrueba() || !isset(self::PERMISOS[$controlador])) {
+        if (self::modoPrueba() || in_array($controlador, self::PUBLICOS, true)) {
             return true;
         }
-        return in_array(self::rol(), self::PERMISOS[$controlador], true);
+        // Denegar por defecto: un controlador sin permisos declarados no es público
+        return isset(self::PERMISOS[$controlador])
+            && in_array(self::rol(), self::PERMISOS[$controlador], true);
     }
 
     /**

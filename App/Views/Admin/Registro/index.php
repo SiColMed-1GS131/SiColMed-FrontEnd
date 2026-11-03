@@ -2,9 +2,13 @@
 /**
  * Registro médico · lista de médicos.
  * Solo contenido: RegistroController::render() arma el layout (header, sidebar, main y footer).
- * Variables: $medicos (array), $mensaje (string, opcional), $entrada (URL de index.php)
+ * Variables: $medicos (array), $total, $paginaActual, $totalPaginas, $mensaje (string, opcional), $entrada (URL de index.php)
+ * Cada médico viene de GET /medicos (RegistroMedicoRepository::desdeResumen): id, nombre_completo, numero_idoneidad, especialidad
  */
 $medicos = $medicos ?? [];
+$total = $total ?? count($medicos);
+$paginaActual = $paginaActual ?? 1;
+$totalPaginas = $totalPaginas ?? 0;
 $entrada = $entrada ?? 'index.php';
 $esc = static fn($t): string => htmlspecialchars((string) $t, ENT_QUOTES, 'UTF-8');
 ?>
@@ -29,7 +33,7 @@ $esc = static fn($t): string => htmlspecialchars((string) $t, ENT_QUOTES, 'UTF-8
     <?php endif; ?>
 
     <div class="registro-lista__panel">
-        <p class="registro-lista__total"><?= count($medicos) ?> médico(s) registrado(s)</p>
+        <p class="registro-lista__total"><?= (int) $total ?> médico(s) registrado(s)</p>
 
         <?php if (empty($medicos)): ?>
             <p class="registro-lista__vacio">Todavía no hay médicos registrados. Usa el botón «Nuevo médico» para agregar el primero.</p>
@@ -39,8 +43,7 @@ $esc = static fn($t): string => htmlspecialchars((string) $t, ENT_QUOTES, 'UTF-8
                     <thead>
                         <tr>
                             <th scope="col">Nombre</th>
-                            <th scope="col">Cédula</th>
-                            <th scope="col">Registro médico</th>
+                            <th scope="col">N.º de idoneidad</th>
                             <th scope="col">Especialidad</th>
                             <th scope="col"><span class="visualmente-oculto">Acciones</span></th>
                         </tr>
@@ -48,9 +51,8 @@ $esc = static fn($t): string => htmlspecialchars((string) $t, ENT_QUOTES, 'UTF-8
                     <tbody>
                         <?php foreach ($medicos as $m): ?>
                             <tr>
-                                <td><?= $esc(trim(($m['nombre'] ?? '') . ' ' . ($m['apellido'] ?? ''))) ?></td>
-                                <td><?= $esc($m['cedula'] ?? '') ?></td>
-                                <td><?= $esc($m['registro_medico'] ?? '') ?></td>
+                                <td><?= $esc($m['nombre_completo'] ?? '') ?></td>
+                                <td><?= $esc($m['numero_idoneidad'] ?? '') ?></td>
                                 <td><?= $esc($m['especialidad'] ?? '') ?></td>
                                 <td class="registro-tabla__acciones">
                                     <a href="<?= $esc($entrada . '?' . http_build_query(['c' => 'registro', 'a' => 'editar', 'id' => $m['id'] ?? 0])) ?>">Editar</a>
@@ -60,6 +62,14 @@ $esc = static fn($t): string => htmlspecialchars((string) $t, ENT_QUOTES, 'UTF-8
                     </tbody>
                 </table>
             </div>
+            <?php if ($totalPaginas > 1): ?>
+                <nav class="paginacion" aria-label="Páginas">
+                    <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
+                        <a href="<?= $esc($entrada . '?' . http_build_query(['c' => 'registro', 'a' => 'index', 'page' => $i])) ?>"
+                           class="paginacion__link <?= $i === $paginaActual ? 'paginacion__link--activo' : '' ?>"><?= $i ?></a>
+                    <?php endfor; ?>
+                </nav>
+            <?php endif; ?>
         <?php endif; ?>
     </div>
     <div id="csv-medicos-estado" class="registro-lista__csv-estado" role="status" aria-live="polite" hidden></div>

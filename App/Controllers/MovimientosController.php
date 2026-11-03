@@ -22,7 +22,6 @@ final class MovimientosController
 {
     private const ENTRADA = '/index.php';
     private const VISTAS = __DIR__ . '/../Views/Admin/Contabilidad/Movimientos/';
-    private const TIPOS = ['DEBITO', 'CREDITO'];
 
     private MovimientosRepository $movimientos;
     private CuentasRepository $cuentas;
@@ -92,10 +91,10 @@ final class MovimientosController
 
         $old = [
             'fecha'       => $this->fechaValida((string) ($_GET['fecha'] ?? '')) ?? date('Y-m-d'),
-            'descripcion' => '',
-            'id_cuenta'   => '',
-            'monto'       => '',
-            'tipo'        => '',
+            'descripcion'       => '',
+            'id_cuenta_debito'  => '',
+            'id_cuenta_credito' => '',
+            'monto'             => '',
         ];
 
         // Solo cuentas activas: una cuenta inactiva no recibe movimientos
@@ -108,11 +107,11 @@ final class MovimientosController
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && $errorApi === null) {
             $old = [
-                'fecha'       => trim((string) ($_POST['fecha'] ?? '')),
-                'descripcion' => trim((string) ($_POST['descripcion'] ?? '')),
-                'id_cuenta'   => (string) ($_POST['id_cuenta'] ?? ''),
-                'monto'       => trim((string) ($_POST['monto'] ?? '')),
-                'tipo'        => (string) ($_POST['tipo'] ?? ''),
+                'fecha'             => trim((string) ($_POST['fecha'] ?? '')),
+                'descripcion'       => trim((string) ($_POST['descripcion'] ?? '')),
+                'id_cuenta_debito'  => (string) ($_POST['id_cuenta_debito'] ?? ''),
+                'id_cuenta_credito' => (string) ($_POST['id_cuenta_credito'] ?? ''),
+                'monto'             => trim((string) ($_POST['monto'] ?? '')),
             ];
 
             if (!$this->csrfValido()) {
@@ -270,20 +269,21 @@ final class MovimientosController
         }
 
         $ids = array_map(fn(array $c) => (string) $c['id_cuenta'], $cuentasActivas);
-        if ($d['id_cuenta'] === '') {
-            $errores['id_cuenta'] = 'Elige una cuenta.';
-        } elseif (!in_array($d['id_cuenta'], $ids, true)) {
-            $errores['id_cuenta'] = 'La cuenta elegida no está disponible.';
+        foreach (['id_cuenta_debito', 'id_cuenta_credito'] as $campo) {
+            if ($d[$campo] === '') {
+                $errores[$campo] = 'Elige una cuenta.';
+            } elseif (!in_array($d[$campo], $ids, true)) {
+                $errores[$campo] = 'La cuenta elegida no está disponible.';
+            }
+        }
+        if (!isset($errores['id_cuenta_credito']) && $d['id_cuenta_debito'] !== '' && $d['id_cuenta_debito'] === $d['id_cuenta_credito']) {
+            $errores['id_cuenta_credito'] = 'La cuenta a acreditar debe ser distinta de la cuenta a debitar.';
         }
 
         if ($d['monto'] === '' || !preg_match('/^\d{1,8}(\.\d{1,2})?$/', $d['monto'])) {
             $errores['monto'] = 'Escribe un monto válido (máximo 2 decimales).';
         } elseif ((float) $d['monto'] <= 0) {
             $errores['monto'] = 'El monto debe ser mayor que cero.';
-        }
-
-        if (!in_array($d['tipo'], self::TIPOS, true)) {
-            $errores['tipo'] = 'Elige Débito o Crédito.';
         }
 
         return $errores;

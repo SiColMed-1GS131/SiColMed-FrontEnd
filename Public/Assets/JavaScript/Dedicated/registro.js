@@ -243,6 +243,32 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  /* Dirección: provincia → distrito → corregimiento (IDs del catálogo de la API) */
+  const urlCatalogo = form ? form.getAttribute('action').replace(/a=guardar\b/, 'a=catalogo') : null;
+
+  function vaciarSelect(select) {
+    if (!select) return;
+    select.length = 1;   // deja solo "Seleccione"
+    const siguiente = select.dataset.destino ? document.getElementById(select.dataset.destino) : null;
+    vaciarSelect(siguiente);
+  }
+
+  document.querySelectorAll('select[data-cascada]').forEach((select) => {
+    select.addEventListener('change', async () => {
+      const destino = document.getElementById(select.dataset.destino);
+      vaciarSelect(destino);
+      if (!destino || !select.value || !urlCatalogo) return;
+      try {
+        const url = `${urlCatalogo}&recurso=${encodeURIComponent(select.dataset.cascada)}&id=${encodeURIComponent(select.value)}`;
+        const respuesta = await fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+        const lista = respuesta.ok ? await respuesta.json() : [];
+        lista.forEach((item) => destino.add(new Option(item.nombre, String(item.id))));
+      } catch (error) {
+        // Sin catálogo el select queda vacío; el backend avisará que falta el corregimiento
+      }
+    });
+  });
+
   /* Certificado PDF */
   const inputPdf = document.getElementById('certificado_idoneidad');
   const textoPdf = document.getElementById('certificado_nombre');

@@ -6,6 +6,15 @@ $avatar  = rtrim(dirname($entrada), '/') . '/Assets/IMG/ICONS/usuario.png';   //
 // Acciones del controlador: interno (index/ver) o página pública (publico/publicoVer)
 $accionIndex = $accionIndex ?? 'index';
 $accionVer   = $accionVer ?? 'ver';
+// Los filtros se envían con los nombres de GET /medicos; los selects usan IDs de los catálogos
+$filtros   = $filtros ?? [];
+$catalogos = $catalogos ?? [];
+$opcionesCatalogo = static function (array $lista, string $actual) use ($esc): void {
+    foreach ($lista as $item) {
+        $id = (string) $item['id'];
+        echo '<option value="' . $esc($id) . '"' . ($actual === $id ? ' selected' : '') . '>' . $esc($item['nombre']) . '</option>';
+    }
+};
 ?>
 <?php
 // Enlace a otra página conservando los filtros activos
@@ -29,30 +38,28 @@ $enlacePagina = static fn (int $pagina): string => $entrada . '?' . http_build_q
             <input type="hidden" name="a" value="<?= $esc($accionIndex) ?>">
 
             <div class="directorio-filtros__grid">
+                <!-- Apellido -->
+                <div class="campo">
+                    <label class="campo__label" for="filtro-apellido">Apellido</label>
+                    <input class="campo__input" type="search" id="filtro-apellido" name="apellido" maxlength="100"
+                           value="<?= $esc($filtros['apellido'] ?? '') ?>">
+                </div>
+
                 <!-- Especialidad -->
                 <div class="campo">
-                    <label class="campo__label" for="filtro-especialidad">Especialidad / Subespecialidad</label>
-                    <select class="campo__input" id="filtro-especialidad" name="especialidad">
+                    <label class="campo__label" for="filtro-especialidad">Especialidad</label>
+                    <select class="campo__input" id="filtro-especialidad" name="id_especialidad">
                         <option value="">Seleccionar especialidad</option>
-                        <option value="cardiologia">Cardiología</option>
-                        <option value="cirugia-general">Cirugía General</option>
-                        <option value="dermatologia">Dermatología</option>
-                        <option value="ginecologia">Ginecología y Obstetricia</option>
-                        <option value="medicina-interna">Medicina Interna</option>
-                        <option value="oftalmologia">Oftalmología</option>
-                        <option value="ortopedia">Ortopedia</option>
-                        <option value="pediatria">Pediatría</option>
-                        <option value="psiquiatria">Psiquiatría</option>
+                        <?php $opcionesCatalogo($catalogos['especialidades'] ?? [], (string) ($filtros['id_especialidad'] ?? '')); ?>
                     </select>
                 </div>
 
                 <!-- Asociación -->
                 <div class="campo">
                     <label class="campo__label" for="filtro-asociacion">Asociación</label>
-                    <select class="campo__input" id="filtro-asociacion" name="asociacion">
+                    <select class="campo__input" id="filtro-asociacion" name="id_asociacion">
                         <option value="">Seleccionar asociación</option>
-                        <option value="sociedad-panamena-cardiologia">Soc. Panameña de Cardiología</option>
-                        <option value="sociedad-panamena-pediatria">Soc. Panameña de Pediatría</option>
+                        <?php $opcionesCatalogo($catalogos['asociaciones'] ?? [], (string) ($filtros['id_asociacion'] ?? '')); ?>
                     </select>
                 </div>
 
@@ -60,26 +67,18 @@ $enlacePagina = static fn (int $pagina): string => $entrada . '?' . http_build_q
                 <div class="campo campo--radio">
                     <span class="campo__label">Certificación</span>
                     <div class="campo__opciones-radio">
-                        <label><input type="radio" name="certificacion" value="vigente"> Vigente</label>
-                        <label><input type="radio" name="certificacion" value="no-vigente"> No vigente</label>
+                        <?php $vigente = (string) ($filtros['certificacion_vigente'] ?? ''); ?>
+                        <label><input type="radio" name="certificacion_vigente" value="true"<?= $vigente === 'true' ? ' checked' : '' ?>> Vigente</label>
+                        <label><input type="radio" name="certificacion_vigente" value="false"<?= $vigente === 'false' ? ' checked' : '' ?>> No vigente</label>
                     </div>
                 </div>
 
                 <!-- Provincia -->
                 <div class="campo">
                     <label class="campo__label" for="filtro-provincia">Provincia</label>
-                    <select class="campo__input" id="filtro-provincia" name="provincia">
+                    <select class="campo__input" id="filtro-provincia" name="id_provincia">
                         <option value="">Seleccionar provincia</option>
-                        <option value="bocas-del-toro">Bocas del Toro</option>
-                        <option value="cocle">Coclé</option>
-                        <option value="colon">Colón</option>
-                        <option value="chiriqui">Chiriquí</option>
-                        <option value="darien">Darién</option>
-                        <option value="herrera">Herrera</option>
-                        <option value="los-santos">Los Santos</option>
-                        <option value="panama">Panamá</option>
-                        <option value="panama-oeste">Panamá Oeste</option>
-                        <option value="veraguas">Veraguas</option>
+                        <?php $opcionesCatalogo($catalogos['provincias'] ?? [], (string) ($filtros['id_provincia'] ?? '')); ?>
                     </select>
                 </div>
 
@@ -108,13 +107,13 @@ $enlacePagina = static fn (int $pagina): string => $entrada . '?' . http_build_q
                     <?php foreach ($medicos as $medico): ?>
                         <tr>
                             <td class="medico-hover-container">
-                                <span class="medico-nombre"><?= $esc(($medico['apellido'] ?? '') . ', ' . ($medico['nombre'] ?? '')) ?></span>
+                                <span class="medico-nombre"><?= $esc($medico['nombre_completo'] ?? '') ?></span>
                                 
                                 <div class="tarjeta-flotante">
                                     <div class="tarjeta-flotante__header">
                                         <img src="<?= !empty($medico['foto']) ? $esc($medico['foto']) : $esc($avatar) ?>" alt="Foto" class="tarjeta-flotante__foto">
                                         <div class="tarjeta-flotante__info-principal">
-                                            <span class="tarjeta-flotante__nombre"><?= $esc(trim(($medico['nombre'] ?? '') . ' ' . ($medico['apellido'] ?? ''))) ?></span>
+                                            <span class="tarjeta-flotante__nombre"><?= $esc($medico['nombre_completo'] ?? '') ?></span>
                                             <span class="tarjeta-flotante__especialidad"><?= $esc($medico['especialidad'] ?? '') ?></span>
                                         </div>
                                     </div>

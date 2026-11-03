@@ -59,20 +59,22 @@ $puedeEnviar = empty($errorApi) || !empty($cuentas);
             <p class="field__error" id="descripcion-error" data-error-for="descripcion" role="alert"><?= e($errores['descripcion'] ?? '') ?></p>
         </div>
 
-        <div class="field <?= $hayError('id_cuenta') ? 'field--error' : '' ?>">
-            <label for="id_cuenta">Cuenta <span class="req" aria-hidden="true">*</span></label>
-            <select id="id_cuenta" name="id_cuenta" required
-                    aria-describedby="id_cuenta-ayuda id_cuenta-error" <?= $hayError('id_cuenta') ? 'aria-invalid="true"' : '' ?>>
+        <?php // Partida doble: el mismo monto va al débito de una cuenta y al crédito de otra ?>
+        <?php foreach (['id_cuenta_debito' => 'Cuenta a debitar', 'id_cuenta_credito' => 'Cuenta a acreditar'] as $campo => $etiqueta): ?>
+        <div class="field <?= $hayError($campo) ? 'field--error' : '' ?>">
+            <label for="<?= e($campo) ?>"><?= e($etiqueta) ?> <span class="req" aria-hidden="true">*</span></label>
+            <select id="<?= e($campo) ?>" name="<?= e($campo) ?>" required
+                    aria-describedby="<?= e($campo) ?>-error" <?= $hayError($campo) ? 'aria-invalid="true"' : '' ?>>
                 <option value="">Selecciona una cuenta</option>
                 <?php foreach ($cuentas as $c): ?>
-                    <option value="<?= e($c['id_cuenta']) ?>" <?= (string) $old['id_cuenta'] === (string) $c['id_cuenta'] ? 'selected' : '' ?>>
+                    <option value="<?= e($c['id_cuenta']) ?>" <?= (string) $old[$campo] === (string) $c['id_cuenta'] ? 'selected' : '' ?>>
                         <?= e($c['nombre']) ?> (<?= $c['tipo'] === 'DEBITO' ? 'Débito' : 'Crédito' ?>)
                     </option>
                 <?php endforeach; ?>
             </select>
-            <p class="field__ayuda" id="id_cuenta-ayuda"></p>
-            <p class="field__error" id="id_cuenta-error" data-error-for="id_cuenta" role="alert"><?= e($errores['id_cuenta'] ?? '') ?></p>
+            <p class="field__error" id="<?= e($campo) ?>-error" data-error-for="<?= e($campo) ?>" role="alert"><?= e($errores[$campo] ?? '') ?></p>
         </div>
+        <?php endforeach; ?>
 
         <div class="field <?= $hayError('monto') ? 'field--error' : '' ?>">
             <label for="monto">Monto <span class="req" aria-hidden="true">*</span></label>
@@ -82,22 +84,6 @@ $puedeEnviar = empty($errorApi) || !empty($cuentas);
             <p class="field__ayuda" id="monto-ayuda"></p>
             <p class="field__error" id="monto-error" data-error-for="monto" role="alert"><?= e($errores['monto'] ?? '') ?></p>
         </div>
-
-        <fieldset class="field field--grupo <?= $hayError('tipo') ? 'field--error' : '' ?>"
-                  aria-describedby="tipo-error">
-            <legend>Tipo <span class="req" aria-hidden="true">*</span></legend>
-            <div class="opciones">
-                <label class="opcion">
-                    <input type="radio" name="tipo" value="DEBITO" <?= $old['tipo'] === 'DEBITO' ? 'checked' : '' ?> required>
-                    <span>Débito</span>
-                </label>
-                <label class="opcion">
-                    <input type="radio" name="tipo" value="CREDITO" <?= $old['tipo'] === 'CREDITO' ? 'checked' : '' ?>>
-                    <span>Crédito</span>
-                </label>
-            </div>
-            <p class="field__error" id="tipo-error" data-error-for="tipo" role="alert"><?= e($errores['tipo'] ?? '') ?></p>
-        </fieldset>
 
         <div class="formulario__acciones">
             <button class="btn btn--primary" type="submit" <?= $puedeEnviar ? '' : 'disabled' ?>>Registrar movimiento</button>

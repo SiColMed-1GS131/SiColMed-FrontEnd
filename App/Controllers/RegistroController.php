@@ -4,16 +4,21 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Repositories\CatalogosRepository;
 use App\Repositories\RegistroMedicoRepository;
 
 /** Registro médico, lista, formulario (nuevo o editar) y guardado. */
 final class RegistroController
 {
+    private const POR_PAGINA = 100;   // máximo que acepta GET /medicos
+
     private RegistroMedicoRepository $medicos;
+    private CatalogosRepository $catalogos;
 
     public function __construct()
     {
-        $this->medicos = new RegistroMedicoRepository();
+        $this->catalogos = new CatalogosRepository();
+        $this->medicos = new RegistroMedicoRepository(null, $this->catalogos);
     }
 
     // Lista de médicos
@@ -21,11 +26,15 @@ final class RegistroController
     {
         $this->verificarAcceso();
 
-        $resultado = $this->medicos->listar();
+        $pagina = \filter_var($_GET['page'] ?? 1, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 1;
+        $resultado = $this->medicos->listar(['pagina' => $pagina, 'tamano_pagina' => self::POR_PAGINA]);
         $mensaje = $resultado['ok'] ? $this->tomarMensaje() : $resultado['error'];
 
         $this->render('index', [
             'medicos' => $resultado['ok'] ? $resultado['datos'] : [],
+            'total' => $resultado['paginacion']['total'] ?? 0,
+            'paginaActual' => $resultado['paginacion']['pagina'] ?? 1,
+            'totalPaginas' => $resultado['paginacion']['total_paginas'] ?? 0,
             'mensaje' => $mensaje,
         ]);
     }
@@ -36,6 +45,25 @@ final class RegistroController
         $this->verificarAcceso();
 
         $this->render('form', ['medico' => [], 'errores' => [], 'errorGeneral' => '']);
+    }
+
+    // Distritos o corregimientos en JSON para los selects en cascada del formulario.
+    // ?c=registro&a=catalogo&recurso=distritos&id=<id_provincia> | recurso=corregimientos&id=<id_distrito>
+    public function catalogo(): never
+    {
+        $this->verificarAcceso();
+
+        $id = \filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $lista = match (true) {
+            $id === false => null,
+            ($_GET['recurso'] ?? '') === 'distritos' => $this->catalogos->distritos($id),
+            ($_GET['recurso'] ?? '') === 'corregimientos' => $this->catalogos->corregimientos($id),
+            default => null,
+        };
+        if ($lista === null) {
+            $this->responderJson(400, ['ok' => false, 'error' => 'Catálogo no válido.']);
+        }
+        $this->responderJson(200, \array_map(static fn (array $i) => ['id' => $i['id'], 'nombre' => $i['nombre']], $lista));
     }
 
     // Formulario con los datos del médico
@@ -104,9 +132,31 @@ final class RegistroController
     {
     }
 
+    // Listas de los selects del formulario. Distritos y corregimientos solo de lo ya elegido;
+    // el resto lo carga registro.js con la acción catalogo.
+    private function catalogosFormulario(array $medico): array
+    {
+        $catalogos = [
+            'provincias'        => $this->catalogos->provincias(),
+            'especialidades'    => $this->catalogos->especialidades(),
+            'subespecialidades' => $this->catalogos->subespecialidades(),
+            'asociaciones'      => $this->catalogos->asociaciones(),
+        ];
+        foreach (['residencia', 'trabajo'] as $prefijo) {
+            $provincia = (int) ($medico[$prefijo . '_provincia'] ?? 0);
+            $distrito = (int) ($medico[$prefijo . '_distrito'] ?? 0);
+            $catalogos['distritos'][$prefijo] = $provincia > 0 ? $this->catalogos->distritos($provincia) : [];
+            $catalogos['corregimientos'][$prefijo] = $distrito > 0 ? $this->catalogos->corregimientos($distrito) : [];
+        }
+        return $catalogos;
+    }
+
     // Arma la página (posibles cambios dependiendo de /Views/Partials/...)
     private function render(string $vista, array $datos = []): void
     {
+        if ($vista === 'form') {
+            $datos['catalogos'] = $this->catalogosFormulario($datos['medico'] ?? []);
+        }
         extract($datos, EXTR_SKIP);
         $currentPage = 'registro';
         $extraCss = 'registro.css';   // el header carga base.css y este CSS

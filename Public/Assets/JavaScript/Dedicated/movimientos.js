@@ -3,7 +3,8 @@
  * Validación en el navegador (la validación real y final ocurre en el backend).
  * 
  * Reglas aplicadas:
- *   - Registrar movimiento: fecha, descripción y cuenta obligatorias; monto > 0 (máx 2 decimales); tipo seleccionado.
+ *   - Registrar movimiento: fecha, descripción, cuenta a debitar y cuenta a acreditar (distintas) obligatorias;
+ *     monto > 0 (máx 2 decimales). Se registra como partida doble.
  *   - Filtro fecha del día: fecha obligatoria.
  *   - Filtro rango de cuenta: inicio y fin obligatorios; inicio <= fin.
  * 
@@ -88,12 +89,17 @@
         return form.elements.descripcion.value.trim() ? '' : 'La descripción es obligatoria.';
     }
 
-    function reglaCuenta(form) {
-        return form.elements.id_cuenta.value ? '' : 'Selecciona una cuenta.';
+    function reglaCuentaDebito(form) {
+        return form.elements.id_cuenta_debito.value ? '' : 'Selecciona la cuenta a debitar.';
     }
 
-    function reglaTipo(form) {
-        return form.querySelector('input[name="tipo"]:checked') ? '' : 'Elige Débito o Crédito.';
+    function reglaCuentaCredito(form) {
+        var credito = form.elements.id_cuenta_credito.value;
+        if (!credito) { return 'Selecciona la cuenta a acreditar.'; }
+        if (credito === form.elements.id_cuenta_debito.value) {
+            return 'La cuenta a acreditar debe ser distinta de la cuenta a debitar.';
+        }
+        return '';
     }
 
     function reglaMonto(form) {
@@ -158,10 +164,10 @@
         if (e.monto && e.descripcion) {
             return { 
                 fecha: reglaFecha, 
-                descripcion: reglaDescripcion, 
-                id_cuenta: reglaCuenta, 
-                monto: reglaMonto, 
-                tipo: reglaTipo 
+                descripcion: reglaDescripcion,
+                id_cuenta_debito: reglaCuentaDebito,
+                id_cuenta_credito: reglaCuentaCredito,
+                monto: reglaMonto
             };
         }
         

@@ -34,7 +34,7 @@ final class MovimientosRepository
         return $this->normalizarLista($respuesta);
     }
 
-    // Movimientos de una cuenta en un rango. GET /cuentas/{id}/movimientos?inicio=...&fin=...
+    // Movimientos de una cuenta en un rango. GET /cuentas/{id}/movimientos?fecha_inicio=...&fecha_fin=...
     public function listarPorCuenta(int $idCuenta, string $inicio, string $fin): array
     {
         if ($this->usaMock()) {
@@ -46,28 +46,44 @@ final class MovimientosRepository
             return $this->resultado(true, $this->conNombres($lineas));
         }
 
-        $ruta = '/cuentas/' . $idCuenta . '/movimientos?' . http_build_query(['inicio' => $inicio, 'fin' => $fin]);
-        return $this->normalizarLista($this->interpretar($this->llamar('getJson', $ruta)));
+        $ruta = '/cuentas/' . $idCuenta . '/movimientos?' . http_build_query(['fecha_inicio' => $inicio, 'fecha_fin' => $fin]);
+        $respuesta = $this->normalizarLista($this->interpretar($this->llamar('getJson', $ruta)));
+        // La API no repite la cuenta en cada línea: se completa con la cuenta pedida
+        if ($respuesta['ok']) {
+            foreach ($respuesta['datos'] as &$l) {
+                $l['id_cuenta'] = $idCuenta;
+            }
+            unset($l);
+        }
+        return $respuesta;
     }
 
-    // Registra un movimiento. POST /movimientos
-    // $datos: fecha (AAAA-MM-DD), descripcion, id_cuenta (int), monto ("1250.00"), tipo (DEBITO|CREDITO)
+    // Registra un movimiento de partida doble. POST /movimientos
+    // $datos: fecha (AAAA-MM-DD), descripcion, id_cuenta_debito, id_cuenta_credito, monto ("1250.00")
+    // Se envía {fecha, descripcion, detalle: [línea DEBITO, línea CREDITO]} con el mismo monto.
     public function registrar(array $datos): array
     {
+        $detalle = [
+            ['id_cuenta' => (int) $datos['id_cuenta_debito'],  'monto' => $this->dosDecimales($datos['monto']), 'tipo' => 'DEBITO'],
+            ['id_cuenta' => (int) $datos['id_cuenta_credito'], 'monto' => $this->dosDecimales($datos['monto']), 'tipo' => 'CREDITO'],
+        ];
+
         if ($this->usaMock()) {
             $lineas = $this->mockLeer();
             $id = $lineas === [] ? 1 : max(array_column($lineas, 'id_movimiento')) + 1;
-            $lineas[] = [
-                'id_movimiento' => $id,
-                'fecha' => $datos['fecha'],
-                'descripcion' => $datos['descripcion'],
-                'id_cuenta' => (int) $datos['id_cuenta'],
-                'nombre_cuenta' => '',
-                'tipo' => $datos['tipo'],
-                'monto' => $this->dosDecimales($datos['monto']),
-            ];
+            foreach ($detalle as $d) {
+                $lineas[] = [
+                    'id_movimiento' => $id,
+                    'fecha' => $datos['fecha'],
+                    'descripcion' => $datos['descripcion'],
+                    'id_cuenta' => $d['id_cuenta'],
+                    'nombre_cuenta' => '',
+                    'tipo' => $d['tipo'],
+                    'monto' => $d['monto'],
+                ];
+                $this->marcarCuentaConMovimientos($d['id_cuenta']);
+            }
             $this->mockGuardar($lineas);
-            $this->marcarCuentaConMovimientos((int) $datos['id_cuenta']);
             return $this->resultado(true, ['id_movimiento' => $id]);
         }
 
@@ -75,11 +91,20 @@ final class MovimientosRepository
         $payload = [
             'fecha' => $datos['fecha'],
             'descripcion' => $datos['descripcion'],
-            'id_cuenta' => (int) $datos['id_cuenta'],
-            'monto' => $this->dosDecimales($datos['monto']),
-            'tipo' => $datos['tipo'],
+            'detalle' => $detalle,
         ];
-        return $this->interpretar($this->llamar('postJson', '/movimientos', $payload));
+        $respuesta = $this->interpretar($this->llamar('postJson', '/movimientos', $payload));
+
+        // Errores de detalle[] o de la partida doble no tienen un campo propio en el formulario
+        $propios = array_intersect_key($respuesta['errores'], array_flip(['fecha', 'descripcion', 'monto']));
+        if (count($propios) !== count($respuesta['errores'])) {
+            $otros = array_diff_key($respuesta['errores'], $propios);
+            $respuesta['errores'] = $propios;
+            if ($respuesta['error'] === '') {
+                $respuesta['error'] = implode(' ', array_unique(array_values($otros)));
+            }
+        }
+        return $respuesta;
     }
 
     private function usaMock(): bool

@@ -2,21 +2,28 @@
 
 $medico     = $medico     ?? [];
 $errores    = $errores    ?? [];
+$catalogos  = $catalogos  ?? [];
 $dirPrefijo = $dirPrefijo ?? 'direccion';
 $dirTitulo  = $dirTitulo  ?? 'Dirección';
 
-$provincias = $catalogos['provincias'] ?? [
-    'Bocas del Toro', 'Chiriquí', 'Coclé', 'Colón', 'Darién', 'Herrera',
-    'Los Santos', 'Panamá', 'Panamá Oeste', 'Veraguas',
-    'Comarca Emberá-Wounaan', 'Comarca Guna Yala', 'Comarca Ngäbe-Buglé',
-];
+// Listas con ['id' => int, 'nombre' => string] (RegistroController::catalogosFormulario).
+// Distritos y corregimientos solo traen lo ya elegido; registro.js carga el resto al cambiar el select.
+$provincias     = $catalogos['provincias'] ?? [];
+$distritos      = $catalogos['distritos'][$dirPrefijo] ?? [];
+$corregimientos = $catalogos['corregimientos'][$dirPrefijo] ?? [];
 
 // Funciones auxiliares
 $esc   = fn($texto) => htmlspecialchars((string) $texto, ENT_QUOTES, 'UTF-8');
 $valor = fn($campo) => $esc($medico[$dirPrefijo . '_' . $campo] ?? '');
 $error = fn($campo) => $esc($errores[$dirPrefijo . '_' . $campo] ?? '');
 $pref  = $esc($dirPrefijo);
-$provinciaActual = (string) ($medico[$dirPrefijo . '_provincia'] ?? '');
+$opciones = function (array $lista, string $campo) use ($medico, $dirPrefijo, $esc): void {
+    $actual = (string) ($medico[$dirPrefijo . '_' . $campo] ?? '');
+    foreach ($lista as $item) {
+        $id = (string) $item['id'];
+        echo '<option value="' . $esc($id) . '"' . ($actual === $id ? ' selected' : '') . '>' . $esc($item['nombre']) . '</option>';
+    }
+};
 ?>
 
 <div class="registro__subgrupo" role="group" aria-labelledby="titulo-<?= $pref ?>">
@@ -27,13 +34,10 @@ $provinciaActual = (string) ($medico[$dirPrefijo . '_provincia'] ?? '');
 
     <div class="field">
       <label for="<?= $pref ?>_provincia">Provincia</label>
-      <select id="<?= $pref ?>_provincia" name="<?= $pref ?>_provincia">
+      <select id="<?= $pref ?>_provincia" name="<?= $pref ?>_provincia"
+              data-cascada="distritos" data-destino="<?= $pref ?>_distrito">
         <option value="">Seleccione</option>
-        <?php foreach ($provincias as $provincia): ?>
-          <option value="<?= $esc($provincia) ?>"<?= $provinciaActual === (string) $provincia ? ' selected' : '' ?>>
-            <?= $esc($provincia) ?>
-          </option>
-        <?php endforeach; ?>
+        <?php $opciones($provincias, 'provincia'); ?>
       </select>
       <span class="field__error"><?= $error('provincia') ?></span>
     </div>
@@ -41,13 +45,20 @@ $provinciaActual = (string) ($medico[$dirPrefijo . '_provincia'] ?? '');
 
     <div class="field">
       <label for="<?= $pref ?>_distrito">Distrito</label>
-      <input type="text" id="<?= $pref ?>_distrito" name="<?= $pref ?>_distrito" value="<?= $valor('distrito') ?>">
+      <select id="<?= $pref ?>_distrito" name="<?= $pref ?>_distrito"
+              data-cascada="corregimientos" data-destino="<?= $pref ?>_corregimiento">
+        <option value="">Seleccione</option>
+        <?php $opciones($distritos, 'distrito'); ?>
+      </select>
       <span class="field__error"><?= $error('distrito') ?></span>
     </div>
 
     <div class="field">
       <label for="<?= $pref ?>_corregimiento">Corregimiento</label>
-      <input type="text" id="<?= $pref ?>_corregimiento" name="<?= $pref ?>_corregimiento" value="<?= $valor('corregimiento') ?>">
+      <select id="<?= $pref ?>_corregimiento" name="<?= $pref ?>_corregimiento">
+        <option value="">Seleccione</option>
+        <?php $opciones($corregimientos, 'corregimiento'); ?>
+      </select>
       <span class="field__error"><?= $error('corregimiento') ?></span>
     </div>
 

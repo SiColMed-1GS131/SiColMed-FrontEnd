@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Repositories\CatalogosRepository;
 use App\Repositories\RegistroMedicoRepository;
 
 /**
@@ -21,11 +22,18 @@ use App\Repositories\RegistroMedicoRepository;
  */
 final class DirectorioController
 {
+    // Filtros de la URL con los mismos nombres que GET /medicos (FiltroMedicos del backend)
+    private const FILTROS_ID = ['id_especialidad', 'id_asociacion', 'id_provincia'];
+    private const FILTROS_TEXTO = ['apellido', 'lugar_trabajo'];
+    private const POR_PAGINA = 50;
+
     private RegistroMedicoRepository $medicos;
+    private CatalogosRepository $catalogos;
 
     public function __construct()
     {
-        $this->medicos = new RegistroMedicoRepository();
+        $this->catalogos = new CatalogosRepository();
+        $this->medicos = new RegistroMedicoRepository(null, $this->catalogos);
     }
 
     // ---------- Dentro del sistema (con sidebar) ----------
@@ -56,57 +64,35 @@ final class DirectorioController
     private function listado(bool $publico): void
     {
         $filtros = [];
-        foreach (['q', 'especialidad', 'asociacion', 'certificacion', 'provincia', 'lugar_trabajo'] as $campo) {
+        foreach (self::FILTROS_TEXTO as $campo) {
             $valor = $_GET[$campo] ?? '';
             $filtros[$campo] = \is_string($valor) ? trim($valor) : '';
         }
-
-        $resultado = $this->medicos->listar($filtros);
-        if (!$resultado['ok']) {
-            $this->render('index', [
-                'medicos' => [],
-                'filtros' => $filtros,
-                'paginaActual' => 1,
-                'totalPaginas' => 0,
-                'errorGeneral' => $resultado['error'],
-            ], $publico);
-            return;
+        foreach (self::FILTROS_ID as $campo) {
+            $valor = \filter_var($_GET[$campo] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+            $filtros[$campo] = $valor === false ? '' : (string) $valor;
         }
+        $vigente = $_GET['certificacion_vigente'] ?? '';
+        $filtros['certificacion_vigente'] = \in_array($vigente, ['true', 'false'], true) ? $vigente : '';
 
-        if (!\is_array($resultado['datos']) || !\array_is_list($resultado['datos'])) {
-            $this->render('index', [
-                'medicos' => [],
-                'filtros' => $filtros,
-                'paginaActual' => 1,
-                'totalPaginas' => 0,
-                'errorGeneral' => 'La API devolvió una lista de médicos con formato inesperado.',
-            ], $publico);
-            return;
-        }
-
-        $medicos = $resultado['datos'];
-        usort($medicos, static function (array $a, array $b): int {
-            return strcmp((string) ($a['apellido'] ?? ''), (string) ($b['apellido'] ?? ''));
-        });
-
-        $porPagina = 50;
-        $totalMedicos = \count($medicos);
-        $totalPaginas = (int) \ceil($totalMedicos / $porPagina);
         $paginaActual = \filter_var($_GET['page'] ?? 1, FILTER_VALIDATE_INT, [
             'options' => ['min_range' => 1],
         ]);
         $paginaActual = $paginaActual === false ? 1 : $paginaActual;
-        if ($totalPaginas > 0) {
-            $paginaActual = \min($paginaActual, $totalPaginas);
-        }
 
-        $offset = ($paginaActual - 1) * $porPagina;
+        // La API pagina y ordena; aquí solo se pide la página actual
+        $resultado = $this->medicos->listar($filtros + ['pagina' => $paginaActual, 'tamano_pagina' => self::POR_PAGINA]);
         $this->render('index', [
-            'medicos' => \array_slice($medicos, $offset, $porPagina),
+            'medicos' => $resultado['ok'] ? $resultado['datos'] : [],
             'filtros' => $filtros,
-            'paginaActual' => $paginaActual,
-            'totalPaginas' => $totalPaginas,
-            'errorGeneral' => '',
+            'catalogos' => [
+                'especialidades' => $this->catalogos->especialidades(),
+                'asociaciones'   => $this->catalogos->asociaciones(),
+                'provincias'     => $this->catalogos->provincias(),
+            ],
+            'paginaActual' => $resultado['paginacion']['pagina'] ?? 1,
+            'totalPaginas' => $resultado['paginacion']['total_paginas'] ?? 0,
+            'errorGeneral' => $resultado['ok'] ? '' : $resultado['error'],
         ], $publico);
     }
 

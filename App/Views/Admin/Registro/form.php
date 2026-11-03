@@ -41,10 +41,28 @@ $filaEstudio = function (string $grupo, $indice, array $fila, string $etiqueta, 
 };
 
 // Datos de educación (si no hay, se muestra una fila vacía)
-$educacion         = $medico['educacion'] ?? [];
-$basico            = $educacion['basico'][0] ?? [];
-$especialidades    = !empty($educacion['especialidades'])    ? $educacion['especialidades']    : [[]];
-$subespecialidades = !empty($educacion['subespecialidades']) ? $educacion['subespecialidades'] : [[]];
+$educacion = $medico['educacion'] ?? [];
+$basico    = $educacion['basico'][0] ?? [];
+
+// Select múltiple de un catálogo; la API recibe los IDs (especialidades[], subespecialidades[], asociaciones[])
+$catalogos = $catalogos ?? [];
+$selectMultiple = function (string $campo, string $etiqueta) use ($medico, $catalogos, $err) {
+    $esc = fn($texto) => htmlspecialchars((string) $texto, ENT_QUOTES, 'UTF-8');
+    $elegidos = array_map('strval', is_array($medico[$campo] ?? null) ? $medico[$campo] : []);
+    $lista = $catalogos[$campo] ?? [];
+    ?>
+    <div class="field">
+      <label for="<?= $esc($campo) ?>"><?= $esc($etiqueta) ?></label>
+      <select id="<?= $esc($campo) ?>" name="<?= $esc($campo) ?>[]" multiple size="<?= max(3, min(8, count($lista))) ?>">
+        <?php foreach ($lista as $item): ?>
+          <option value="<?= $esc($item['id']) ?>"<?= in_array((string) $item['id'], $elegidos, true) ? ' selected' : '' ?>><?= $esc($item['nombre']) ?></option>
+        <?php endforeach; ?>
+      </select>
+      <small>Ctrl + clic para elegir varias.</small>
+      <span class="field__error"><?= $err($campo) ?></span>
+    </div>
+    <?php
+};
 ?>
 <section class="registro">
   <!-- Puede cambiar en base como se envie desde el backend -->
@@ -75,6 +93,14 @@ $subespecialidades = !empty($educacion['subespecialidades']) ? $educacion['subes
       </div>
     <?php endif; ?>
     <!-- Fin: aviso de error -->
+
+    <?php if (!empty($medico['id'])): ?>
+      <!-- PATCH /medicos/{id} solo acepta datos personales, dirección residencial y relaciones -->
+      <div class="registro__alerta" role="note">
+        Al editar solo se guardan los datos personales, la dirección residencial, las especialidades,
+        subespecialidades y asociaciones. Los cambios en información laboral, título básico y certificación no se guardan todavía.
+      </div>
+    <?php endif; ?>
 
     <!-- Inicio: panel con pestañas -->
     <section class="registro__panel registro__panel--datos">
@@ -145,6 +171,11 @@ $subespecialidades = !empty($educacion['subespecialidades']) ? $educacion['subes
                   <label for="cedula">Cédula</label>
                   <input type="text" id="cedula" name="cedula" value="<?= $dato('cedula') ?>" required>
                   <span class="field__error"><?= $err('cedula') ?></span>
+                </div>
+                <div class="field">
+                  <label for="numero_idoneidad">N.º de idoneidad</label>
+                  <input type="text" id="numero_idoneidad" name="numero_idoneidad" value="<?= $dato('numero_idoneidad') ?>" required>
+                  <span class="field__error"><?= $err('numero_idoneidad') ?></span>
                 </div>
                 <div class="field">
                   <label for="registro_medico">N.º Registro médico</label>
@@ -248,62 +279,21 @@ $subespecialidades = !empty($educacion['subespecialidades']) ? $educacion['subes
           <?php $filaEstudio('basico', 0, $basico, 'Título básico', false); ?>
         </div>
 
-        <!-- Especialidades (puede cambiar segun el API) -->
+        <!-- Especialidades y subespecialidades: la API recibe IDs del catálogo -->
         <div class="registro__subgrupo registro__subgrupo--simple" role="group" aria-labelledby="titulo-especialidades">
           <h3 class="registro__subtitulo" id="titulo-especialidades">Especialidades</h3>
-          <div data-filas="especialidades">
-            <?php foreach ($especialidades as $i => $fila) { $filaEstudio('especialidades', $i, $fila, 'Especialidad'); } ?>
+          <div class="registro__grid">
+            <?php $selectMultiple('especialidades', 'Especialidades'); ?>
+            <?php $selectMultiple('subespecialidades', 'Subespecialidades'); ?>
           </div>
-          <button type="button" class="btn" data-agregar="especialidades">Agregar especialidad</button>
-          <!-- Plantilla que usa registro.js para agregar filas nuevas -->
-          <template id="plantilla-especialidades">
-            <?php $filaEstudio('especialidades', '__IDX__', [], 'Especialidad'); ?>
-          </template>
-        </div>
-
-        <!-- Subespecialidades (puede cambiar segun el API) -->
-        <div class="registro__subgrupo registro__subgrupo--simple" role="group" aria-labelledby="titulo-subespecialidades">
-          <h3 class="registro__subtitulo" id="titulo-subespecialidades">Subespecialidades</h3>
-          <div data-filas="subespecialidades">
-            <?php foreach ($subespecialidades as $i => $fila) { $filaEstudio('subespecialidades', $i, $fila, 'Subespecialidad'); } ?>
-          </div>
-          <button type="button" class="btn" data-agregar="subespecialidades">Agregar subespecialidad</button>
-          <!-- Plantilla que usa registro.js para agregar filas nuevas -->
-          <template id="plantilla-subespecialidades">
-            <?php $filaEstudio('subespecialidades', '__IDX__', [], 'Subespecialidad'); ?>
-          </template>
         </div>
       </div>
       <!-- Fin: pestaña 3 -->
 
-      <!-- Inicio: pestaña 4, organizaciones (puede cambiar segun el backend) -->
+      <!-- Inicio: pestaña 4, organizaciones: la API solo guarda asociaciones del catálogo (por ID) -->
       <div class="registro__tabpanel" id="tab-organizaciones" role="tabpanel" aria-labelledby="tabbtn-organizaciones" hidden>
         <div class="registro__grid">
-          <div class="field">
-            <label for="profesor_universitario">Profesor universitario (universidad y cátedra)</label>
-            <input type="text" id="profesor_universitario" name="profesor_universitario" value="<?= $dato('profesor_universitario') ?>">
-            <span class="field__error"><?= $err('profesor_universitario') ?></span>
-          </div>
-          <div class="field">
-            <label for="gremios">Gremios</label>
-            <input type="text" id="gremios" name="gremios" value="<?= $dato('gremios') ?>">
-            <span class="field__error"><?= $err('gremios') ?></span>
-          </div>
-          <div class="field">
-            <label for="sociedades">Sociedades</label>
-            <input type="text" id="sociedades" name="sociedades" value="<?= $dato('sociedades') ?>">
-            <span class="field__error"><?= $err('sociedades') ?></span>
-          </div>
-          <div class="field">
-            <label for="clubes_civicos">Clubes cívicos</label>
-            <input type="text" id="clubes_civicos" name="clubes_civicos" value="<?= $dato('clubes_civicos') ?>">
-            <span class="field__error"><?= $err('clubes_civicos') ?></span>
-          </div>
-          <div class="field">
-            <label for="otras_organizaciones">Otros</label>
-            <input type="text" id="otras_organizaciones" name="otras_organizaciones" value="<?= $dato('otras_organizaciones') ?>">
-            <span class="field__error"><?= $err('otras_organizaciones') ?></span>
-          </div>
+          <?php $selectMultiple('asociaciones', 'Asociaciones'); ?>
         </div>
       </div>
       <!-- Fin: pestaña 4 -->
