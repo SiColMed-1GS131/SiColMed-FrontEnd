@@ -222,6 +222,45 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  /* Especialidades → subespecialidades: misma cascada que la dirección, pero con select
+     múltiple. Se conserva lo ya elegido que siga disponible, y cada clic pide la lista de
+     nuevo: solo se aplica la respuesta más reciente. */
+  document.querySelectorAll('select[data-cascada-multiple]').forEach((select) => {
+    const destino = document.getElementById(select.dataset.destino);
+    if (!destino) return;
+    let turno = 0;
+
+    function llenarDestino(lista) {
+      const elegidos = new Set(Array.from(destino.selectedOptions, (opcion) => opcion.value));
+      destino.length = 0;
+      lista.forEach((item) => {
+        const id = String(item.id);
+        destino.add(new Option(item.nombre, id, false, elegidos.has(id)));
+      });
+      destino.size = Math.max(3, Math.min(8, lista.length));
+      destino.disabled = lista.length === 0;
+    }
+
+    select.addEventListener('change', async () => {
+      const miTurno = ++turno;
+      const ids = Array.from(select.selectedOptions, (opcion) => opcion.value);
+      if (ids.length === 0) {
+        llenarDestino([]);
+        return;
+      }
+      if (!urlCatalogo) return;
+      try {
+        const url = `${urlCatalogo}&recurso=${encodeURIComponent(select.dataset.cascadaMultiple)}&id=${encodeURIComponent(ids.join(','))}`;
+        const respuesta = await fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+        if (!respuesta.ok) return;
+        const lista = await respuesta.json();
+        if (miTurno === turno) llenarDestino(lista);
+      } catch (error) {
+        // Si falla se deja la lista como estaba; el backend valida lo que se envíe
+      }
+    });
+  });
+
   /* Certificado PDF */
   const inputPdf = document.getElementById('certificado_idoneidad');
   const textoPdf = document.getElementById('certificado_nombre');

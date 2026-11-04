@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Repositories\CatalogosRepository;
 use App\Repositories\RegistroMedicoRepository;
 
 require_once __DIR__ . '/../Helpers/ui.php';   // e() y enviarPdf()
@@ -19,13 +20,7 @@ class PerfilController {
      */
     public function index() {
         $certificado = $this->datosCertificado();
-        // Datos reales del médico con sesión (GET /medicos/{id}: perfil completo por ser el propio)
-        $idMedico = \Auth::idMedico();
-        $perfil = $this->perfilPropio();
-        $medico = ($perfil['ok'] ?? false) ? $perfil['datos'] : [];
-        $errorPerfil = $idMedico === null
-            ? 'Vuelve a iniciar sesión para ver tu perfil.'
-            : (($perfil['ok'] ?? false) ? '' : ($perfil['error'] ?: 'No se pudo cargar tu perfil.'));
+        [$medico, $errorPerfil] = $this->medicoYError();
         require_once __DIR__ . '/../Views/Client/Perfil/index.php';
     }
 
@@ -35,16 +30,60 @@ class PerfilController {
      */
     public function editar() {
         $certificado = $this->datosCertificado();
+        [$medico, $errorPerfil] = $this->medicoYError();
+        // Si el último guardado falló, se muestra lo que el médico había escrito
+        $enviado = $_SESSION['perfil_formulario'] ?? [];
+        unset($_SESSION['perfil_formulario']);
+        $medico = (is_array($enviado) ? $enviado : []) + $medico;
+        $direccion = $this->listasDireccion($medico);
         require_once __DIR__ . '/../Views/Client/Perfil/editar.php';
     }
 
     /**
-     * Recibe los datos del formulario cuando el usuario hace clic en "Guardar"
-     * Ruta esperada: POST a /Perfil/actualizar
+     * POST: guarda el contacto y la dirección residencial del médico con sesión
+     * (PATCH /medicos/{id}/perfil). Los demás campos del formulario son de solo lectura.
      */
-    public function actualizar() {
-        header("Location: /index.php?c=perfil&a=index");
-        exit();
+    public function actualizar(): never {
+        $idMedico = \Auth::idMedico();
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || $idMedico === null) {
+            $this->volverConMensaje('error', 'Inicia sesión como médico para editar tu perfil.', 'datos');
+        }
+        if (!hash_equals((string) ($_SESSION['perfil_csrf'] ?? ''), (string) ($_POST['csrf'] ?? ''))) {
+            $this->volverConMensaje('error', 'La sesión del formulario venció. Intenta de nuevo.', 'datos');
+        }
+
+        $resultado = (new RegistroMedicoRepository())->actualizarPerfil($idMedico, $_POST);
+        if ($resultado['ok']) {
+            $this->volverConMensaje('success', empty($resultado['datos']['sin_cambios'])
+                ? 'Tus cambios se guardaron.' : 'No había cambios que guardar.', 'datos');
+        }
+
+        $_SESSION['perfil_formulario'] = array_diff_key($_POST, ['csrf' => true]);
+        $this->volverConMensaje('error', $this->mensajeError($resultado), 'datos');
+    }
+
+    /**
+     * Distritos o corregimientos en JSON para los selects en cascada de "Editar perfil".
+     * Igual que RegistroController::catalogo, que solo admite al administrador.
+     * ?c=perfil&a=catalogo&recurso=distritos&id=<id_provincia> | recurso=corregimientos&id=<id_distrito>
+     */
+    public function catalogo(): never {
+        $id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $catalogos = new CatalogosRepository();
+        $lista = match (true) {
+            $id === false => null,
+            ($_GET['recurso'] ?? '') === 'distritos' => $catalogos->distritos($id),
+            ($_GET['recurso'] ?? '') === 'corregimientos' => $catalogos->corregimientos($id),
+            default => null,
+        };
+        header('Content-Type: application/json; charset=UTF-8');
+        if ($lista === null) {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'error' => 'Catálogo no válido.'], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+        echo json_encode(array_map(static fn(array $i) => ['id' => $i['id'], 'nombre' => $i['nombre']], $lista), JSON_UNESCAPED_UNICODE);
+        exit;
     }
 
     /**
@@ -118,6 +157,46 @@ class PerfilController {
         ];
     }
 
+    // Datos reales del médico con sesión (GET /medicos/{id}: perfil completo por ser el propio)
+    private function medicoYError(): array {
+        $perfil = $this->perfilPropio();
+        $medico = ($perfil['ok'] ?? false) ? $perfil['datos'] : [];
+        $error = \Auth::idMedico() === null
+            ? 'Vuelve a iniciar sesión para ver tu perfil.'
+            : (($perfil['ok'] ?? false) ? '' : ($perfil['error'] ?: 'No se pudo cargar tu perfil.'));
+        return [$medico, $error];
+    }
+
+    // Opciones de los selects de dirección: distritos y corregimientos solo de lo ya elegido;
+    // el resto lo carga perfil.js con la acción catalogo (como en el formulario de registro)
+    private function listasDireccion(array $medico): array {
+        $catalogos = new CatalogosRepository();
+        $provincia = (int) ($medico['residencia_provincia'] ?? 0);
+        $distrito = (int) ($medico['residencia_distrito'] ?? 0);
+        return [
+            'provincias'     => $catalogos->provincias(),
+            'distritos'      => $provincia > 0 ? $catalogos->distritos($provincia) : [],
+            'corregimientos' => $distrito > 0 ? $catalogos->corregimientos($distrito) : [],
+        ];
+    }
+
+    // Mensaje para la alerta: el error general de la API o el de cada campo, con su etiqueta
+    private function mensajeError(array $resultado): string {
+        $etiquetas = [
+            'telefono_residencial' => 'Teléfono residencial', 'celular' => 'Celular',
+            'email_personal' => 'Email personal', 'apartado_postal' => 'Apartado postal',
+            'residencia_provincia' => 'Provincia', 'residencia_distrito' => 'Distrito',
+            'residencia_corregimiento' => 'Corregimiento', 'residencia_calle' => 'Calle',
+            'residencia_edificio' => 'Edificio', 'residencia_numero' => 'Número',
+        ];
+        $partes = [];
+        foreach ($resultado['errores'] ?? [] as $campo => $mensaje) {
+            $partes[] = ($etiquetas[$campo] ?? $campo) . ': ' . $mensaje;
+        }
+        $error = trim(($resultado['error'] ?? '') . ' ' . implode(' ', $partes));
+        return $error !== '' ? $error : 'No se pudieron guardar tus cambios.';
+    }
+
     // Perfil completo del médico con sesión, pedido una sola vez por petición
     private function perfilPropio(): ?array {
         $idMedico = \Auth::idMedico();
@@ -127,8 +206,9 @@ class PerfilController {
         return $this->perfil;
     }
 
-    private function volverConMensaje(string $tipo, string $texto): never {
-        $_SESSION['perfil_flash'] = ['tipo' => $tipo, 'texto' => $texto];
+    // $seccion: 'datos' muestra el mensaje arriba del formulario; 'archivos', junto a foto y certificado
+    private function volverConMensaje(string $tipo, string $texto, string $seccion = 'archivos'): never {
+        $_SESSION['perfil_flash'] = ['tipo' => $tipo, 'texto' => $texto, 'seccion' => $seccion];
         header('Location: ' . self::PERFIL . 'editar');
         exit;
     }

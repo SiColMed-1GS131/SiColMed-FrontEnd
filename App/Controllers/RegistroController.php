@@ -51,9 +51,20 @@ final class RegistroController
 
     // Distritos o corregimientos en JSON para los selects en cascada del formulario.
     // ?c=registro&a=catalogo&recurso=distritos&id=<id_provincia> | recurso=corregimientos&id=<id_distrito>
+    // | recurso=subespecialidades&id=<id_especialidad>,<id_especialidad> (viene de un select múltiple)
     public function catalogo(): never
     {
         $this->verificarAcceso();
+
+        if (($_GET['recurso'] ?? '') === 'subespecialidades') {
+            $valores = \explode(',', \is_string($_GET['id'] ?? null) ? $_GET['id'] : '');
+            $ids = \array_map(static fn (string $v) => \filter_var($v, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]), $valores);
+            if (\in_array(false, $ids, true)) {
+                $this->responderJson(400, ['ok' => false, 'error' => 'Catálogo no válido.']);
+            }
+            $lista = $this->catalogos->subespecialidadesDe($ids);
+            $this->responderJson(200, \array_map(static fn (array $i) => ['id' => $i['id'], 'nombre' => $i['nombre']], $lista));
+        }
 
         $id = \filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
         $lista = match (true) {
@@ -173,14 +184,17 @@ final class RegistroController
     {
     }
 
-    // Listas de los selects del formulario. Distritos y corregimientos solo de lo ya elegido;
-    // el resto lo carga registro.js con la acción catalogo.
+    // Listas de los selects del formulario. Distritos, corregimientos y subespecialidades solo
+    // de lo ya elegido; el resto lo carga registro.js con la acción catalogo.
     private function catalogosFormulario(array $medico): array
     {
+        $ids = static fn (mixed $v): array => \is_array($v) ? \array_map('intval', $v) : [];
         $catalogos = [
             'provincias'        => $this->catalogos->provincias(),
             'especialidades'    => $this->catalogos->especialidades(),
-            'subespecialidades' => $this->catalogos->subespecialidades(),
+            'subespecialidades' => $this->catalogos->subespecialidadesDe(
+                $ids($medico['especialidades'] ?? null), $ids($medico['subespecialidades'] ?? null)
+            ),
             'asociaciones'      => $this->catalogos->asociaciones(),
         ];
         foreach (['residencia', 'trabajo'] as $prefijo) {

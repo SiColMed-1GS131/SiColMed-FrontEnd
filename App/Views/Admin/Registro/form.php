@@ -44,16 +44,18 @@ $filaEstudio = function (string $grupo, $indice, array $fila, string $etiqueta, 
 $educacion = $medico['educacion'] ?? [];
 $basico    = $educacion['basico'][0] ?? [];
 
-// Select múltiple de un catálogo; la API recibe los IDs (especialidades[], subespecialidades[], asociaciones[])
+// Select múltiple de un catálogo; la API recibe los IDs (especialidades[], subespecialidades[], asociaciones[]).
+// $destino: id del select que depende de este (registro.js lo recarga al cambiar). Sin opciones queda deshabilitado.
 $catalogos = $catalogos ?? [];
-$selectMultiple = function (string $campo, string $etiqueta) use ($medico, $catalogos, $err) {
+$selectMultiple = function (string $campo, string $etiqueta, string $destino = '') use ($medico, $catalogos, $err) {
     $esc = fn($texto) => htmlspecialchars((string) $texto, ENT_QUOTES, 'UTF-8');
     $elegidos = array_map('strval', is_array($medico[$campo] ?? null) ? $medico[$campo] : []);
     $lista = $catalogos[$campo] ?? [];
     ?>
     <div class="field">
       <label for="<?= $esc($campo) ?>"><?= $esc($etiqueta) ?></label>
-      <select id="<?= $esc($campo) ?>" name="<?= $esc($campo) ?>[]" multiple size="<?= max(3, min(8, count($lista))) ?>">
+      <select id="<?= $esc($campo) ?>" name="<?= $esc($campo) ?>[]" multiple size="<?= max(3, min(8, count($lista))) ?>"
+              <?= $destino !== '' ? 'data-cascada-multiple="' . $esc($destino) . '" data-destino="' . $esc($destino) . '"' : '' ?><?= $lista === [] ? ' disabled' : '' ?>>
         <?php foreach ($lista as $item): ?>
           <option value="<?= $esc($item['id']) ?>"<?= in_array((string) $item['id'], $elegidos, true) ? ' selected' : '' ?>><?= $esc($item['nombre']) ?></option>
         <?php endforeach; ?>
@@ -286,7 +288,7 @@ $selectMultiple = function (string $campo, string $etiqueta) use ($medico, $cata
         <div class="registro__subgrupo registro__subgrupo--simple" role="group" aria-labelledby="titulo-especialidades">
           <h3 class="registro__subtitulo" id="titulo-especialidades">Especialidades</h3>
           <div class="registro__grid">
-            <?php $selectMultiple('especialidades', 'Especialidades'); ?>
+            <?php $selectMultiple('especialidades', 'Especialidades', 'subespecialidades'); ?>
             <?php $selectMultiple('subespecialidades', 'Subespecialidades'); ?>
           </div>
         </div>

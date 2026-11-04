@@ -75,6 +75,21 @@ final class CatalogosRepository
         return $this->pedir('subespecialidades', '/subespecialidades');
     }
 
+    /**
+     * Subespecialidades de las especialidades indicadas (GET /subespecialidades no filtra).
+     * $conservar: IDs que se mantienen aunque su especialidad no esté elegida, para no
+     * quitarle a un médico una subespecialidad que ya tiene al guardar el formulario.
+     *
+     * @param int[] $idsEspecialidad
+     * @param int[] $conservar
+     */
+    public function subespecialidadesDe(array $idsEspecialidad, array $conservar = []): array
+    {
+        return array_values(array_filter($this->subespecialidades(), static fn(array $s) =>
+            in_array((int) ($s['id_especialidad'] ?? 0), $idsEspecialidad, true)
+            || in_array($s['id'], $conservar, true)));
+    }
+
     public function asociaciones(): array
     {
         return $this->pedir('asociaciones', '/asociaciones');

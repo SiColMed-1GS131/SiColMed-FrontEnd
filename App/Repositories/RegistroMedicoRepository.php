@@ -44,6 +44,9 @@ final class RegistroMedicoRepository
         'email_personal'       => 'email_personal',
     ];
 
+    // Datos de contacto que el médico edita en "Mi perfil" (mismo nombre en el formulario y en la API)
+    private const CAMPOS_CONTACTO = ['telefono_residencial', 'celular', 'email_personal'];
+
     // Sufijo del formulario (residencia_calle, trabajo_calle...) => campo de la API
     private const CAMPOS_DIRECCION = [
         'calle'         => 'calle',
@@ -170,6 +173,46 @@ final class RegistroMedicoRepository
             return $this->resultado(true, []);
         }
         return $this->interpretar($this->api->patchJson('/medicos/' . $id, $cambios));
+    }
+
+    /**
+     * El médico guarda su contacto y dirección residencial (PATCH /medicos/{id}/perfil).
+     * Solo se envía lo que cambió. La API no permite borrar valores (min_length=1): un campo
+     * que se vació se informa como error en vez de ignorarlo y decir que se guardó.
+     * Si no había cambios, 'datos' trae sin_cambios = true.
+     */
+    public function actualizarPerfil(int $id, array $datos): array
+    {
+        if ($this->usaMock()) {
+            return $this->resultado(true, $datos);
+        }
+
+        $actual = $this->obtener($id);
+        if (!$actual['ok']) {
+            return $actual;
+        }
+        if (!empty($actual['datos']['publico'])) {
+            return $this->resultado(false, [], 'Tu sesión expiró. Inicia sesión de nuevo para editar tu perfil.');
+        }
+
+        $errores = $this->erroresDireccion($datos);
+        foreach (['provincia', 'distrito', 'corregimiento'] as $nivel) {
+            if ($this->entero($datos['residencia_' . $nivel] ?? null) === null) {
+                $errores['residencia_' . $nivel] = 'Selecciona una opción.';
+            }
+        }
+
+        [$cambios, $vaciados] = $this->paraPerfil($datos, $actual['datos']);
+        foreach ($vaciados as $campo) {
+            $errores[$campo] = 'No se puede dejar vacío.';
+        }
+        if ($errores !== []) {
+            return $this->resultado(false, [], '', $errores);
+        }
+        if ($cambios === []) {
+            return $this->resultado(true, ['sin_cambios' => true]);
+        }
+        return $this->interpretar($this->api->patchJson('/medicos/' . $id . '/perfil', $cambios));
     }
 
     /**
@@ -354,6 +397,38 @@ final class RegistroMedicoRepository
             }
         }
         return $cambios;
+    }
+
+    // Compara el formulario de "Mi perfil" con el médico actual: [cambios para la API, campos que se vaciaron]
+    private function paraPerfil(array $d, array $actual): array
+    {
+        $cambios = [];
+        $vaciados = [];
+        foreach (self::CAMPOS_CONTACTO as $campo) {
+            $nuevo = $this->texto($d[$campo] ?? null);
+            $anterior = $this->texto($actual[$campo] ?? null);
+            if ($nuevo === null && $anterior !== null) {
+                $vaciados[] = $campo;
+            } elseif ($nuevo !== $anterior) {
+                $cambios[$campo] = $nuevo;
+            }
+        }
+
+        $direccion = [];
+        $nueva = $this->direccion($d, 'residencia') + ['apartado_postal' => $this->texto($d['apartado_postal'] ?? null)];
+        $anterior = $this->direccion($actual, 'residencia') + ['apartado_postal' => $this->texto($actual['apartado_postal'] ?? null)];
+        foreach ($nueva as $api => $valor) {
+            if ($valor === null && $anterior[$api] !== null) {
+                $sufijo = \array_search($api, self::CAMPOS_DIRECCION, true);
+                $vaciados[] = $sufijo === false ? $api : 'residencia_' . $sufijo;
+            } elseif ($valor !== $anterior[$api]) {
+                $direccion[$api] = $valor;
+            }
+        }
+        if ($direccion !== []) {
+            $cambios['direccion'] = $direccion;
+        }
+        return [$cambios, $vaciados];
     }
 
     // {calle, edificio, numero_direccion, id_corregimiento} a partir de prefijo_calle, prefijo_edificio...
