@@ -1,0 +1,42 @@
+/* =========================================
+   PAGINACIÓN (Diseño centrado y minimalista)
+   ========================================= */
+.paginacion {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    margin-top: 30px;
+    padding: 20px 0;
+    width: 100%;
+}
+
+.paginacion__link {
+    text-decoration: none !important;
+    color: var(--rock-bluedark);
+    font-size: 18px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s ease, border-color 0.2s ease;
+    font-weight: bold;
+}
+
+.paginacion__link:hover {
+    color: var(--venice-blue);
+}
+
+.paginacion__link--activo {
+    color: var(--venice-bluedark);
+    border-bottom: 2px solid var(--venice-bluedark) !important;
+}
+
+.paginacion__link--flecha {
+    font-size: 22px;
+    border-bottom: none !important;
+    margin-left: 10px;
+    font-weight: normal;
+}
+
+.paginacion__link--flecha:hover {
+    color: var(--venice-bluedark);
+}

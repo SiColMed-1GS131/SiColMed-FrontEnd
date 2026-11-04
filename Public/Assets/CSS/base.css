@@ -1,4 +1,6 @@
-@import url("sidebar.css");   /* menú lateral: ver sidebar.css */
+@import url("sidebar.css");
+@import url("pagination.css");
+   /* menú lateral: ver sidebar.css */
 
 :root {
   --merinolight: #fcf9f5;

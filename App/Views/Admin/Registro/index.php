@@ -62,14 +62,10 @@ $esc = static fn($t): string => htmlspecialchars((string) $t, ENT_QUOTES, 'UTF-8
                     </tbody>
                 </table>
             </div>
-            <?php if ($totalPaginas > 1): ?>
-                <nav class="paginacion" aria-label="Páginas">
-                    <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
-                        <a href="<?= $esc($entrada . '?' . http_build_query(['c' => 'registro', 'a' => 'index', 'page' => $i])) ?>"
-                           class="paginacion__link <?= $i === $paginaActual ? 'paginacion__link--activo' : '' ?>"><?= $i ?></a>
-                    <?php endfor; ?>
-                </nav>
-            <?php endif; ?>
+            <?php 
+            $enlacePagina = static fn (int $pagina): string => $entrada . '?' . http_build_query(['c' => 'registro', 'a' => 'index', 'page' => $pagina]);
+            require_once dirname(__DIR__, 2) . '/Partials/pagination.php'; 
+            ?>
         <?php endif; ?>
     </div>
     <div id="csv-medicos-estado" class="registro-lista__csv-estado" role="status" aria-live="polite" hidden></div>

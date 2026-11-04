@@ -147,23 +147,5 @@ $enlacePagina = static fn (int $pagina): string => $entrada . '?' . http_build_q
     </div>
 
     <!-- Paginación (Solo se muestra si hay más de 1 página) -->
-    <?php if (isset($totalPaginas) && $totalPaginas > 1): ?>
-    <div class="paginacion">
-        
-        <!-- Números de página -->
-        <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
-            <a href="<?= $esc($enlacePagina($i)) ?>" class="paginacion__link <?= $i === $paginaActual ? 'paginacion__link--activo' : '' ?>">
-                <?= $i ?>
-            </a>
-        <?php endfor; ?>
-
-        <!-- Flecha de Siguiente (>) -->
-        <?php if ($paginaActual < $totalPaginas): ?>
-            <a href="<?= $esc($enlacePagina($paginaActual + 1)) ?>" class="paginacion__link paginacion__link--flecha">
-                &gt;
-            </a>
-        <?php endif; ?>
-        
-    </div>
-    <?php endif; ?>
+    <?php require_once dirname(__DIR__, 2) . '/Partials/pagination.php'; ?>
 </div>

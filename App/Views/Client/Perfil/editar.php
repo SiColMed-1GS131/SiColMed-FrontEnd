@@ -18,7 +18,6 @@ $opcionesDireccion = static function (array $lista, string $campo) use ($medico)
         $elegida = (string) $item['id'] === (string) ($medico[$campo] ?? '') ? ' selected' : '';
         echo '<option value="' . e($item['id']) . '"' . $elegida . '>' . e($item['nombre']) . '</option>';
     }
-};
 ?>
 
 <link rel="stylesheet" href="/Assets/CSS/Dedicated/perfil.css">

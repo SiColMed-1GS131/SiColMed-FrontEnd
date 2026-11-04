@@ -54,7 +54,6 @@ $urlLista = static function (array $params): string {
           <p class="panel__etiqueta">Listado general</p>
           <h3 class="panel__titulo" id="lista-titulo">Cuentas existentes</h3>
         </div>
-        <a class="btn btn--primary" href="/index.php?c=cuentas&a=nueva<?= $h($queryLista) ?>#form-cuenta">Nueva cuenta</a>
       </div>
 
       <!-- Filtro -->

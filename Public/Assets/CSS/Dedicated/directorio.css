@@ -22,9 +22,10 @@
     box-shadow: 0 4px 15px rgba(132, 179, 206, 0.15);
     
     /* --- NUEVO: Fija el contenedor al hacer scroll --- */
-    position: sticky;
-    top: 0; /* Se pega al borde superior de la pantalla */
-    z-index: 90; /* Asegura que la tabla pase por debajo sin verse a través */
+    /* Desactivado temporalmente si causa solapamiento con la tabla */
+    position: relative;
+    top: auto; 
+    z-index: 1;
 }
 
 .directorio-filtros__titulo {
@@ -408,55 +409,13 @@
     margin-bottom: 20px;
     font-weight: bold;
     border: 1px solid #ffcdd2;
-}/* =========================================
-   PAGINACIÓN (Diseño centrado y minimalista)
-   ========================================= */
-.paginacion {
-    display: flex;
-    justify-content: center; /* Centra los números horizontalmente */
-    align-items: center;
-    gap: 24px; /* Separación limpia entre cada número */
-    margin-top: 30px;
-    padding: 20px 0;
-    width: 100%;
-}
-
-.paginacion__link {
-    text-decoration: none !important; /* Quita la línea fea por defecto */
-    color: var(--rock-bluedark);
-    font-size: 18px;
-    padding-bottom: 6px;
-    border-bottom: 2px solid transparent;
-    transition: color 0.2s ease, border-color 0.2s ease;
-    font-weight: bold;
-}
-
-.paginacion__link:hover {
-    color: var(--venice-blue);
-}
-
-/* Estilo para la página actual (Línea gris/azul debajo) */
-.paginacion__link--activo {
-    color: var(--venice-bluedark);
-    border-bottom: 2px solid var(--venice-bluedark) !important;
-}
-
-/* Estilo específico para la flecha de siguiente */
-.paginacion__link--flecha {
-    font-size: 22px;
-    border-bottom: none !important;
-    margin-left: 10px;
-    font-weight: normal;
-}
-
-.paginacion__link--flecha:hover {
-    color: var(--venice-bluedark);
 }
 /* Contraste: el nombre se ve blanco sobre las filas azules (antes quedaba oscuro sobre azul) */
 .tabla-directorio tbody tr:nth-child(odd) .medico-nombre { color: #fff; }
 
 /* =========================================
    VERSIÓN PÚBLICA (página aparte, sin sidebar)
+
    La barra superior y el pie vienen de home.css
    ========================================= */
 .directorio-publico {
