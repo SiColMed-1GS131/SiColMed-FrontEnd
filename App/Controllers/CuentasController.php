@@ -172,21 +172,21 @@ final class CuentasController
         ]));
     }
 
-    // Solo deja entrar al tesorero (puede cambiar cuando se suba Auth.php)
+    // Tesorero y Administrador de la Asociación (RQ-5.R, DEF-009), además del admin del CMP
     private function verificarAcceso(): void
     {
         $auth = 'App\\Middleware\\Auth';
         if (class_exists($auth) && method_exists($auth, 'requiere')) {
-            $auth::requiere(['tesorero', 'admin_cmp']);
+            $auth::requiere(['tesorero', 'admin_asociacion', 'admin_cmp']);
             return;
         }
 
         $rol = $_SESSION['rol'] ?? null;
-        $permitido = in_array($rol, ['tesorero', 'admin_cmp'], true) || ($rol === null && getenv('USE_MOCK') === '1');
+        $permitido = in_array($rol, ['tesorero', 'admin_asociacion', 'admin_cmp'], true) || ($rol === null && getenv('USE_MOCK') === '1');
         if (!$permitido) {
             http_response_code(403);
             header('Content-Type: text/plain; charset=UTF-8');
-            exit('Acceso denegado: esta sección es solo para el Tesorero.');
+            exit('Acceso denegado: esta sección es solo para el Tesorero y el Administrador de la Asociación.');
         }
     }
 
