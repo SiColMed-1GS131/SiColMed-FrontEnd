@@ -40,10 +40,10 @@ class Auth
         // Módulo 2
         'registro'    => [self::ADMIN],
         'perfil'      => [self::MEDICO],
-        // Módulo 5
-        'cuentas'     => [self::TESORERO, self::ADMIN],
-        'movimientos' => [self::TESORERO, self::ADMIN],
-        'reportes'    => [self::ADMIN_ASOCIACION, self::ADMIN],
+        // Módulo 5: lo usan el Tesorero y el Administrador de la Asociación (RQ-5.R, DEF-009)
+        'cuentas'     => [self::TESORERO, self::ADMIN_ASOCIACION, self::ADMIN],
+        'movimientos' => [self::TESORERO, self::ADMIN_ASOCIACION, self::ADMIN],
+        'reportes'    => [self::TESORERO, self::ADMIN_ASOCIACION, self::ADMIN],
     ];
 
     /** Inicia la sesión una sola vez. */
