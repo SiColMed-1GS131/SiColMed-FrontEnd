@@ -1,8 +1,10 @@
 <?php
-// Protección de la vista por sesión (JWT): solo cuando NO está el modo de prueba (USE_MOCK).
+// Protección de la vista por sesión: solo cuando NO está el modo de prueba (USE_MOCK).
 // Con USE_MOCK=1 las pantallas se pueden abrir sin login para que el equipo las pruebe.
+// El JWT vive solo en la sesión de PHP (DEF-008), así que aquí se decide si hay usuario:
+// sin sesión, sesion.js manda al login.
 require_once __DIR__ . '/../../Middleware/Auth.php';
-$hdrExigeSesion = !Auth::modoPrueba();
+$hdrExigeSesion = !Auth::modoPrueba() && Auth::rol() === Auth::PUBLICO;
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -20,7 +22,7 @@ $hdrExigeSesion = !Auth::modoPrueba();
     <?php endif; ?>
 
     <?php if ($hdrExigeSesion): ?>
-    <!-- La página se muestra solo cuando sesion.js confirma que hay un token vigente -->
+    <!-- Sin sesión de PHP la página queda oculta mientras sesion.js manda al login -->
     <style>body[data-auth-required="1"]:not(.auth-ok) { visibility: hidden; }</style>
     <?php endif; ?>
 
