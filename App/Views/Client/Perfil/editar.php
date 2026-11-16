@@ -272,23 +272,19 @@ $opcionesDireccion = static function (array $lista, string $campo) use ($medico)
                 </fieldset>
             </form>
 
-            <!-- Certificado de idoneidad: formulario aparte (PerfilController::subirCertificado → API) -->
-            <form action="/index.php?c=perfil&a=subirCertificado" method="post" enctype="multipart/form-data" class="formulario">
+            <!-- Certificado de idoneidad: solo consulta. No lo edita el propio médico
+                 (sección 2.3 del documento del CMP); lo actualiza el administrador. -->
+            <section class="formulario" aria-labelledby="titulo-certificado">
                 <fieldset class="formulario__seccion">
-                    <legend>Certificado de idoneidad (PDF)</legend>
+                    <legend id="titulo-certificado">Certificado de idoneidad (PDF)</legend>
                     <?php if ($certificado['url']): ?>
-                        <p><a href="<?= e($certificado['url']) ?>" target="_blank" rel="noopener">Ver mi certificado actual (PDF)</a>. Si subes otro, reemplaza al actual.</p>
+                        <p><a href="<?= e($certificado['url']) ?>" target="_blank" rel="noopener">Ver mi certificado actual (PDF)</a>.</p>
+                    <?php else: ?>
+                        <p>Todavía no hay un certificado cargado.</p>
                     <?php endif; ?>
-                    <div class="campo">
-                        <label for="certificado_idoneidad">Archivo PDF (máx. 5 MB)</label>
-                        <input type="file" id="certificado_idoneidad" name="certificado_idoneidad" accept="application/pdf,.pdf" required>
-                    </div>
-                    <input type="hidden" name="csrf" value="<?= e($certificado['csrf']) ?>">
-                    <div class="formulario__acciones">
-                        <button type="submit" class="btn btn--primario">Subir certificado</button>
-                    </div>
+                    <p>El certificado de idoneidad lo actualiza el administrador del Colegio Médico.</p>
                 </fieldset>
-            </form>
+            </section>
         </div>
 
     </main>
