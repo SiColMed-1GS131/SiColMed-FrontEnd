@@ -38,7 +38,7 @@ final class SolicitudesCambioController
         'certificaciones' => [
             'perfil' => 'certificaciones',
             'id' => 'id_certificacion',
-            'campos' => ['vigente', 'fecha_obtencion', 'puntaje', 'fecha_expiracion'],
+            'campos' => ['fecha_obtencion', 'puntaje', 'fecha_expiracion'],
         ],
     ];
 
@@ -213,10 +213,6 @@ final class SolicitudesCambioController
     /** @return array{0: mixed, 1: bool} [valor normalizado, si cambió] */
     private function valorDelCampo(string $campo, mixed $enviado, mixed $actual): array
     {
-        if ($campo === 'vigente') {
-            $nuevo = in_array((string) $enviado, ['1', 'true', 'on'], true);
-            return [$nuevo, $nuevo !== (bool) $actual];
-        }
         if ($campo === 'puntaje') {
             $texto = trim((string) $enviado);
             if ($texto === '' || !ctype_digit($texto)) {

@@ -76,10 +76,8 @@ $relaciones = [
 
                     <?php else: ?>
                         <div class="field"><label>Vigente
-                            <select name="certificaciones[<?= $h((string) $indice) ?>][vigente]">
-                                <option value="1" <?= !empty($registro['vigente']) ? 'selected' : '' ?>>Sí</option>
-                                <option value="0" <?= empty($registro['vigente']) ? 'selected' : '' ?>>No</option>
-                            </select></label></div>
+                            <input type="text" value="<?= $h(!empty($registro['vigente']) ? 'Sí' : 'No') ?>" readonly></label>
+                            <p class="field__ayuda">Se calcula con la fecha de expiración.</p></div>
                         <div class="field"><label>Fecha de obtención
                             <input type="date" name="certificaciones[<?= $h((string) $indice) ?>][fecha_obtencion]" value="<?= $h($fecha($registro['fecha_obtencion'] ?? '')) ?>"></label></div>
                         <div class="field"><label>Puntaje
