@@ -47,6 +47,12 @@ return [
         'match' => ['perfil'],
     ],
     [
+        'label' => 'Solicitudes de cambio',
+        'icon'  => 'solicitudes',
+        'url'   => "$entrada?c=solicitudes&a=index",
+        'match' => ['solicitudes'],
+    ],
+    [
         'label'    => 'Gestión financiera',
         'icon'     => 'gestion',
         'children' => [

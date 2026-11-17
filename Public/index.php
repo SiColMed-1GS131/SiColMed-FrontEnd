@@ -109,6 +109,7 @@ $controladores = [
     'directorio'  => \App\Controllers\DirectorioController::class,
     'registro'    => \App\Controllers\RegistroController::class,
     'perfil'      => \App\Controllers\PerfilController::class,
+    'solicitudes' => \App\Controllers\SolicitudesCambioController::class,
     'cuentas'     => \App\Controllers\CuentasController::class,
     'movimientos' => \App\Controllers\MovimientosController::class,
     'reportes'    => \App\Controllers\ReportesController::class,

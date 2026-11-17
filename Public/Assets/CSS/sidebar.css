@@ -109,6 +109,7 @@
 .sidebar__icon--inicio      { -webkit-mask-image: url("../IMG/ICONS/home.png");         mask-image: url("../IMG/ICONS/home.png"); }
 .sidebar__icon--directorio  { -webkit-mask-image: url("../IMG/ICONS/lupa.png");         mask-image: url("../IMG/ICONS/lupa.png"); }
 .sidebar__icon--registro    { -webkit-mask-image: url("../IMG/ICONS/editar.png");       mask-image: url("../IMG/ICONS/editar.png"); }
+.sidebar__icon--solicitudes { -webkit-mask-image: url("../IMG/ICONS/mensaje.png");      mask-image: url("../IMG/ICONS/mensaje.png"); }
 .sidebar__icon--perfil      { -webkit-mask-image: url("../IMG/ICONS/usuario.png");      mask-image: url("../IMG/ICONS/usuario.png"); }
 .sidebar__icon--gestion     { -webkit-mask-image: url("../IMG/ICONS/estadisticas.png"); mask-image: url("../IMG/ICONS/estadisticas.png"); }
 .sidebar__icon--cuentas     { -webkit-mask-image: url("../IMG/ICONS/libro.png");        mask-image: url("../IMG/ICONS/libro.png"); }

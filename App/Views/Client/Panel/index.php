@@ -7,6 +7,7 @@ $e = static fn($v): string => htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8')
 // Esta vista también la ven tesorero y admin_asociacion: los accesos al perfil
 // solo se muestran a quien Auth deja entrar (el médico), para no llevar a un 403.
 $vePerfil = \Auth::puedeEntrar('perfil');
+$veSolicitudes = \Auth::puedeEntrar('solicitudes');
 ?>
 <div class="panel">
 
@@ -39,6 +40,12 @@ $vePerfil = \Auth::puedeEntrar('perfil');
         <a class="panel__tarjeta panel__acceso" href="<?= $e($urls['editar']) ?>">
             <span class="panel__icono panel__icono--editar" aria-hidden="true"></span>
             <span><strong>Editar mi perfil</strong><small>Actualiza lo que se te permite</small></span>
+        </a>
+        <?php endif; ?>
+        <?php if ($veSolicitudes): ?>
+        <a class="panel__tarjeta panel__acceso" href="<?= $e($urls['solicitudes']) ?>">
+            <span class="panel__icono panel__icono--mensaje" aria-hidden="true"></span>
+            <span><strong>Solicitar cambio de datos</strong><small>Pide corregir tu perfil</small></span>
         </a>
         <?php endif; ?>
         <a class="panel__tarjeta panel__acceso" href="<?= $e($urls['directorio']) ?>">

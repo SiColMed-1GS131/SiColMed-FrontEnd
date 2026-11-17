@@ -40,6 +40,7 @@ class Auth
         // Módulo 2
         'registro'    => [self::ADMIN],
         'perfil'      => [self::MEDICO],
+        'solicitudes' => [self::MEDICO, self::ADMIN],
         // Módulo 5
         'cuentas'     => [self::TESORERO, self::ADMIN],
         'movimientos' => [self::TESORERO, self::ADMIN],
