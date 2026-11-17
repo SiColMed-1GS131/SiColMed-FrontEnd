@@ -31,15 +31,16 @@ final class RegisterController
         }
 
         $license = trim((string) ($_POST['idoneidad'] ?? ''));
+        $cedula = trim((string) ($_POST['cedula'] ?? ''));
         $email = trim((string) ($_POST['correo'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
         $termsAccepted = isset($_POST['terminos']) && $_POST['terminos'] === 'on';
 
-        if (!$termsAccepted || $license === '' || $email === '' || $password === '') {
+        if (!$termsAccepted || $license === '' || $cedula === '' || $email === '' || $password === '') {
             http_response_code(422);
             return ['Completa los campos obligatorios y acepta los términos.', false];
         }
-        if (strlen($license) > 100 || strlen($email) > 254
+        if (strlen($license) > 100 || strlen($cedula) > 30 || strlen($email) > 254
             || strlen($password) > 128 || strlen($password) < 8
             || !preg_match('/[^\p{L}\p{N}]/u', $password)
             || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -47,9 +48,11 @@ final class RegisterController
             return ['Verifica el correo, los límites de longitud y la contraseña (mínimo 8 caracteres y un carácter especial).', false];
         }
 
-        // La API verifica la idoneidad, impide duplicados y aplica las políticas de contraseña.
+        // La API verifica que la idoneidad y la cédula sean del mismo médico (DEF-004),
+        // impide duplicados y aplica las políticas de contraseña.
         $result = (new ApiClient())->postJson('/auth/register', [
             'numero_idoneidad' => $license,
+            'cedula' => $cedula,
             'correo' => $email,
             'password' => $password,
         ]);
@@ -65,7 +68,7 @@ final class RegisterController
         }
         if ($status < 200 || $status >= 300) {
             http_response_code(422);
-            return ['No se pudo completar el registro. Verifica tus datos e idoneidad.', false];
+            return ['No se pudo completar el registro. Verifica tu idoneidad y tu cédula.', false];
         }
 
         $_SESSION['register_csrf'] = bin2hex(random_bytes(32));

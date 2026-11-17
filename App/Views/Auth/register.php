@@ -74,7 +74,7 @@ $entrada = $base . '/index.php';
 
         <div class="notice">
           <svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-          <p style="margin:0"><strong>Importante:</strong> Para que tu registro sea exitoso, debes estar previamente registrado en el sistema. Tu idoneidad será validada automáticamente.</p>
+          <p style="margin:0"><strong>Importante:</strong> Para que tu registro sea exitoso, debes estar previamente registrado en el sistema. Tu idoneidad y tu cédula serán validadas automáticamente.</p>
         </div>
 
         <?php if ($formMessage !== ''): ?>
@@ -90,6 +90,15 @@ $entrada = $base . '/index.php';
             <div class="control">
               <svg class="i" viewBox="0 0 24 24"><path d="M16 10h2"/><path d="M16 14h2"/><path d="M6.17 15a3 3 0 0 1 5.66 0"/><circle cx="9" cy="11" r="2"/><rect x="2" y="5" width="20" height="14" rx="2"/></svg>
               <input id="idoneidad" name="idoneidad" type="text" placeholder="Ej.: RM-123-4567" maxlength="50" required>
+            </div>
+          </div>
+
+          <!-- DEF-004: la idoneidad es pública; la cédula confirma que la cuenta es del médico -->
+          <div class="field">
+            <label class="lbl" for="cedula">Cédula</label>
+            <div class="control">
+              <svg class="i" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 10h6"/><path d="M6 14h4"/><path d="M15 10h3"/></svg>
+              <input id="cedula" name="cedula" type="text" placeholder="Ej.: 8-123-456" maxlength="30" autocomplete="off" autocapitalize="characters" spellcheck="false" required>
             </div>
           </div>
 
