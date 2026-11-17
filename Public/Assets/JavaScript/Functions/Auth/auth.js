@@ -1,5 +1,5 @@
 // Servicio compartido: API de autenticación y peticiones con Bearer token.
-import { getToken, clearToken, isTokenExpired, saveToken, isAuthenticated } from './token.js';
+import { getToken, clearToken, isTokenExpired, isAuthenticated } from './token.js';
 import { mockMode, mockLogin, mockRegister, demoUser } from './mockAuth.js';
 
 // La URL pública de la API la inyecta el servidor en <meta name="sicolmed-api-url">
@@ -10,7 +10,6 @@ const apiBaseUrl = (
   document.querySelector('meta[name="sicolmed-api-url"]')?.content?.trim() ||
   'http://localhost:8000'
 ).replace(/\/+$/, '');
-const loginEndpoint = window.SICOLMED_LOGIN_ENDPOINT || '/auth/login';
 const registerEndpoint = window.SICOLMED_REGISTER_ENDPOINT || '/auth/register';
 
 async function parseResponse(response) {
@@ -59,38 +58,18 @@ function loginErrorMessage(status) {
   return 'No fue posible iniciar sesión. Inténtalo de nuevo.';
 }
 
-export async function login(username, password, rememberSession = false) {
+// DEF-008: el JWT no pasa por el navegador. Las credenciales van a PHP (mismo sitio),
+// que pide el token a la API, lo guarda solo en la sesión del servidor (cookie HttpOnly)
+// y responde { ok, rol, destino }.
+export async function login(username, password, rememberSession = false,
+  sessionEndpoint = '/index.php?c=sesion&a=iniciar') {
   if (mockMode) return mockLogin(username, password, rememberSession);
 
-  const response = await postJson(apiBaseUrl + loginEndpoint, { username, password });
+  const response = await postJson(sessionEndpoint, { username, password });
   const body = await parseResponse(response);
-  if (!response.ok) throw new Error(loginErrorMessage(response.status));
-  const token = body && (body.access_token || body.token);
-  if (typeof token !== 'string' || token === '') {
+  if (!response.ok || !body || body.ok !== true) throw new Error(loginErrorMessage(response.status));
+  if (typeof body.destino !== 'string' || body.destino === '') {
     throw new Error('El servidor respondió de forma inesperada. Inténtalo de nuevo.');
-  }
-  saveToken(token, rememberSession);
-  return body;
-}
-
-export async function establishFrontendSession(token) {
-  const endpoint = document.body.dataset.sessionEndpoint ||
-    '/index.php?c=sesion&a=iniciar';
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    credentials: 'same-origin',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json'
-    },
-    body: JSON.stringify({ token })
-  });
-  const body = await parseResponse(response);
-  if (!response.ok) {
-    throw new Error(apiError(body, 'No fue posible establecer la sesión.'));
-  }
-  if (!body || typeof body.destino !== 'string' || body.destino === '') {
-    throw new Error('La respuesta de sesión no contiene un destino válido.');
   }
   return body;
 }

@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace App\Controllers\Auth;
 
+use App\Services\ApiClient;
+
 /**
- * Puente entre el login (JavaScript + JWT) y la sesión de PHP.
+ * Inicio y cierre de sesión. El JWT nunca llega al navegador (DEF-008): PHP lo
+ * pide a la API y lo guarda solo en la sesión del servidor, cuya cookie es
+ * HttpOnly y SameSite (ver Public/index.php).
  *
- *   POST /index.php?c=sesion&a=iniciar   body JSON {"token": "<JWT>"}
+ *   POST /index.php?c=sesion&a=iniciar   body JSON {"username": "<correo>", "password": "..."}
  *   POST /index.php?c=sesion&a=cerrar
  *
- * El rol NO se toma del token que manda el navegador: se le pregunta a la API
- * (GET /auth/me), que valida la firma y confirma que el usuario sigue activo.
+ * El rol se le pregunta a la API (GET /auth/me), que valida la firma del token y
+ * confirma que el usuario sigue activo.
  */
 final class SesionController
 {
@@ -26,12 +30,29 @@ final class SesionController
     {
         $this->exigirPeticionSegura();
 
-        $datos = json_decode((string) file_get_contents('php://input'), true);
-        $token = is_array($datos) ? (string) ($datos['token'] ?? '') : '';
+        $datos   = json_decode((string) file_get_contents('php://input'), true);
+        $usuario = is_array($datos) && is_string($datos['username'] ?? null) ? trim($datos['username']) : '';
+        $clave   = is_array($datos) && is_string($datos['password'] ?? null) ? $datos['password'] : '';
+        if ($usuario === '' || $clave === '' || strlen($usuario) > 320 || strlen($clave) > 1024) {
+            $this->responder(422, ['ok' => false, 'mensaje' => 'Revisa el usuario y la contraseña.']);
+        }
+
+        // Login contra la API desde el servidor: el token no pasa por JavaScript.
+        $login = (new ApiClient())->postJson('/auth/login', ['username' => $usuario, 'password' => $clave]);
+        if ($login['status'] === 0 || $login['body'] === null) {
+            $this->responder(502, ['ok' => false, 'mensaje' => 'No se pudo contactar con la API.']);
+        }
+        if ($login['status'] !== 200) {
+            // 401, 403, 422 y 429 se reenvían: login.js muestra el mensaje de cada código.
+            $estadoLogin = in_array($login['status'], [401, 403, 422, 429], true) ? $login['status'] : 502;
+            $this->responder($estadoLogin, ['ok' => false, 'mensaje' => 'No fue posible iniciar sesión.']);
+        }
+        $respuestaLogin = json_decode($login['body'], true);
+        $token = is_array($respuestaLogin) ? (string) ($respuestaLogin['access_token'] ?? '') : '';
 
         // Forma de un JWT (tres partes base64url) y tamaño razonable
         if (strlen($token) > 4096 || !preg_match('/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*$/', $token)) {
-            $this->responder(400, ['ok' => false, 'mensaje' => 'Token inválido.']);
+            $this->responder(502, ['ok' => false, 'mensaje' => 'La API respondió de forma inesperada.']);
         }
 
         $api = rtrim((string) (getenv('API_URL') ?: 'http://api:8000'), '/');
@@ -78,6 +99,11 @@ final class SesionController
     public function cerrar(): void
     {
         $this->exigirPeticionSegura();
+        // DEF-008: la API invalida el token (POST /auth/logout) antes de borrar la sesión.
+        // ApiClient manda el JWT de la sesión. Si la API no responde, igual se cierra aquí.
+        if (\Auth::token() !== null) {
+            (new ApiClient())->postJson('/auth/logout', []);
+        }
         \Auth::cerrarSesion();
         $this->responder(200, ['ok' => true]);
     }

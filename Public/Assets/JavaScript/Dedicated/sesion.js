@@ -2,7 +2,7 @@
 //   2) Cierra sesión con cualquier elemento que tenga el atributo data-logout.
 //
 // Esto solo mejora la experiencia (la autorización real la hace el backend con el JWT).
-import { isAuthenticated, clearToken } from '../Functions/Auth/token.js';
+import { clearToken } from '../Functions/Auth/token.js';
 
 const body = document.body;
 const loginUrl = body.dataset.loginUrl || '/index.php?c=login&a=login';
@@ -11,13 +11,14 @@ function irAlLogin() {
   window.location.replace(loginUrl);
 }
 
-// 1) Proteger la vista. header.php pone data-auth-required="1" cuando NO está el modo de prueba.
+// DEF-008: el JWT vive solo en la sesión de PHP. Se borra cualquier token que una
+// versión anterior haya dejado en sessionStorage/localStorage.
+clearToken();
+
+// 1) Proteger la vista. header.php pone data-auth-required="1" cuando NO está el modo de
+//    prueba y la sesión de PHP no tiene un usuario: entonces se manda al login.
 if (body.dataset.authRequired === '1') {
-  if (isAuthenticated()) {
-    body.classList.add('auth-ok');   // el CSS del header oculta la página hasta este punto
-  } else {
-    irAlLogin();
-  }
+  irAlLogin();
 }
 
 // 2) Cerrar sesión
