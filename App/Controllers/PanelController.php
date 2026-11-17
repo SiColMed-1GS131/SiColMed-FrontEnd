@@ -69,6 +69,7 @@ final class PanelController
             'urls' => [
                 'nuevo'      => self::ENTRADA . '?c=registro&a=nuevo',
                 'directorio' => self::ENTRADA . '?c=directorio&a=index',
+                'solicitudes' => self::ENTRADA . '?c=solicitudes&a=index',
                 'cuentas'    => self::ENTRADA . '?c=cuentas&a=index',
                 'movimientos' => self::ENTRADA . '?c=movimientos&a=index',
                 'balance'    => self::ENTRADA . '?c=reportes&a=balance',
@@ -85,9 +86,10 @@ final class PanelController
                 ['etiqueta' => 'Mis solicitudes de cambio',  'valor' => '—'],   // pendiente: GET /solicitudes-cambio es solo del admin
             ],
             'urls' => [
-                'perfil'     => self::PERFIL . 'index',
-                'editar'     => self::PERFIL . 'editar',
-                'directorio' => self::ENTRADA . '?c=directorio&a=index',
+                'perfil'      => self::PERFIL . 'index',
+                'editar'      => self::PERFIL . 'editar',
+                'solicitudes' => self::ENTRADA . '?c=solicitudes&a=index',
+                'directorio'  => self::ENTRADA . '?c=directorio&a=index',
             ],
         ]);
     }

@@ -1,0 +1,105 @@
+/* Solicitudes de cambio (médico y administrador). Reutiliza panel.css y base.css. */
+
+.filtro-estado {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0 0 1.25rem;
+}
+
+.filtro-estado__opcion {
+    padding: 0.35rem 0.9rem;
+    border: 1px solid var(--color-borde, #d7dde5);
+    border-radius: 999px;
+    color: inherit;
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+
+.filtro-estado__opcion--activa {
+    background: var(--color-primario, #0f4c81);
+    border-color: var(--color-primario, #0f4c81);
+    color: #fff;
+}
+
+.solicitud {
+    margin-bottom: 1.25rem;
+}
+
+.solicitud__cabecera {
+    align-items: flex-start;
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+}
+
+.solicitud__titulo {
+    font-size: 1.05rem;
+    margin: 0;
+}
+
+.solicitud__meta {
+    color: var(--color-texto-suave, #5a6b7d);
+    font-size: 0.88rem;
+    margin: 0.2rem 0;
+}
+
+.solicitud__subtitulo {
+    font-size: 0.95rem;
+    margin: 0 0 0.5rem;
+}
+
+.solicitud__seccion {
+    border-top: 1px solid var(--color-borde, #e3e8ee);
+    margin-top: 0.9rem;
+    padding-top: 0.9rem;
+}
+
+.solicitud__registro {
+    border: 1px solid var(--color-borde, #e3e8ee);
+    border-radius: 0.5rem;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+}
+
+.solicitud__campo {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.2rem 0;
+}
+
+.solicitud__campo-nombre {
+    font-weight: 600;
+}
+
+.solicitud__checks {
+    display: grid;
+    gap: 0.4rem;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+}
+
+.solicitud__check {
+    align-items: center;
+    display: flex;
+    gap: 0.4rem;
+}
+
+.solicitud__form select,
+.solicitud__form input[type="text"],
+.solicitud__form input[type="email"],
+.solicitud__form input[type="date"],
+.solicitud__form input[type="number"] {
+    max-width: 100%;
+}
+
+.vacio {
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.vacio__titulo {
+    color: var(--color-texto-suave, #5a6b7d);
+    margin: 0;
+}
