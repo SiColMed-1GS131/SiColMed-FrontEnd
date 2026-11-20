@@ -25,7 +25,7 @@ require_once __DIR__ . '/../Helpers/ui.php';   // enviarImagen()
 final class DirectorioController
 {
     // Filtros de la URL con los mismos nombres que GET /medicos (FiltroMedicos del backend)
-    private const FILTROS_ID = ['id_especialidad', 'id_asociacion', 'id_provincia'];
+    private const FILTROS_ID = ['id_especialidad', 'id_subespecialidad', 'id_asociacion', 'id_provincia'];
     private const FILTROS_TEXTO = ['apellido', 'lugar_trabajo'];
     private const POR_PAGINA = 50;
 
@@ -95,9 +95,10 @@ final class DirectorioController
             'medicos' => $resultado['ok'] ? $resultado['datos'] : [],
             'filtros' => $filtros,
             'catalogos' => [
-                'especialidades' => $this->catalogos->especialidades(),
-                'asociaciones'   => $this->catalogos->asociaciones(),
-                'provincias'     => $this->catalogos->provincias(),
+                'especialidades'    => $this->catalogos->especialidades(),
+                'subespecialidades' => $this->catalogos->subespecialidades(),
+                'asociaciones'      => $this->catalogos->asociaciones(),
+                'provincias'        => $this->catalogos->provincias(),
             ],
             'paginaActual' => $resultado['paginacion']['pagina'] ?? 1,
             'totalPaginas' => $resultado['paginacion']['total_paginas'] ?? 0,

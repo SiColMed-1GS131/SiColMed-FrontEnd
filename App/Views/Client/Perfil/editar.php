@@ -21,7 +21,8 @@ $opcionesDireccion = static function (array $lista, string $campo) use ($medico)
 };
 ?>
 
-<link rel="stylesheet" href="/Assets/CSS/Dedicated/perfil.css">
+<!-- ?v= cambia cuando cambia el archivo: así el navegador no usa una copia vieja del CSS -->
+<link rel="stylesheet" href="/Assets/CSS/Dedicated/perfil.css?v=<?= (int) @filemtime(__DIR__ . '/../../../../Public/Assets/CSS/Dedicated/perfil.css') ?>">
 <div class="app-layout">
 
     <?php
@@ -267,10 +268,11 @@ $opcionesDireccion = static function (array $lista, string $campo) use ($medico)
                         <input type="file" id="foto" name="foto" accept="image/jpeg,image/png" required>
                     </div>
                     <input type="hidden" name="csrf" value="<?= e($certificado['csrf']) ?>">
-                    <div class="formulario__acciones">
-                        <button type="submit" class="btn btn--primario">Subir foto</button>
-                    </div>
                 </fieldset>
+                <!-- Fuera de la tarjeta, igual que "Guardar mis cambios" -->
+                <div class="formulario__acciones">
+                    <button type="submit" class="btn btn--primario">Subir foto</button>
+                </div>
             </form>
 
             <!-- Certificado de idoneidad: solo consulta. No lo edita el propio médico
@@ -279,11 +281,17 @@ $opcionesDireccion = static function (array $lista, string $campo) use ($medico)
                 <fieldset class="formulario__seccion">
                     <legend id="titulo-certificado">Certificado de idoneidad (PDF)</legend>
                     <?php if ($certificado['url']): ?>
-                        <p><a href="<?= e($certificado['url']) ?>" target="_blank" rel="noopener">Ver mi certificado actual (PDF)</a>.</p>
+                        <p>Tu certificado de idoneidad está disponible.</p>
                     <?php else: ?>
                         <p>Todavía no hay un certificado cargado.</p>
                     <?php endif; ?>
                     <p>El certificado de idoneidad lo actualiza el administrador del Colegio Médico.</p>
+                    <?php if ($certificado['url']): ?>
+                        <div class="certificado__acciones">
+                            <a href="<?= e($certificado['url']) ?>" target="_blank" rel="noopener" class="btn btn--secundario">Visualizar</a>
+                            <a href="<?= e($certificado['url']) ?>" download="certificado_idoneidad.pdf" class="btn btn--primario">Descargar</a>
+                        </div>
+                    <?php endif; ?>
                 </fieldset>
             </section>
         </div>
