@@ -695,13 +695,18 @@ final class RegistroMedicoRepository
             $errores = [];
             $sinCampo = [];
             foreach ($cuerpo['detail'] as $item) {
+                if (!\is_array($item)) {
+                    continue;
+                }
                 $ruta = \is_array($item['loc'] ?? null) ? \array_values(\array_diff($item['loc'], ['body'])) : [];
-                $mensaje = (string) ($item['msg'] ?? 'Dato no válido.');
+                $mensaje = $this->traducirErrorValidacion($item, $ruta);
                 $campo = $ruta === [] ? null : $this->campoDelFormulario($ruta);
                 if ($campo !== null) {
                     $errores[$campo] = $mensaje;
                 } else {
-                    $sinCampo[] = $mensaje;
+                    // Sin campo propio: se indica la sección para que el usuario sepa dónde mirar
+                    $seccion = self::SECCIONES[(string) ($ruta[0] ?? '')] ?? null;
+                    $sinCampo[] = ($seccion !== null && \count($ruta) > 1) ? $seccion . ': ' . $mensaje : $mensaje;
                 }
             }
             return $this->resultado(false, [], \implode(' ', \array_unique($sinCampo)), $errores);
@@ -709,7 +714,81 @@ final class RegistroMedicoRepository
 
         // Los errores de PostgreSQL llegan aquí
         $detalle = $cuerpo['detail'] ?? null;
-        return $this->resultado(false, [], \is_string($detalle) ? $detalle : 'No se pudo completar la operación.');
+        return $this->resultado(false, [], \is_string($detalle) ? $this->traducirSecciones($detalle) : 'No se pudo completar la operación.');
+    }
+
+    // Nombres que ve el usuario para las secciones del JSON de POST/PUT /medicos (= nombres de tabla)
+    private const SECCIONES = [
+        'medico'            => 'Información personal',
+        'direccion'         => 'Dirección residencial',
+        'lugar_trabajo'     => 'Información laboral',
+        'direccion_trabajo' => 'Dirección laboral',
+        'estudio_medico'    => 'Educación',
+        'certificacion'     => 'Certificación',
+    ];
+
+    // "La sección estudio_medico es obligatoria" (registrar_medico.sql) → "Falta completar la sección «Educación»."
+    private function traducirSecciones(string $mensaje): string
+    {
+        return (string) \preg_replace_callback(
+            '/La secci[oó]n (\w+) es obligatoria\.?/u',
+            static fn (array $m): string => isset(self::SECCIONES[$m[1]])
+                ? 'Falta completar la sección «' . self::SECCIONES[$m[1]] . '».'
+                : $m[0],
+            $mensaje
+        );
+    }
+
+    // Mensaje en español a partir del "type" de Pydantic (el "msg" viene en inglés)
+    private function traducirErrorValidacion(array $item, array $ruta): string
+    {
+        $tipo  = (string) ($item['type'] ?? '');
+        $ctx   = \is_array($item['ctx'] ?? null) ? $item['ctx'] : [];
+        $vacio = !\array_key_exists('input', $item) || $item['input'] === null || $item['input'] === '';
+
+        // Falta una sección completa (loc = ["lugar_trabajo"])
+        if (\count($ruta) === 1 && isset(self::SECCIONES[(string) $ruta[0]])) {
+            return 'Falta completar la sección «' . self::SECCIONES[(string) $ruta[0]] . '».';
+        }
+
+        switch (true) {
+            case $tipo === 'missing':
+                return 'Este campo es obligatorio.';
+            case $tipo === 'string_type':
+                return $vacio ? 'Este campo es obligatorio.' : 'Debe ser un texto.';
+            case \in_array($tipo, ['int_type', 'int_parsing', 'int_from_float'], true):
+                return $vacio ? 'Este campo es obligatorio.' : 'Debe ser un número entero.';
+            case \in_array($tipo, ['float_type', 'float_parsing', 'decimal_type', 'decimal_parsing'], true):
+                return $vacio ? 'Este campo es obligatorio.' : 'Debe ser un número válido.';
+            case \in_array($tipo, ['bool_type', 'bool_parsing'], true):
+                return 'Selecciona una opción válida.';
+            case \str_starts_with($tipo, 'date') || \str_starts_with($tipo, 'datetime'):
+                return $vacio ? 'Este campo es obligatorio.' : 'Ingresa una fecha válida.';
+            case $tipo === 'string_too_short':
+                $min = (int) ($ctx['min_length'] ?? 1);
+                return $min <= 1 ? 'Este campo es obligatorio.' : 'Debe tener al menos ' . $min . ' caracteres.';
+            case $tipo === 'string_too_long':
+                return 'Debe tener como máximo ' . (int) ($ctx['max_length'] ?? 0) . ' caracteres.';
+            case $tipo === 'string_pattern_mismatch':
+                return 'El formato no es válido.';
+            case $tipo === 'greater_than':
+                return 'Debe ser mayor que ' . (string) ($ctx['gt'] ?? 0) . '.';
+            case $tipo === 'greater_than_equal':
+                return 'Debe ser mayor o igual que ' . (string) ($ctx['ge'] ?? 0) . '.';
+            case $tipo === 'less_than':
+                return 'Debe ser menor que ' . (string) ($ctx['lt'] ?? 0) . '.';
+            case $tipo === 'less_than_equal':
+                return 'Debe ser menor o igual que ' . (string) ($ctx['le'] ?? 0) . '.';
+            case $tipo === 'value_error':
+                $msg = (string) ($item['msg'] ?? '');
+                if (\stripos($msg, 'email') !== false) {
+                    return 'Ingresa un correo electrónico válido.';
+                }
+                // Los validadores propios del backend ya escriben en español: solo se quita el prefijo
+                $msg = \preg_replace('/^Value error,\s*/', '', $msg);
+                return $msg !== '' ? $this->traducirSecciones($msg) : 'Dato no válido.';
+        }
+        return 'Dato no válido.';
     }
 
     private function resultado(bool $ok, mixed $datos = [], string $error = '', array $errores = []): array

@@ -54,6 +54,15 @@ $enlacePagina = static fn (int $pagina): string => $entrada . '?' . http_build_q
                     </select>
                 </div>
 
+                <!-- Subespecialidad -->
+                <div class="campo">
+                    <label class="campo__label" for="filtro-subespecialidad">Subespecialidad</label>
+                    <select class="campo__input" id="filtro-subespecialidad" name="id_subespecialidad">
+                        <option value="">Seleccionar subespecialidad</option>
+                        <?php $opcionesCatalogo($catalogos['subespecialidades'] ?? [], (string) ($filtros['id_subespecialidad'] ?? '')); ?>
+                    </select>
+                </div>
+
                 <!-- Asociación -->
                 <div class="campo">
                     <label class="campo__label" for="filtro-asociacion">Asociación</label>
@@ -80,6 +89,13 @@ $enlacePagina = static fn (int $pagina): string => $entrada . '?' . http_build_q
                         <option value="">Seleccionar provincia</option>
                         <?php $opcionesCatalogo($catalogos['provincias'] ?? [], (string) ($filtros['id_provincia'] ?? '')); ?>
                     </select>
+                </div>
+
+                <!-- Lugar de trabajo (texto libre: la API busca por coincidencia parcial del nombre) -->
+                <div class="campo">
+                    <label class="campo__label" for="filtro-lugar-trabajo">Lugar de trabajo</label>
+                    <input class="campo__input" type="search" id="filtro-lugar-trabajo" name="lugar_trabajo" maxlength="150"
+                           value="<?= $esc($filtros['lugar_trabajo'] ?? '') ?>">
                 </div>
 
                 <div class="directorio-filtros__acciones">

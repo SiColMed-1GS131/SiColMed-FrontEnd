@@ -3,7 +3,8 @@ $currentPage = 'perfil';
 require_once __DIR__ . '/../../Partials/header.php';
 ?>
 
-<link rel="stylesheet" href="/Assets/CSS/Dedicated/perfil.css">
+<!-- ?v= cambia cuando cambia el archivo: así el navegador no usa una copia vieja del CSS -->
+<link rel="stylesheet" href="/Assets/CSS/Dedicated/perfil.css?v=<?= (int) @filemtime(__DIR__ . '/../../../../Public/Assets/CSS/Dedicated/perfil.css') ?>">
 
 
 <div class="app-layout">

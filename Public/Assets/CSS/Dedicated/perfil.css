@@ -42,6 +42,12 @@
     margin-bottom: 20px;
     display: block;
     width: 100%;
+    float: left; /* con float el título queda dentro del cuadro blanco y no sobre el borde */
+}
+
+/* Lo que va después del título empieza debajo de él */
+.formulario__seccion legend ~ * {
+    clear: both;
 }
 
 /* Cuadrícula para alinear los inputs */
@@ -62,6 +68,7 @@
 
 /* Estilos de los inputs: Rectangulares con borde delgado oscuro */
 .formulario__seccion .campo input,
+.formulario__seccion .campo select,
 .formulario__seccion .campo textarea {
     background-color: transparent;
     border: 1px solid var(--venice-blue); /* Borde azul oscuro/grisáceo */
@@ -90,7 +97,8 @@
 .formulario__acciones {
     display: flex;
     justify-content: flex-end;
-    margin-top: 20px;
+    margin-top: -12px;   /* se suma a los 30px de la tarjeta de arriba: queda a ~18px */
+    margin-bottom: 20px; /* separa el botón de la sección de abajo */
 }
 
 .btn--primario {
@@ -106,6 +114,43 @@
 
 .btn--primario:hover {
     background-color: var(--venice-bluedark);
+}
+
+/* Listas de dirección (provincia, distrito, corregimiento) del mismo alto que los campos de texto */
+.formulario__seccion .campo select {
+    height: 41px;
+    font-size: inherit;
+    cursor: pointer;
+}
+
+/* Botones del certificado */
+.perfil-medico a.btn--primario {
+    display: inline-block;
+    text-decoration: none;
+}
+
+.perfil-medico .btn--secundario {
+    display: inline-block;
+    background-color: transparent;
+    color: var(--venice-blue);
+    padding: 9px 24px;
+    border: 1px solid var(--venice-blue);
+    border-radius: 4px;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.perfil-medico .btn--secundario:hover {
+    background-color: var(--venice-blue);
+    color: white;
+}
+
+.certificado__acciones {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
 }
 
 /* ==========================================================================
