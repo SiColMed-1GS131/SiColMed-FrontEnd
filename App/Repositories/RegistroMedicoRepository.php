@@ -215,6 +215,11 @@ final class RegistroMedicoRepository
             return $this->resultado(false, [], 'Revisa la dirección: provincia, distrito y corregimiento no coinciden.', $errores);
         }
 
+        // Título básico e información laboral que aún no existen se agregan completos o no se agregan
+        if ($errores = $this->erroresFilasNuevas($datos, $actual['datos'])) {
+            return $this->resultado(false, [], 'Completa los campos obligatorios de ' . $this->resumenFaltantes($errores) . '.', $errores);
+        }
+
         $cambios = $this->paraActualizacion($datos, $actual['datos']);
         if ($cambios === []) {
             return $this->resultado(true, []);
@@ -410,7 +415,8 @@ final class RegistroMedicoRepository
     /**
      * Compara el formulario con el médico actual (ya aplanado por desdePerfil).
      * Un campo vacío no se envía: la API no permite borrar valores (min_length=1).
-     * Lugar de trabajo, estudios y certificación no se envían: PATCH /medicos/{id} no los acepta.
+     * Lugar de trabajo y título básico sí se envían (solo los puede editar el administrador del CMP).
+     * La certificación no se envía: es de solo lectura (M2-REG-11).
      */
     private function paraActualizacion(array $d, array $actual): array
     {
@@ -432,6 +438,47 @@ final class RegistroMedicoRepository
         }
         if ($direccion !== []) {
             $cambios['direccion'] = $direccion;
+        }
+
+        // Información laboral (M2-REG-10): con id se actualizan los campos que cambiaron;
+        // sin id (el médico no tenía lugar de trabajo) se agrega uno nuevo con su dirección.
+        // La dirección de un lugar que ya existe no se edita aquí (la API la rechaza con id).
+        $idLugar = $this->entero($actual['id_lugar_trabajo'] ?? null);
+        if ($idLugar !== null) {
+            $lugar = [];
+            foreach (self::CAMPOS_TRABAJO as $campo => $api) {
+                $nuevo = $this->texto($d[$campo] ?? null);
+                if ($nuevo !== null && $nuevo !== $this->texto($actual[$campo] ?? null)) {
+                    $lugar[$api] = $nuevo;
+                }
+            }
+            if ($lugar !== []) {
+                $cambios['lugar_trabajo'] = [['id_lugar_trabajo' => $idLugar] + $lugar];
+            }
+        } elseif (($trabajo = $this->bloque($d, self::CAMPOS_TRABAJO)) !== null) {
+            $cambios['lugar_trabajo'] = [$trabajo + ['direccion' => \array_filter(
+                $this->direccion($d, 'trabajo') + ['apartado_postal' => $this->texto($d['trabajo_apartado_postal'] ?? null)],
+                static fn ($v) => $v !== null,
+            )]];
+        }
+
+        // Título básico (M2-REG-09): igual que lo laboral, con id actualiza y sin id agrega
+        $campos = \array_combine(self::CAMPOS_ESTUDIO, self::CAMPOS_ESTUDIO);
+        $basico = \is_array($d['educacion']['basico'][0] ?? null) ? $d['educacion']['basico'][0] : [];
+        $idEstudio = $this->entero($actual['id_estudio'] ?? null);
+        if ($idEstudio !== null) {
+            $estudio = [];
+            foreach ($campos as $campo) {
+                $nuevo = $this->texto($basico[$campo] ?? null);
+                if ($nuevo !== null && $nuevo !== $this->texto($actual['educacion']['basico'][0][$campo] ?? null)) {
+                    $estudio[$campo] = $nuevo;
+                }
+            }
+            if ($estudio !== []) {
+                $cambios['estudio_medico'] = [['id_estudio' => $idEstudio] + $estudio];
+            }
+        } elseif (($estudio = $this->bloque($basico, $campos)) !== null) {
+            $cambios['estudio_medico'] = [['tipo_estudio' => 'Título básico'] + $estudio];
         }
 
         foreach (self::RELACIONES as $relacion) {
@@ -487,6 +534,39 @@ final class RegistroMedicoRepository
             $direccion[$api] = $api === 'id_corregimiento' ? $this->entero($valor) : $this->texto($valor);
         }
         return $direccion;
+    }
+
+    // Si el médico aún no tiene lugar de trabajo o título básico y se llena algo, deben venir todos los
+    // campos obligatorios (la API los exige para una fila nueva). Devuelve campo del formulario => mensaje.
+    private function erroresFilasNuevas(array $d, array $actual): array
+    {
+        $grupos = [];
+        if ($this->entero($actual['id_lugar_trabajo'] ?? null) === null) {
+            $grupos['Información laboral'] = $d;
+        }
+        if ($this->entero($actual['id_estudio'] ?? null) === null) {
+            $grupos['Educación'] = \is_array($d['educacion']['basico'][0] ?? null) ? $d['educacion']['basico'][0] : [];
+        }
+
+        $errores = [];
+        foreach ($grupos as $seccion => $fuente) {
+            $campos = self::OBLIGATORIOS_NUEVO[$seccion];
+            $llenos = false;
+            foreach (\array_keys($campos) as $campo) {
+                $clave = $seccion === 'Educación' ? \substr($campo, \strlen('estudio_')) : $campo;
+                $llenos = $llenos || $this->texto($fuente[$clave] ?? null) !== null;
+            }
+            if (!$llenos) {
+                continue;   // sección vacía: no se agrega nada
+            }
+            foreach ($campos as $campo => $mensaje) {
+                $clave = $seccion === 'Educación' ? \substr($campo, \strlen('estudio_')) : $campo;
+                if ($this->texto($fuente[$clave] ?? null) === null) {
+                    $errores[$campo] = $mensaje;
+                }
+            }
+        }
+        return $errores;
     }
 
     // La API solo recibe id_corregimiento y deduce provincia y distrito, así que una combinación
@@ -598,6 +678,7 @@ final class RegistroMedicoRepository
         $medico += $this->direccionDesdeApi($residencia, 'residencia');
 
         $trabajo = \is_array($perfil['lugares_trabajo'][0] ?? null) ? $perfil['lugares_trabajo'][0] : [];
+        $medico['id_lugar_trabajo'] = $trabajo['id_lugar_trabajo'] ?? null;   // solo lo usa el servidor, no va en el formulario
         foreach (self::CAMPOS_TRABAJO as $campo => $api) {
             $medico[$campo] = (string) ($trabajo[$api] ?? '');
         }
@@ -606,6 +687,7 @@ final class RegistroMedicoRepository
 
         $estudio = \is_array($perfil['estudios'][0] ?? null) ? $perfil['estudios'][0] : [];
         $medico['educacion']['basico'][0] = \array_intersect_key($estudio, \array_flip(self::CAMPOS_ESTUDIO));
+        $medico['id_estudio'] = $estudio['id_estudio'] ?? null;
 
         $certificaciones = \is_array($perfil['certificaciones'] ?? null) ? $perfil['certificaciones'] : [];
         $cert = \is_array(\end($certificaciones)) ? \end($certificaciones) : [];

@@ -121,17 +121,21 @@ final class RegistroController
                 'certificado_idoneidad' => ['el certificado', fn(array $f) => $this->medicos->subirCertificado($idMedico, $f)],
             ];
             $fallos = [];
+            $hayArchivos = false;
             foreach ($archivos as $campo => [$nombre, $subir]) {
                 $archivo = $_FILES[$campo] ?? null;
                 if ($idMedico > 0 && \is_array($archivo) && ($archivo['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+                    $hayArchivos = true;
                     $subida = $subir($archivo);
                     if (!$subida['ok']) {
                         $fallos[] = 'no se subió ' . $nombre . ' (' . ($subida['error'] ?: 'error desconocido') . ')';
                     }
                 }
             }
+            // Al editar, el repositorio devuelve datos vacíos cuando no había nada que cambiar (no llama a la API)
+            $sinCambios = $id !== null && !$hayArchivos && ($resultado['datos'] ?? []) === [];
             $this->guardarMensaje($fallos === []
-                ? 'Médico guardado correctamente.'
+                ? ($sinCambios ? 'No hay cambios que guardar.' : 'Médico guardado correctamente.')
                 : 'Médico guardado, pero ' . \implode(' y ', $fallos) . '. Edítalo para intentarlo de nuevo.');
             $this->redirigir($this->entrada() . '?c=registro&a=index');
         }

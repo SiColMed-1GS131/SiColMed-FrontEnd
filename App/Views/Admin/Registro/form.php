@@ -109,11 +109,12 @@ $selectMultiple = function (string $campo, string $etiqueta, string $destino = '
     <!-- Fin: aviso de error -->
 
     <?php if (!empty($medico['id'])): ?>
-      <!-- PATCH /medicos/{id} solo acepta datos personales, dirección residencial y relaciones -->
+      <!-- PATCH /medicos/{id}: datos personales, dirección residencial, relaciones, información laboral y título básico -->
       <div class="registro__alerta" role="note">
-        Al editar solo se guardan los datos personales, la dirección residencial, las especialidades,
-        subespecialidades, asociaciones y el PDF del certificado. Los cambios en información laboral, título básico
-        y datos de certificación (fechas, puntaje) no se guardan todavía.
+        Al editar se guardan los datos personales, la dirección residencial, las especialidades, subespecialidades,
+        asociaciones, la información laboral, el título básico y el PDF del certificado. Si el médico aún no tiene
+        lugar de trabajo o título básico, completa todos los campos de esa pestaña para agregarlo. La dirección de un
+        lugar de trabajo ya registrado y los datos de certificación (fechas, puntaje) no se modifican desde aquí.
       </div>
     <?php endif; ?>
 
