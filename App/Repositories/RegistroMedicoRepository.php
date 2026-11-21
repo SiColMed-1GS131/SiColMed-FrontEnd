@@ -72,6 +72,50 @@ final class RegistroMedicoRepository
 
     private const RELACIONES = ['especialidades', 'subespecialidades', 'asociaciones'];
 
+    // Lo que la API exige al registrar un médico NUEVO, agrupado por pestaña (campo del formulario => mensaje).
+    // Se revisa aquí para avisar por campo y en español, sin mostrar errores técnicos de la API.
+    // Los datos del título básico se leen de educacion[basico][0][...] y su error se guarda como estudio_<campo>.
+    private const OBLIGATORIOS_NUEVO = [
+        'Información personal' => [
+            'nombre'                   => 'Escribe el nombre.',
+            'apellido_paterno'         => 'Escribe el apellido paterno.',
+            'cedula'                   => 'Escribe la cédula.',
+            'numero_idoneidad'         => 'Escribe el número de idoneidad.',
+            'registro_medico'          => 'Escribe el número de registro médico.',
+            'fecha_nacimiento'         => 'Selecciona la fecha de nacimiento.',
+            'apartado_postal'          => 'Escribe el apartado postal.',
+            'residencia_provincia'     => 'Selecciona la provincia.',
+            'residencia_distrito'      => 'Selecciona el distrito.',
+            'residencia_corregimiento' => 'Selecciona el corregimiento.',
+            'residencia_calle'         => 'Escribe la calle.',
+            'residencia_numero'        => 'Escribe el número.',
+        ],
+        'Información laboral' => [
+            'empresa'                  => 'Escribe la empresa o institución.',
+            'cargo'                    => 'Escribe el cargo.',
+            'telefono_trabajo'         => 'Escribe el teléfono de trabajo.',
+            'email_laboral'            => 'Escribe el correo laboral.',
+            'trabajo_provincia'        => 'Selecciona la provincia del trabajo.',
+            'trabajo_distrito'         => 'Selecciona el distrito del trabajo.',
+            'trabajo_corregimiento'    => 'Selecciona el corregimiento del trabajo.',
+            'trabajo_calle'            => 'Escribe la calle del trabajo.',
+            'trabajo_numero'           => 'Escribe el número del trabajo.',
+            'trabajo_apartado_postal'  => 'Escribe el apartado postal del trabajo.',
+        ],
+        'Educación' => [
+            'estudio_titulo'           => 'Escribe el título básico.',
+            'estudio_institucion'      => 'Escribe la institución.',
+            'estudio_lugar'            => 'Escribe el lugar.',
+            'estudio_fecha'            => 'Selecciona la fecha del título.',
+        ],
+        'Certificación' => [
+            'cert_vigente'             => 'Indica si la certificación está vigente o no.',
+            'cert_fecha_obtencion'     => 'Selecciona la fecha de obtención.',
+            'cert_fecha_expiracion'    => 'Selecciona la fecha de expiración.',
+            'cert_puntaje'             => 'Escribe el puntaje.',
+        ],
+    ];
+
     private ApiClient $api;
     private CatalogosRepository $catalogos;
 
@@ -143,6 +187,9 @@ final class RegistroMedicoRepository
     {
         if ($this->usaMock()) {
             return $this->resultado(true, $datos);
+        }
+        if ($errores = $this->erroresObligatorios($datos)) {
+            return $this->resultado(false, [], $this->resumenFaltantes($errores), $errores);
         }
         if ($errores = $this->erroresDireccion($datos)) {
             return $this->resultado(false, [], 'Revisa la dirección: provincia, distrito y corregimiento no coinciden.', $errores);
@@ -643,6 +690,38 @@ final class RegistroMedicoRepository
         ];
     }
 
+    // Campos obligatorios vacíos de un médico nuevo: [campo del formulario => mensaje en español]
+    private function erroresObligatorios(array $d): array
+    {
+        $errores = [];
+        foreach (self::OBLIGATORIOS_NUEVO as $campos) {
+            foreach ($campos as $campo => $mensaje) {
+                if (\str_starts_with($campo, 'estudio_')) {
+                    $fila = $d['educacion']['basico'][0] ?? [];
+                    $valor = \is_array($fila) ? $this->texto($fila[\substr($campo, 8)] ?? null) : null;
+                } else {
+                    $valor = $this->texto($d[$campo] ?? null);
+                }
+                if ($valor === null) {
+                    $errores[$campo] = $mensaje;
+                }
+            }
+        }
+        return $errores;
+    }
+
+    // Mensaje general que dice en qué pestañas faltan datos
+    private function resumenFaltantes(array $errores): string
+    {
+        $secciones = [];
+        foreach (self::OBLIGATORIOS_NUEVO as $seccion => $campos) {
+            if (\array_intersect_key($errores, $campos) !== []) {
+                $secciones[] = $seccion;
+            }
+        }
+        return 'Faltan datos obligatorios en: ' . \implode(', ', $secciones) . '. Revisa los campos marcados en rojo.';
+    }
+
     // Ruta del error de la API (sin "body") → campo del formulario. null si no tiene campo propio.
     private function campoDelFormulario(array $ruta): ?string
     {
@@ -664,6 +743,9 @@ final class RegistroMedicoRepository
         if ($grupo === 'certificacion') {
             $form = \array_search($campo, self::CAMPOS_CERTIFICACION, true);
             return $form === false ? ($campo === 'vigente' ? 'cert_vigente' : null) : $form;
+        }
+        if ($grupo === 'estudio_medico') {
+            return \in_array($campo, self::CAMPOS_ESTUDIO, true) ? 'estudio_' . $campo : null;
         }
         if ($grupo === 'medico' || $grupo === '') {
             $form = \array_search($campo, self::CAMPOS_MEDICO, true);

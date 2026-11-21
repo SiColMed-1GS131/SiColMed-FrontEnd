@@ -8,9 +8,17 @@ $errorGeneral = $errorGeneral ?? '';
 // No usar los nombres $valor ni $error, porque direccion.php los redefine
 $dato = fn($campo) => htmlspecialchars((string) ($medico[$campo]  ?? ''), ENT_QUOTES, 'UTF-8');
 $err  = fn($campo) => htmlspecialchars((string) ($errores[$campo] ?? ''), ENT_QUOTES, 'UTF-8');
+// Registro de un médico nuevo: la API exige todas las secciones. Al editar solo se guardan los datos personales.
+$nuevo = empty($medico['id']);
+$marca = '<span style="color:#c0392b" aria-hidden="true">*</span>';
+$req   = fn(bool $obligatorio = true) => $obligatorio ? ' ' . $marca : '';
+$rq    = fn(bool $obligatorio = true) => $obligatorio ? ' required' : '';
 
 // Fila de estudios (se usa para título básico, especialidad y subespecialidad)
-$filaEstudio = function (string $grupo, $indice, array $fila, string $etiqueta, bool $quitable = true) {
+$filaEstudio = function (string $grupo, $indice, array $fila, string $etiqueta, bool $quitable = true, bool $obligatorio = false, array $errs = []) {
+    $marcaFila = $obligatorio ? ' <span style="color:#c0392b" aria-hidden="true">*</span>' : '';
+    $rqFila    = $obligatorio ? ' required' : '';
+    $errFila   = fn($campo) => htmlspecialchars((string) ($errs['estudio_' . $campo] ?? ''), ENT_QUOTES, 'UTF-8');
     $esc = fn($texto) => htmlspecialchars((string) $texto, ENT_QUOTES, 'UTF-8');
     $val = fn($campo) => $esc($fila[$campo] ?? '');
     $id  = 'educacion_' . $esc($grupo) . '_' . $esc($indice);
@@ -18,20 +26,24 @@ $filaEstudio = function (string $grupo, $indice, array $fila, string $etiqueta, 
     ?>
     <div class="registro__fila" data-fila>
       <div class="field">
-        <label for="<?= $id ?>_titulo"><?= $esc($etiqueta) ?></label>
-        <input type="text" id="<?= $id ?>_titulo" name="<?= $nm ?>[titulo]" value="<?= $val('titulo') ?>">
+        <label for="<?= $id ?>_titulo"><?= $esc($etiqueta) ?><?= $marcaFila ?></label>
+        <input type="text" id="<?= $id ?>_titulo" name="<?= $nm ?>[titulo]" value="<?= $val('titulo') ?>"<?= $rqFila ?>>
+        <span class="field__error"><?= $errFila('titulo') ?></span>
       </div>
       <div class="field">
-        <label for="<?= $id ?>_institucion">Institución</label>
-        <input type="text" id="<?= $id ?>_institucion" name="<?= $nm ?>[institucion]" value="<?= $val('institucion') ?>">
+        <label for="<?= $id ?>_institucion">Institución<?= $marcaFila ?></label>
+        <input type="text" id="<?= $id ?>_institucion" name="<?= $nm ?>[institucion]" value="<?= $val('institucion') ?>"<?= $rqFila ?>>
+        <span class="field__error"><?= $errFila('institucion') ?></span>
       </div>
       <div class="field">
-        <label for="<?= $id ?>_lugar">Lugar</label>
-        <input type="text" id="<?= $id ?>_lugar" name="<?= $nm ?>[lugar]" value="<?= $val('lugar') ?>">
+        <label for="<?= $id ?>_lugar">Lugar<?= $marcaFila ?></label>
+        <input type="text" id="<?= $id ?>_lugar" name="<?= $nm ?>[lugar]" value="<?= $val('lugar') ?>"<?= $rqFila ?>>
+        <span class="field__error"><?= $errFila('lugar') ?></span>
       </div>
       <div class="field">
-        <label for="<?= $id ?>_fecha">Fecha</label>
-        <input type="date" id="<?= $id ?>_fecha" name="<?= $nm ?>[fecha]" value="<?= $val('fecha') ?>">
+        <label for="<?= $id ?>_fecha">Fecha<?= $marcaFila ?></label>
+        <input type="date" id="<?= $id ?>_fecha" name="<?= $nm ?>[fecha]" value="<?= $val('fecha') ?>"<?= $rqFila ?>>
+        <span class="field__error"><?= $errFila('fecha') ?></span>
       </div>
       <?php if ($quitable): ?>
         <button type="button" class="btn registro__quitar" data-quitar>Quitar</button>
@@ -105,6 +117,8 @@ $selectMultiple = function (string $campo, string $etiqueta, string $destino = '
       </div>
     <?php endif; ?>
 
+    <p style="margin:0 0 12px;font-size:14px;"><?= $marca ?> Campo obligatorio<?= $nuevo ? '. Para registrar un médico nuevo se completan todas las pestañas (personal, laboral y educación) y la certificación.' : '' ?></p>
+
     <!-- Inicio: panel con pestañas -->
     <section class="registro__panel registro__panel--datos">
 
@@ -143,7 +157,7 @@ $selectMultiple = function (string $campo, string $etiqueta, string $destino = '
               <h3 class="registro__subtitulo" id="titulo-basicos">Datos básicos</h3>
               <div class="registro__grid registro__grid--compacto">
                 <div class="field">
-                  <label for="nombre">Nombre</label>
+                  <label for="nombre">Nombre<?= $req() ?></label>
                   <input type="text" id="nombre" name="nombre" value="<?= $dato('nombre') ?>" required>
                   <span class="field__error"><?= $err('nombre') ?></span>
                 </div>
@@ -153,7 +167,7 @@ $selectMultiple = function (string $campo, string $etiqueta, string $destino = '
                   <span class="field__error"><?= $err('segundo_nombre') ?></span>
                 </div>
                 <div class="field">
-                  <label for="apellido_paterno">Apellido paterno</label>
+                  <label for="apellido_paterno">Apellido paterno<?= $req() ?></label>
                   <input type="text" id="apellido_paterno" name="apellido_paterno" value="<?= $dato('apellido_paterno') ?>" required>
                   <span class="field__error"><?= $err('apellido_paterno') ?></span>
                 </div>
@@ -171,22 +185,22 @@ $selectMultiple = function (string $campo, string $etiqueta, string $destino = '
               <h3 class="registro__subtitulo" id="titulo-identificacion">Identificación</h3>
               <div class="registro__grid registro__grid--compacto">
                 <div class="field">
-                  <label for="cedula">Cédula</label>
+                  <label for="cedula">Cédula<?= $req() ?></label>
                   <input type="text" id="cedula" name="cedula" value="<?= $dato('cedula') ?>" required>
                   <span class="field__error"><?= $err('cedula') ?></span>
                 </div>
                 <div class="field">
-                  <label for="numero_idoneidad">N.º de idoneidad</label>
+                  <label for="numero_idoneidad">N.º de idoneidad<?= $req() ?></label>
                   <input type="text" id="numero_idoneidad" name="numero_idoneidad" value="<?= $dato('numero_idoneidad') ?>" required>
                   <span class="field__error"><?= $err('numero_idoneidad') ?></span>
                 </div>
                 <div class="field">
-                  <label for="registro_medico">N.º Registro médico</label>
+                  <label for="registro_medico">N.º Registro médico<?= $req() ?></label>
                   <input type="text" id="registro_medico" name="registro_medico" value="<?= $dato('registro_medico') ?>" pattern="[A-Za-z0-9\-]+" title="Letras, números y guiones (ej. RM-0001)" required>
                   <span class="field__error"><?= $err('registro_medico') ?></span>
                 </div>
                 <div class="field">
-                  <label for="fecha_nacimiento">Fecha de nacimiento</label>
+                  <label for="fecha_nacimiento">Fecha de nacimiento<?= $req() ?></label>
                   <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" value="<?= $dato('fecha_nacimiento') ?>" required>
                   <span class="field__error"><?= $err('fecha_nacimiento') ?></span>
                 </div>
@@ -219,8 +233,8 @@ $selectMultiple = function (string $campo, string $etiqueta, string $destino = '
                   <span class="field__error"><?= $err('email_personal') ?></span>
                 </div>
                 <div class="field">
-                  <label for="apartado_postal">Apartado postal</label>
-                  <input type="text" id="apartado_postal" name="apartado_postal" value="<?= $dato('apartado_postal') ?>">
+                  <label for="apartado_postal">Apartado postal<?= $req($nuevo) ?></label>
+                  <input type="text" id="apartado_postal" name="apartado_postal" value="<?= $dato('apartado_postal') ?>"<?= $rq($nuevo) ?>>
                   <span class="field__error"><?= $err('apartado_postal') ?></span>
                 </div>
               </div>
@@ -234,6 +248,7 @@ $selectMultiple = function (string $campo, string $etiqueta, string $destino = '
         <?php
           $dirPrefijo = 'residencia';
           $dirTitulo  = 'Dirección residencial';
+          $dirObligatorio = $nuevo;
           require __DIR__ . '/../../Partials/direccion.php';
         ?>
       </div>
@@ -243,23 +258,23 @@ $selectMultiple = function (string $campo, string $etiqueta, string $destino = '
       <div class="registro__tabpanel" id="tab-laboral" role="tabpanel" aria-labelledby="tabbtn-laboral" hidden>
         <div class="registro__grid">
           <div class="field">
-            <label for="empresa">Empresa o institución</label>
-            <input type="text" id="empresa" name="empresa" value="<?= $dato('empresa') ?>">
+            <label for="empresa">Empresa o institución<?= $req($nuevo) ?></label>
+            <input type="text" id="empresa" name="empresa" value="<?= $dato('empresa') ?>"<?= $rq($nuevo) ?>>
             <span class="field__error"><?= $err('empresa') ?></span>
           </div>
           <div class="field">
-            <label for="cargo">Cargo</label>
-            <input type="text" id="cargo" name="cargo" value="<?= $dato('cargo') ?>">
+            <label for="cargo">Cargo<?= $req($nuevo) ?></label>
+            <input type="text" id="cargo" name="cargo" value="<?= $dato('cargo') ?>"<?= $rq($nuevo) ?>>
             <span class="field__error"><?= $err('cargo') ?></span>
           </div>
           <div class="field">
-            <label for="telefono_trabajo">Teléfono de trabajo</label>
-            <input type="tel" id="telefono_trabajo" name="telefono_trabajo" value="<?= $dato('telefono_trabajo') ?>">
+            <label for="telefono_trabajo">Teléfono de trabajo<?= $req($nuevo) ?></label>
+            <input type="tel" id="telefono_trabajo" name="telefono_trabajo" value="<?= $dato('telefono_trabajo') ?>"<?= $rq($nuevo) ?>>
             <span class="field__error"><?= $err('telefono_trabajo') ?></span>
           </div>
           <div class="field">
-            <label for="email_laboral">Email laboral</label>
-            <input type="email" id="email_laboral" name="email_laboral" value="<?= $dato('email_laboral') ?>">
+            <label for="email_laboral">Email laboral<?= $req($nuevo) ?></label>
+            <input type="email" id="email_laboral" name="email_laboral" value="<?= $dato('email_laboral') ?>"<?= $rq($nuevo) ?>>
             <span class="field__error"><?= $err('email_laboral') ?></span>
           </div>
           
@@ -267,8 +282,10 @@ $selectMultiple = function (string $campo, string $etiqueta, string $destino = '
             $dirPrefijo  = 'trabajo';
             $dirTitulo   = 'Dirección del trabajo';
             $dirApartado = true;   // direccion.apartado_postal es obligatorio también en el trabajo
+            $dirObligatorio = $nuevo;
             require __DIR__ . '/../../Partials/direccion.php';
             $dirApartado = false;
+            $dirObligatorio = false;
           ?>
 
         </div>
@@ -281,7 +298,7 @@ $selectMultiple = function (string $campo, string $etiqueta, string $destino = '
         <!-- Título básico -->
         <div class="registro__subgrupo registro__subgrupo--simple" role="group" aria-labelledby="titulo-basico">
           <h3 class="registro__subtitulo" id="titulo-basico">Título básico</h3>
-          <?php $filaEstudio('basico', 0, $basico, 'Título básico', false); ?>
+          <?php $filaEstudio('basico', 0, $basico, 'Título básico', false, $nuevo, $errores); ?>
         </div>
 
         <!-- Especialidades y subespecialidades: la API recibe IDs del catálogo -->
@@ -312,8 +329,8 @@ $selectMultiple = function (string $campo, string $etiqueta, string $destino = '
 
       <div class="registro__cert-campos">
         <div class="field">
-          <label for="cert_vigente">Estado / Vigencia</label>
-          <select id="cert_vigente" name="cert_vigente">
+          <label for="cert_vigente">Estado / Vigencia<?= $req($nuevo) ?></label>
+          <select id="cert_vigente" name="cert_vigente"<?= $rq($nuevo) ?>>
             <option value="">Seleccione</option>
             <option value="vigente"<?= $dato('cert_vigente') === 'vigente' ? ' selected' : '' ?>>Vigente</option>
             <option value="no_vigente"<?= $dato('cert_vigente') === 'no_vigente' ? ' selected' : '' ?>>No vigente</option>
@@ -321,18 +338,18 @@ $selectMultiple = function (string $campo, string $etiqueta, string $destino = '
           <span class="field__error"><?= $err('cert_vigente') ?></span>
         </div>
         <div class="field">
-          <label for="cert_fecha_obtencion">Fecha de obtención</label>
-          <input type="date" id="cert_fecha_obtencion" name="cert_fecha_obtencion" value="<?= $dato('cert_fecha_obtencion') ?>">
+          <label for="cert_fecha_obtencion">Fecha de obtención<?= $req($nuevo) ?></label>
+          <input type="date" id="cert_fecha_obtencion" name="cert_fecha_obtencion" value="<?= $dato('cert_fecha_obtencion') ?>"<?= $rq($nuevo) ?>>
           <span class="field__error"><?= $err('cert_fecha_obtencion') ?></span>
         </div>
         <div class="field">
-          <label for="cert_fecha_expiracion">Fecha de expiración</label>
-          <input type="date" id="cert_fecha_expiracion" name="cert_fecha_expiracion" value="<?= $dato('cert_fecha_expiracion') ?>">
+          <label for="cert_fecha_expiracion">Fecha de expiración<?= $req($nuevo) ?></label>
+          <input type="date" id="cert_fecha_expiracion" name="cert_fecha_expiracion" value="<?= $dato('cert_fecha_expiracion') ?>"<?= $rq($nuevo) ?>>
           <span class="field__error"><?= $err('cert_fecha_expiracion') ?></span>
         </div>
         <div class="field">
-          <label for="cert_puntaje">Puntaje</label>
-          <input type="number" id="cert_puntaje" name="cert_puntaje" min="0" step="1" value="<?= $dato('cert_puntaje') ?>">
+          <label for="cert_puntaje">Puntaje<?= $req($nuevo) ?></label>
+          <input type="number" id="cert_puntaje" name="cert_puntaje" min="0" step="1" value="<?= $dato('cert_puntaje') ?>"<?= $rq($nuevo) ?>>
           <span class="field__error"><?= $err('cert_puntaje') ?></span>
         </div>
       </div>
@@ -357,3 +374,16 @@ $selectMultiple = function (string $campo, string $etiqueta, string $destino = '
 </section>
 
 <script src="<?= htmlspecialchars(rtrim(dirname($entrada ?? 'index.php'), '/') . '/Assets/JavaScript/Dedicated/registro.js', ENT_QUOTES, 'UTF-8') ?>"></script>
+<script>
+// Si el servidor devolvió errores solo en pestañas ocultas, abre la primera pestaña que tenga un error
+(function () {
+  var errores = Array.prototype.filter.call(document.querySelectorAll('.registro__tabpanel .field__error'), function (e) {
+    return e.textContent.trim() !== '';
+  });
+  if (errores.length === 0) return;
+  var hayVisible = errores.some(function (e) { return !e.closest('.registro__tabpanel').hidden; });
+  if (hayVisible) return;
+  var tab = document.querySelector('.registro__tab[aria-controls="' + errores[0].closest('.registro__tabpanel').id + '"]');
+  if (tab) tab.click();
+})();
+</script>
