@@ -44,7 +44,7 @@ class Auth
         // Módulo 5
         'cuentas'     => [self::TESORERO, self::ADMIN],
         'movimientos' => [self::TESORERO, self::ADMIN],
-        'reportes'    => [self::ADMIN_ASOCIACION, self::ADMIN],
+        'reportes'    => [self::TESORERO, self::ADMIN_ASOCIACION, self::ADMIN],
     ];
 
     /** Inicia la sesión una sola vez. */
